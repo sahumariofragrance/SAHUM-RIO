@@ -43,7 +43,7 @@ export default function Footer({ setCurrentPage }) {
               </button>
             </li>
             <li>
-              <a href="mailto:sahumariofragnance@gmail.com" className="hover:text-gray-900">
+              <a href="mailto:sahumariofragrance@gmail.com" className="hover:text-gray-900">
                 Contact
               </a>
             </li>
@@ -53,7 +53,7 @@ export default function Footer({ setCurrentPage }) {
         {/* Column 3 */}
         <div>
           <h5 className="font-medium">Connect</h5>
-          <p className="mt-2 text-gray-600">Email: sahumariofragnance@gmail.com</p>
+          <p className="mt-2 text-gray-600">Email: sahumariofragrance@gmail.com</p>
           <p className="text-gray-600">Phone: +91 9974599911</p>
           <p className="mt-4 text-gray-500">© 2025 SAHUMäRIO. All rights reserved.</p>
         </div>
