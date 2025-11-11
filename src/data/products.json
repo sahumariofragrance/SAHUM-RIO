@@ -38,5 +38,13 @@
     "price": 749,
     "image": "/products/night_queen.jpg",
     "alt": "Bottle of White Musk perfume"
+  },
+   {
+    "id": 6,
+    "name": "keroma",
+    "description": "Clean, soft musk with subtle floral notes.",
+    "price": 749,
+    "image": "/products/PRODUCT IMAGE-06.jpg",
+    "alt": "Bottle of White Musk perfume"
   }
 ]
