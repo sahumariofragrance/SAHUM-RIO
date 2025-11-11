@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "Bloom",
+    "description": "Warm, resinous amber with smoky oud base.",
+    "price": 749,
+    "image": "/products/bloom.jpg",
+    "alt": "Bottle of Amber Oud perfume"
+  },
+  {
+    "id": 2,
+    "name": "Dew Drop",
+    "description": "Clean, soft musk with subtle floral notes.",
+    "price": 749,
+    "image": "/products/dew_drop.jpg",
+    "alt": "Bottle of White Musk perfume"
+  },
+  {
+    "id": 3,
+    "name": "Lemon Breeze",
+    "description": "Clean, soft musk with subtle floral notes.",
+    "price": 749,
+    "image": "/products/lemon_breeze.jpg",
+    "alt": "Bottle of White Musk perfume"
+  },
+  {
+    "id": 4,
+    "name": "Morning Dew",
+    "description": "Clean, soft musk with subtle floral notes.",
+    "price": 749,
+    "image": "/products/morning_dew.jpg",
+    "alt": "Bottle of White Musk perfume"
+  },
+  {
+    "id": 5,
+    "name": "Night Queen",
+    "description": "Clean, soft musk with subtle floral notes.",
+    "price": 749,
+    "image": "/products/night_queen.jpg",
+    "alt": "Bottle of White Musk perfume"
+  }
+]
