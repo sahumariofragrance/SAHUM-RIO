@@ -23,7 +23,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       return;
     }
 
-    const phoneNumber = "+919427368910";
+    const phoneNumber = "+919974599911";
     const cartDetails = items.map(item => `${item.name} x${item.qty}`).join("\n");
     const addressDetails = `Name: ${form.name}\nPhone: ${form.phone}\nAddress: ${form.address}, ${form.city}, ${form.state} - ${form.pin}`;
     const paymentDetails = ""; // Placeholder for removed payment details
