@@ -54,7 +54,7 @@ useEffect(() => {
             />
             <div>
               <h4 className="text-xl font-bold">{selectedPerfume.name}</h4>
-              <p className="mt-2 text-gray-700">{selectedPerfume.description}</p>
+              <p className="mt-2 text-gray-700 whitespace-pre-line">{selectedPerfume.description}</p>
               <div className="mt-4 font-medium">
                 Price: ₹{Number(selectedPerfume?.price ?? 0).toLocaleString("en-IN")}
               </div>
