@@ -11,6 +11,14 @@ const CartSummary = React.memo(
     onCheckout,
     onContinueShopping,
     loading = false,
+    total = subtotal,
+    discountPercent = 0,
+    promoCode = "",
+    onPromoCodeChange,
+    onApplyPromo,
+    applyingPromo = false,
+    promoMessage = "",
+    promoError = "",
   }) => {
     return (
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
@@ -50,10 +58,42 @@ const CartSummary = React.memo(
             <span className="text-[var(--color-muted)]">Shipping</span>
             <span className="font-medium text-green-600">Free</span>
           </div>
+          {discountPercent > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-[var(--color-muted)]">Discount ({discountPercent}%)</span>
+              <span className="font-medium text-green-600">- {formatINR(subtotal - total)}</span>
+            </div>
+          )}
           <div className="flex justify-between border-t border-[var(--color-border)] pt-2 text-base font-semibold">
             <span>Total</span>
-            <span className="text-amber-600">{formatINR(subtotal)}</span>
+            <span className="text-amber-600">{formatINR(total)}</span>
           </div>
+        </div>
+
+        <div className="mt-4">
+          <label htmlFor="promo-code" className="mb-1 block text-sm font-medium">
+            Promo code
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="promo-code"
+              value={promoCode}
+              onChange={(event) => onPromoCodeChange?.(event.target.value)}
+              placeholder="Enter promo code"
+              className="w-full rounded-lg border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm outline-none focus:border-amber-500"
+              disabled={loading || applyingPromo}
+            />
+            <button
+              type="button"
+              onClick={onApplyPromo}
+              disabled={loading || applyingPromo || !promoCode.trim()}
+              className="rounded-lg border border-amber-600 px-3 py-2 text-sm font-semibold text-amber-600 transition-colors hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {applyingPromo ? "Checking..." : "Apply"}
+            </button>
+          </div>
+          {promoMessage && <p className="mt-1 text-xs text-green-600">{promoMessage}</p>}
+          {promoError && <p className="mt-1 text-xs text-red-600">{promoError}</p>}
         </div>
 
         {/* Primary CTA — disabled until form is valid */}
@@ -61,7 +101,7 @@ const CartSummary = React.memo(
           onClick={onCheckout}
           disabled={!formValid || loading}
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-amber-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"
-          aria-label={`Pay ${formatINR(subtotal)} securely`}
+          aria-label={`Pay ${formatINR(total)} securely`}
         >
           {loading ? (
             <>
@@ -71,7 +111,7 @@ const CartSummary = React.memo(
           ) : (
             <>
               <Lock className="h-4 w-4" aria-hidden="true" />
-              Pay {formatINR(subtotal)}
+              Pay {formatINR(total)}
             </>
           )}
         </button>
