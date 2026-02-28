@@ -6,31 +6,8 @@
  * Returns: { valid: boolean, discountPercent?: number, message?: string }
  */
 
-const DEFAULT_CODES = {
-  SAHUM10: 10,
-  WELCOME15: 15,
-  FRAGRANCE20: 20,
-};
-
-function resolvePromoMap() {
-  const raw = process.env.PROMO_CODES_JSON;
-  if (!raw) return DEFAULT_CODES;
-
-  try {
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return DEFAULT_CODES;
-
-    return Object.entries(parsed).reduce((acc, [code, discount]) => {
-      const percent = Number(discount);
-      if (Number.isFinite(percent) && percent > 0) {
-        acc[String(code).trim().toUpperCase()] = percent;
-      }
-      return acc;
-    }, {});
-  } catch {
-    return DEFAULT_CODES;
-  }
-}
+const PROMO_CODE = "WELCOME10";
+const PROMO_DISCOUNT_PERCENT = 10;
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
@@ -44,14 +21,13 @@ module.exports = async (req, res) => {
     return res.status(400).json({ valid: false, message: "Promo code is required" });
   }
 
-  const promoMap = resolvePromoMap();
-  if (!Object.prototype.hasOwnProperty.call(promoMap, promoCode)) {
+  if (promoCode !== PROMO_CODE) {
     return res.status(404).json({ valid: false, message: "Invalid promo code" });
   }
 
   return res.status(200).json({
     valid: true,
-    discountPercent: promoMap[promoCode],
+    discountPercent: PROMO_DISCOUNT_PERCENT,
     message: "Promo validated",
   });
 };
