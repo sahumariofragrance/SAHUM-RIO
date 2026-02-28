@@ -103,8 +103,16 @@ export default function CheckoutPage({ setCurrentPage }) {
 
   const handleApplyPromo = useCallback(async () => {
     const trimmedCode = promoCode.trim();
+    const phone = String(formData.phone || "").trim();
+    const email = String(formData.email || "").trim().toLowerCase();
+
     if (!trimmedCode) {
       setPromoError("Please enter a promo code.");
+      return;
+    }
+
+    if (!phone || !email) {
+      setPromoError("Please enter both phone number and email before applying a promo code.");
       return;
     }
 
@@ -116,7 +124,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       const promoRes = await fetch("/api/payments/promo/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: trimmedCode, subtotal }),
+        body: JSON.stringify({ code: trimmedCode, subtotal, phone, email }),
       });
 
       const promoBody = await promoRes.json().catch(() => ({}));
@@ -140,7 +148,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     } finally {
       setApplyingPromo(false);
     }
-  }, [promoCode, subtotal]);
+  }, [promoCode, subtotal, formData.phone, formData.email]);
 
   const initiatePayment = useCallback(async () => {
     if (!formValid) {
