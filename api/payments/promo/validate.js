@@ -7,7 +7,9 @@
  */
 
 const DEFAULT_CODES = {
-  WELCOME10: 10,
+  SAHUM10: 10,
+  WELCOME15: 15,
+  FRAGRANCE20: 20,
 };
 
 function resolvePromoMap() {
@@ -18,12 +20,13 @@ function resolvePromoMap() {
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return DEFAULT_CODES;
 
-    const welcomeDiscount = Number(parsed.WELCOME10);
-    if (Number.isFinite(welcomeDiscount) && welcomeDiscount > 0) {
-      return { WELCOME10: welcomeDiscount };
-    }
-
-    return DEFAULT_CODES;
+    return Object.entries(parsed).reduce((acc, [code, discount]) => {
+      const percent = Number(discount);
+      if (Number.isFinite(percent) && percent > 0) {
+        acc[String(code).trim().toUpperCase()] = percent;
+      }
+      return acc;
+    }, {});
   } catch {
     return DEFAULT_CODES;
   }
