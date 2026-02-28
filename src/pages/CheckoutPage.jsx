@@ -73,11 +73,16 @@ function ErrorBanner({ message, onDismiss }) {
 
 export default function CheckoutPage({ setCurrentPage }) {
   const { items, subtotal, clearCart } = useCart();
-  const { addOrder } = useOrders();
+  const { orders, addOrder } = useOrders();
+  const PROMO_CODE = "WELCOME10";
+  const PROMO_DISCOUNT_PERCENT = 10;
   const [formData, setFormData] = useState({});
   const [formValid, setFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [promoInput, setPromoInput] = useState("");
+  const [promoCode, setPromoCode] = useState(null);
+  const [promoMessage, setPromoMessage] = useState(null);
   const [step, setStep] = useState("checkout"); // "checkout" | "success"
   const [confirmedOrderId, setConfirmedOrderId] = useState(null);
   const successRef = useRef(null);
@@ -95,6 +100,41 @@ export default function CheckoutPage({ setCurrentPage }) {
     setError(null);
   }, []);
 
+  const hasPreviousOrders = orders.length > 0;
+  const discountPercent = promoCode ? PROMO_DISCOUNT_PERCENT : 0;
+  const total = Math.round(subtotal * (1 - discountPercent / 100));
+
+  const handleApplyPromo = useCallback(() => {
+    const normalizedCode = promoInput.trim().toUpperCase();
+
+    if (hasPreviousOrders) {
+      setPromoCode(null);
+      setPromoMessage({
+        type: "error",
+        text: "This promo code is only valid for first-time users.",
+      });
+      return;
+    }
+
+    if (!normalizedCode) {
+      setPromoMessage({ type: "error", text: "Please enter a promo code." });
+      return;
+    }
+
+    if (normalizedCode === PROMO_CODE) {
+      setPromoCode(PROMO_CODE);
+      setPromoInput(PROMO_CODE);
+      setPromoMessage({
+        type: "success",
+        text: `${PROMO_DISCOUNT_PERCENT}% discount applied successfully!`,
+      });
+      return;
+    }
+
+    setPromoCode(null);
+    setPromoMessage({ type: "error", text: "Invalid promo code." });
+  }, [PROMO_CODE, PROMO_DISCOUNT_PERCENT, hasPreviousOrders, promoInput]);
+
   const initiatePayment = useCallback(async () => {
     if (!formValid) {
       setError("Please complete all required shipping fields before proceeding.");
@@ -107,17 +147,27 @@ export default function CheckoutPage({ setCurrentPage }) {
       return;
     }
 
+    if (hasPreviousOrders && promoCode) {
+      setPromoCode(null);
+      setPromoMessage({
+        type: "error",
+        text: "This promo code is only valid for first-time users.",
+      });
+      setError("Promo code removed because this offer is for first-time users only.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
-      paymentLog("info", "INITIATED", { amount: subtotal, discountPercent: 0 });
+      paymentLog("info", "INITIATED", { amount: total, discountPercent });
 
       // ── Step 1: Create order on backend ────────────────────────────────────
       const orderRes = await fetch("/api/payments/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Math.round(subtotal * 100), // Razorpay expects paise
+          amount: Math.round(total * 100), // Razorpay expects paise
           currency: "INR",
           customer: {
             name: formData.name,
@@ -127,8 +177,8 @@ export default function CheckoutPage({ setCurrentPage }) {
           notes: {
             address: `${formData.address}, ${formData.city}, ${formData.state} - ${formData.pin}`,
             instructions: formData.notes || "",
-            promo_code: "",
-            discount_percent: "0",
+            promo_code: promoCode || "",
+            discount_percent: String(discountPercent),
           },
         }),
       });
@@ -183,9 +233,9 @@ export default function CheckoutPage({ setCurrentPage }) {
         id: paymentResponse.razorpay_order_id,
         items: items.map((i) => ({ ...i })),
         subtotal,
-        discountedSubtotal: subtotal,
-        promoCode: null,
-        discountPercent: 0,
+        discountedSubtotal: total,
+        promoCode,
+        discountPercent,
         address: { ...formData },
         payment: { id: paymentResponse.razorpay_payment_id, method: "Razorpay" },
         createdAt: new Date().toISOString(),
@@ -205,7 +255,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     } finally {
       setLoading(false);
     }
-  }, [formValid, formData, subtotal, items, clearCart, addOrder]);
+  }, [formValid, formData, total, discountPercent, promoCode, hasPreviousOrders, items, subtotal, clearCart, addOrder]);
 
   // ── Success screen ──────────────────────────────────────────────────────────
   if (step === "success") {
@@ -299,10 +349,52 @@ export default function CheckoutPage({ setCurrentPage }) {
         {/* Order summary — first on mobile so user sees total before filling form */}
         <div className="order-1 lg:order-2">
           <div className="sticky top-20">
+            <Card className="mb-4 p-4">
+              <h2 className="text-sm font-semibold">Promotional Offer Code</h2>
+              <p className="mt-1 text-xs text-[var(--color-muted)]">
+                {hasPreviousOrders
+                  ? "Promo code is available for first-time users only."
+                  : (
+                    <>
+                      Redeem <span className="font-semibold text-amber-600">{PROMO_CODE}</span> to get {PROMO_DISCOUNT_PERCENT}% off on your first order.
+                    </>
+                  )}
+              </p>
+              <div className="mt-3 flex gap-2">
+                <input
+                  value={promoInput}
+                  onChange={(e) => {
+                    setPromoInput(e.target.value);
+                    setPromoMessage(null);
+                  }}
+                  placeholder="Enter promo code"
+                  className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm uppercase outline-none transition-colors focus:border-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={hasPreviousOrders}
+                />
+                <button
+                  onClick={handleApplyPromo}
+                  type="button"
+                  className="rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={hasPreviousOrders}
+                >
+                  Apply
+                </button>
+              </div>
+              {promoMessage && (
+                <p
+                  className={`mt-2 text-xs ${
+                    promoMessage.type === "success" ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {promoMessage.text}
+                </p>
+              )}
+            </Card>
             <CartSummary
               items={items}
               subtotal={subtotal}
-              total={subtotal}
+              total={total}
+              discountPercent={discountPercent}
               formValid={formValid}
               testMode={testMode}
               onCheckout={initiatePayment}
