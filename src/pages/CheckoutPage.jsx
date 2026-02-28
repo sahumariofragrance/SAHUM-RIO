@@ -73,7 +73,7 @@ function ErrorBanner({ message, onDismiss }) {
 
 export default function CheckoutPage({ setCurrentPage }) {
   const { items, subtotal, clearCart } = useCart();
-  const { addOrder } = useOrders();
+  const { orders, addOrder } = useOrders();
   const PROMO_CODE = "WELCOME10";
   const PROMO_DISCOUNT_PERCENT = 10;
   const [formData, setFormData] = useState({});
@@ -100,11 +100,21 @@ export default function CheckoutPage({ setCurrentPage }) {
     setError(null);
   }, []);
 
+  const hasPreviousOrders = orders.length > 0;
   const discountPercent = promoCode ? PROMO_DISCOUNT_PERCENT : 0;
   const total = Math.round(subtotal * (1 - discountPercent / 100));
 
   const handleApplyPromo = useCallback(() => {
     const normalizedCode = promoInput.trim().toUpperCase();
+
+    if (hasPreviousOrders) {
+      setPromoCode(null);
+      setPromoMessage({
+        type: "error",
+        text: "This promo code is only valid for first-time users.",
+      });
+      return;
+    }
 
     if (!normalizedCode) {
       setPromoMessage({ type: "error", text: "Please enter a promo code." });
@@ -123,7 +133,7 @@ export default function CheckoutPage({ setCurrentPage }) {
 
     setPromoCode(null);
     setPromoMessage({ type: "error", text: "Invalid promo code." });
-  }, [PROMO_CODE, PROMO_DISCOUNT_PERCENT, promoInput]);
+  }, [PROMO_CODE, PROMO_DISCOUNT_PERCENT, hasPreviousOrders, promoInput]);
 
   const initiatePayment = useCallback(async () => {
     if (!formValid) {
@@ -134,6 +144,16 @@ export default function CheckoutPage({ setCurrentPage }) {
     const razorpayKey = process.env.REACT_APP_RAZORPAY_KEY_ID;
     if (!razorpayKey) {
       setError("Payment gateway is not configured. Please contact support.");
+      return;
+    }
+
+    if (hasPreviousOrders && promoCode) {
+      setPromoCode(null);
+      setPromoMessage({
+        type: "error",
+        text: "This promo code is only valid for first-time users.",
+      });
+      setError("Promo code removed because this offer is for first-time users only.");
       return;
     }
 
@@ -235,7 +255,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     } finally {
       setLoading(false);
     }
-  }, [formValid, formData, total, discountPercent, promoCode, items, subtotal, clearCart, addOrder]);
+  }, [formValid, formData, total, discountPercent, promoCode, hasPreviousOrders, items, subtotal, clearCart, addOrder]);
 
   // ── Success screen ──────────────────────────────────────────────────────────
   if (step === "success") {
@@ -332,7 +352,13 @@ export default function CheckoutPage({ setCurrentPage }) {
             <Card className="mb-4 p-4">
               <h2 className="text-sm font-semibold">Promotional Offer Code</h2>
               <p className="mt-1 text-xs text-[var(--color-muted)]">
-                Redeem <span className="font-semibold text-amber-600">{PROMO_CODE}</span> to get {PROMO_DISCOUNT_PERCENT}% off.
+                {hasPreviousOrders
+                  ? "Promo code is available for first-time users only."
+                  : (
+                    <>
+                      Redeem <span className="font-semibold text-amber-600">{PROMO_CODE}</span> to get {PROMO_DISCOUNT_PERCENT}% off on your first order.
+                    </>
+                  )}
               </p>
               <div className="mt-3 flex gap-2">
                 <input
@@ -342,12 +368,14 @@ export default function CheckoutPage({ setCurrentPage }) {
                     setPromoMessage(null);
                   }}
                   placeholder="Enter promo code"
-                  className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm uppercase outline-none transition-colors focus:border-amber-500"
+                  className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm uppercase outline-none transition-colors focus:border-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={hasPreviousOrders}
                 />
                 <button
                   onClick={handleApplyPromo}
                   type="button"
-                  className="rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700"
+                  className="rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={hasPreviousOrders}
                 >
                   Apply
                 </button>
