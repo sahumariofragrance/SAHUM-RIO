@@ -13,12 +13,6 @@ const CartSummary = React.memo(
     loading = false,
     total = subtotal,
     discountPercent = 0,
-    promoCode = "",
-    onPromoCodeChange,
-    onApplyPromo,
-    applyingPromo = false,
-    promoMessage = "",
-    promoError = "",
   }) => {
     return (
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
@@ -68,32 +62,6 @@ const CartSummary = React.memo(
             <span>Total</span>
             <span className="text-amber-600">{formatINR(total)}</span>
           </div>
-        </div>
-
-        <div className="mt-4">
-          <label htmlFor="promo-code" className="mb-1 block text-sm font-medium">
-            Promo code
-          </label>
-          <div className="flex gap-2">
-            <input
-              id="promo-code"
-              value={promoCode}
-              onChange={(event) => onPromoCodeChange?.(event.target.value)}
-              placeholder="Enter promo code"
-              className="w-full rounded-lg border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm outline-none focus:border-amber-500"
-              disabled={loading || applyingPromo}
-            />
-            <button
-              type="button"
-              onClick={onApplyPromo}
-              disabled={loading || applyingPromo || !promoCode.trim()}
-              className="rounded-lg border border-amber-600 px-3 py-2 text-sm font-semibold text-amber-600 transition-colors hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {applyingPromo ? "Checking..." : "Apply"}
-            </button>
-          </div>
-          {promoMessage && <p className="mt-1 text-xs text-green-600">{promoMessage}</p>}
-          {promoError && <p className="mt-1 text-xs text-red-600">{promoError}</p>}
         </div>
 
         {/* Primary CTA — disabled until form is valid */}

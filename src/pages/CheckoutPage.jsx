@@ -77,16 +77,10 @@ export default function CheckoutPage({ setCurrentPage }) {
   const [formData, setFormData] = useState({});
   const [formValid, setFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [applyingPromo, setApplyingPromo] = useState(false);
   const [error, setError] = useState(null);
-  const [promoCode, setPromoCode] = useState("");
-  const [promoMessage, setPromoMessage] = useState("");
-  const [promoError, setPromoError] = useState("");
-  const [discountPercent, setDiscountPercent] = useState(0);
   const [step, setStep] = useState("checkout"); // "checkout" | "success"
   const [confirmedOrderId, setConfirmedOrderId] = useState(null);
   const successRef = useRef(null);
-  const discountedSubtotal = Math.round(subtotal * (1 - discountPercent / 100));
 
   const testMode = isTestMode(process.env.REACT_APP_RAZORPAY_KEY_ID);
 
@@ -100,47 +94,6 @@ export default function CheckoutPage({ setCurrentPage }) {
     setFormValid(!!valid);
     setError(null);
   }, []);
-
-  const handleApplyPromo = useCallback(async () => {
-    const trimmedCode = promoCode.trim();
-    if (!trimmedCode) {
-      setPromoError("Please enter a promo code.");
-      return;
-    }
-
-    try {
-      setApplyingPromo(true);
-      setPromoError("");
-      setPromoMessage("");
-
-      const promoRes = await fetch("/api/payments/promo/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: trimmedCode, subtotal }),
-      });
-
-      const promoBody = await promoRes.json().catch(() => ({}));
-      if (!promoRes.ok || promoBody.valid === false) {
-        throw new Error(promoBody.message || "Invalid promo code.");
-      }
-
-      const receivedPercent = Number(promoBody.discountPercent);
-      const validPercent = Number.isFinite(receivedPercent) && receivedPercent > 0;
-      const percentToApply = validPercent ? receivedPercent : 10;
-
-      setDiscountPercent(percentToApply);
-      setPromoMessage(
-        validPercent
-          ? `Promo applied successfully. ${percentToApply}% discount added.`
-          : "Promo validated, no discount received from API. Applied default 10% discount."
-      );
-    } catch (err) {
-      setDiscountPercent(0);
-      setPromoError(err.message || "Could not validate promo code.");
-    } finally {
-      setApplyingPromo(false);
-    }
-  }, [promoCode, subtotal]);
 
   const initiatePayment = useCallback(async () => {
     if (!formValid) {
@@ -157,14 +110,14 @@ export default function CheckoutPage({ setCurrentPage }) {
     try {
       setLoading(true);
       setError(null);
-      paymentLog("info", "INITIATED", { amount: discountedSubtotal, discountPercent });
+      paymentLog("info", "INITIATED", { amount: subtotal, discountPercent: 0 });
 
       // ── Step 1: Create order on backend ────────────────────────────────────
       const orderRes = await fetch("/api/payments/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Math.round(discountedSubtotal * 100), // Razorpay expects paise
+          amount: Math.round(subtotal * 100), // Razorpay expects paise
           currency: "INR",
           customer: {
             name: formData.name,
@@ -174,8 +127,8 @@ export default function CheckoutPage({ setCurrentPage }) {
           notes: {
             address: `${formData.address}, ${formData.city}, ${formData.state} - ${formData.pin}`,
             instructions: formData.notes || "",
-            promo_code: promoCode.trim(),
-            discount_percent: String(discountPercent || 0),
+            promo_code: "",
+            discount_percent: "0",
           },
         }),
       });
@@ -230,9 +183,9 @@ export default function CheckoutPage({ setCurrentPage }) {
         id: paymentResponse.razorpay_order_id,
         items: items.map((i) => ({ ...i })),
         subtotal,
-        discountedSubtotal,
-        promoCode: promoCode.trim() || null,
-        discountPercent,
+        discountedSubtotal: subtotal,
+        promoCode: null,
+        discountPercent: 0,
         address: { ...formData },
         payment: { id: paymentResponse.razorpay_payment_id, method: "Razorpay" },
         createdAt: new Date().toISOString(),
@@ -252,7 +205,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     } finally {
       setLoading(false);
     }
-  }, [formValid, formData, subtotal, discountedSubtotal, items, clearCart, addOrder, discountPercent, promoCode]);
+  }, [formValid, formData, subtotal, items, clearCart, addOrder]);
 
   // ── Success screen ──────────────────────────────────────────────────────────
   if (step === "success") {
@@ -349,18 +302,7 @@ export default function CheckoutPage({ setCurrentPage }) {
             <CartSummary
               items={items}
               subtotal={subtotal}
-              total={discountedSubtotal}
-              discountPercent={discountPercent}
-              promoCode={promoCode}
-              onPromoCodeChange={(value) => {
-                setPromoCode(value);
-                setPromoError("");
-                setPromoMessage("");
-              }}
-              onApplyPromo={handleApplyPromo}
-              applyingPromo={applyingPromo}
-              promoMessage={promoMessage}
-              promoError={promoError}
+              total={subtotal}
               formValid={formValid}
               testMode={testMode}
               onCheckout={initiatePayment}
