@@ -71,6 +71,10 @@ const CartSummary = React.memo(
         </div>
 
         <div className="mt-4">
+          <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            <p className="font-semibold">Use promo code: WELCOME10</p>
+            <p className="text-xs text-amber-700">This is the only valid code for the promotional offer.</p>
+          </div>
           <label htmlFor="promo-code" className="mb-1 block text-sm font-medium">
             Promo code
           </label>
@@ -79,7 +83,7 @@ const CartSummary = React.memo(
               id="promo-code"
               value={promoCode}
               onChange={(event) => onPromoCodeChange?.(event.target.value)}
-              placeholder="Enter promo code"
+              placeholder="WELCOME10"
               className="w-full rounded-lg border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm outline-none focus:border-amber-500"
               disabled={loading || applyingPromo}
             />
