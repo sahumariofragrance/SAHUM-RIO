@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1772388941914,
+    "name": "Admin",
+    "email": "admin@example.com",
+    "passwordHash": "50d0615c48a8f597f0054081485f9849:1d7a7f4df5b084555ac9d2ebcf2b1b115d400233acd25e4d4d006fa9689d6084e210391a04004ee216c1f4eb0dc27e7305db8bfeb118db0af1028aebe9255e40",
+    "role": "admin",
+    "createdAt": "2026-03-01T18:15:42.033Z"
+  }
+]

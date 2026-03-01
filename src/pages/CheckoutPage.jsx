@@ -5,6 +5,7 @@ import ShippingForm from "../components/ShippingForm";
 import CartSummary from "../components/CartSummary";
 import { useCart } from "../context/cartContext";
 import { useOrders } from "../context/OrdersContext";
+import { useAuth } from "../context/AuthContext";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
 
@@ -74,6 +75,7 @@ function ErrorBanner({ message, onDismiss }) {
 export default function CheckoutPage({ setCurrentPage }) {
   const { items, subtotal, clearCart } = useCart();
   const { addOrder } = useOrders();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({});
   const [formValid, setFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -96,6 +98,11 @@ export default function CheckoutPage({ setCurrentPage }) {
   }, []);
 
   const initiatePayment = useCallback(async () => {
+    if (!user) {
+      setError("Please login before placing your order.");
+      return;
+    }
+
     if (!formValid) {
       setError("Please complete all required shipping fields before proceeding.");
       return;
@@ -179,20 +186,16 @@ export default function CheckoutPage({ setCurrentPage }) {
       paymentLog("info", "VERIFIED", { payment_id: paymentResponse.razorpay_payment_id });
 
       // ── Persist order to context / localStorage ────────────────────────────
-      addOrder({
-        id: paymentResponse.razorpay_order_id,
+      const createdOrder = await addOrder({
         items: items.map((i) => ({ ...i })),
         subtotal,
-        discountedSubtotal: subtotal,
-        promoCode: null,
-        discountPercent: 0,
+        total: subtotal,
         address: { ...formData },
         payment: { id: paymentResponse.razorpay_payment_id, method: "Razorpay" },
-        createdAt: new Date().toISOString(),
       });
 
       clearCart();
-      setConfirmedOrderId(paymentResponse.razorpay_order_id);
+      setConfirmedOrderId(createdOrder?.id || paymentResponse.razorpay_order_id);
       setStep("success");
     } catch (err) {
       const msg = friendlyPaymentError(err);
@@ -205,7 +208,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     } finally {
       setLoading(false);
     }
-  }, [formValid, formData, subtotal, items, clearCart, addOrder]);
+  }, [formValid, formData, subtotal, items, clearCart, addOrder, user]);
 
   // ── Success screen ──────────────────────────────────────────────────────────
   if (step === "success") {
