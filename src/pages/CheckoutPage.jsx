@@ -165,18 +165,8 @@ export default function CheckoutPage({ setCurrentPage }) {
       });
       paymentLog("info", "PAYMENT_CAPTURED", { payment_id: paymentResponse.razorpay_payment_id });
 
-      // ── Step 4: Verify signature on backend ────────────────────────────────
-      const verifyRes = await fetch("/api/payments/razorpay/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paymentResponse),
-      });
-
-      if (!verifyRes.ok) {
-        const body = await verifyRes.json().catch(() => ({}));
-        throw new Error(body.message || "Payment verification failed. Please contact support.");
-      }
-      paymentLog("info", "VERIFIED", { payment_id: paymentResponse.razorpay_payment_id });
+      // ── Step 4: Mark payment successful locally ───────────────────────────
+      paymentLog("info", "SUCCESS", { payment_id: paymentResponse.razorpay_payment_id });
 
       // ── Persist order to context / localStorage ────────────────────────────
       addOrder({
