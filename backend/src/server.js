@@ -7,6 +7,9 @@ const app = express();
 const PORT = Number(process.env.PORT || 8000);
 const TOKEN_SECRET = process.env.TOKEN_SECRET || "dev-secret-change-me";
 const OTP_TTL_MS = 10 * 60 * 1000;
+const OTP_RATE_WINDOW_MS = 5 * 60 * 1000;
+const OTP_RATE_MAX = 3;
+
 const DATA_DIR = path.resolve(__dirname, "../data");
 const USERS_PATH = path.join(DATA_DIR, "users.json");
 const PRODUCTS_PATH = path.join(DATA_DIR, "products.json");
@@ -15,6 +18,7 @@ const CARTS_PATH = path.join(DATA_DIR, "carts.json");
 const PROMO_REDEMPTIONS_PATH = path.join(DATA_DIR, "promo_redemptions.json");
 
 const otpStore = new Map();
+const otpRateStore = new Map();
 
 app.use(express.json({ limit: "1mb" }));
 
@@ -85,6 +89,30 @@ function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
+function isOtpRateLimited(email, phone) {
+  const n = normalizeContact(email, phone);
+  const now = Date.now();
+  const keys = [
+    `email:${n.email}`,
+    `phone:${n.phone}`,
+    `pair:${n.email}::${n.phone}`,
+  ];
+
+  for (const key of keys) {
+    const recent = (otpRateStore.get(key) || []).filter((ts) => now - ts < OTP_RATE_WINDOW_MS);
+    otpRateStore.set(key, recent);
+    if (recent.length >= OTP_RATE_MAX) return true;
+  }
+
+  keys.forEach((key) => {
+    const recent = otpRateStore.get(key) || [];
+    recent.push(now);
+    otpRateStore.set(key, recent);
+  });
+
+  return false;
+}
+
 function requireVerifiedOtp(email, phone) {
   const key = contactKey(email, phone);
   const entry = otpStore.get(key);
@@ -150,7 +178,6 @@ function createJsonAdapter() {
 }
 
 let db = createJsonAdapter();
-
 async function initDb() {
   db = (await createSupabaseAdapter()) || createJsonAdapter();
   console.log(`[DB] Using ${db.mode}`);
@@ -174,11 +201,23 @@ app.get("/api/health", (_req, res) => res.json({ ok: true, db: db.mode }));
 app.post("/api/otp/send", async (req, res) => {
   const { email, phone } = req.body || {};
   const n = normalizeContact(email, phone);
-  if (!n.email || !/^\d{10}$/.test(n.phone)) return res.status(400).json({ message: "Valid email and 10-digit phone required" });
+
+  if (!n.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(n.email) || !/^\d{10}$/.test(n.phone)) {
+    return res.status(400).json({ message: "Valid email and 10-digit phone required" });
+  }
+
+  if (isOtpRateLimited(n.email, n.phone)) {
+    return res.status(429).json({ message: "Too many OTP requests. Please try again later." });
+  }
 
   const emailOtp = generateOtp();
   const phoneOtp = generateOtp();
-  otpStore.set(contactKey(n.email, n.phone), { emailOtp, phoneOtp, verified: false, expiresAt: Date.now() + OTP_TTL_MS });
+  otpStore.set(contactKey(n.email, n.phone), {
+    emailOtp,
+    phoneOtp,
+    verified: false,
+    expiresAt: Date.now() + OTP_TTL_MS,
+  });
 
   res.json({ message: "OTP sent", dev: { emailOtp, phoneOtp } });
 });
@@ -272,17 +311,26 @@ app.get("/api/orders", auth, async (req, res) => {
 async function createOrderRecord({ userId = null, body }) {
   const { items, subtotal, total, address, payment, promoCode = null, discountPercent = 0 } = body || {};
   if (!Array.isArray(items) || !items.length || !address || !payment) throw new Error("items, address and payment are required");
-  if (!address?.email || !address?.phone) throw new Error("email and phone are required");
-  if (!requireVerifiedOtp(address.email, address.phone)) throw new Error("Please verify OTP for email and phone");
+
+  const contact = normalizeContact(address?.email, address?.phone);
+  if (!contact.email || !contact.phone) throw new Error("email and phone are required");
+  if (!requireVerifiedOtp(contact.email, contact.phone)) throw new Error("Please verify OTP for email and phone");
 
   const normalizedPromo = String(promoCode || "").trim().toUpperCase() || null;
   if (normalizedPromo) {
     const redeemed = await db.getPromoRedemptions();
-    const key = contactKey(address.email, address.phone);
-    if (redeemed.some((r) => r.promoCode === normalizedPromo && r.contactKey === key)) {
-      throw new Error("Promo code already redeemed for this email and phone");
-    }
-    redeemed.push({ id: Date.now(), promoCode: normalizedPromo, contactKey: key, email: normalizeContact(address.email, address.phone).email, phone: normalizeContact(address.email, address.phone).phone, createdAt: new Date().toISOString() });
+    const alreadyUsed = redeemed.some(
+      (r) => r.promoCode === normalizedPromo && (r.email === contact.email || r.phone === contact.phone)
+    );
+    if (alreadyUsed) throw new Error("Promo code already redeemed for this email or phone");
+
+    redeemed.push({
+      id: Date.now(),
+      promoCode: normalizedPromo,
+      email: contact.email,
+      phone: contact.phone,
+      createdAt: new Date().toISOString(),
+    });
     await db.savePromoRedemptions(redeemed);
   }
 
@@ -295,7 +343,7 @@ async function createOrderRecord({ userId = null, body }) {
     total: Number(total) || Number(subtotal) || 0,
     promoCode: normalizedPromo,
     discountPercent: Number(discountPercent) || 0,
-    address,
+    address: { ...address, email: contact.email, phone: contact.phone },
     payment,
     createdAt: new Date().toISOString(),
   };
