@@ -6,21 +6,20 @@ const crypto = require("crypto");
 const app = express();
 const PORT = Number(process.env.PORT || 8000);
 const TOKEN_SECRET = process.env.TOKEN_SECRET || "dev-secret-change-me";
+const OTP_TTL_MS = 10 * 60 * 1000;
 const DATA_DIR = path.resolve(__dirname, "../data");
 const USERS_PATH = path.join(DATA_DIR, "users.json");
 const PRODUCTS_PATH = path.join(DATA_DIR, "products.json");
 const ORDERS_PATH = path.join(DATA_DIR, "orders.json");
 const CARTS_PATH = path.join(DATA_DIR, "carts.json");
+const PROMO_REDEMPTIONS_PATH = path.join(DATA_DIR, "promo_redemptions.json");
+
+const otpStore = new Map();
 
 app.use(express.json({ limit: "1mb" }));
 
-function b64url(input) {
-  return Buffer.from(input).toString("base64url");
-}
-
-function sign(value) {
-  return crypto.createHmac("sha256", TOKEN_SECRET).update(value).digest("base64url");
-}
+const b64url = (input) => Buffer.from(input).toString("base64url");
+const sign = (value) => crypto.createHmac("sha256", TOKEN_SECRET).update(value).digest("base64url");
 
 function createToken(user) {
   const payload = JSON.stringify({ uid: user.id, exp: Date.now() + 7 * 24 * 3600 * 1000 });
@@ -70,6 +69,28 @@ function sanitizeUser(user) {
   return { id: user.id, name: user.name, email: user.email, role: user.role || "customer" };
 }
 
+function normalizeContact(email, phone) {
+  return {
+    email: String(email || "").trim().toLowerCase(),
+    phone: String(phone || "").replace(/\D/g, ""),
+  };
+}
+
+function contactKey(email, phone) {
+  const n = normalizeContact(email, phone);
+  return `${n.email}::${n.phone}`;
+}
+
+function generateOtp() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function requireVerifiedOtp(email, phone) {
+  const key = contactKey(email, phone);
+  const entry = otpStore.get(key);
+  return !!entry && entry.verified === true && entry.expiresAt > Date.now();
+}
+
 async function createSupabaseAdapter() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -81,53 +102,30 @@ async function createSupabaseAdapter() {
 
     return {
       mode: "supabase-postgres",
-      async getUsers() {
-        const { data, error } = await sb.from("users").select("*");
-        if (error) throw new Error(error.message);
-        return data || [];
+      getUsers: async () => (await sb.from("users").select("*")).data || [],
+      saveUsers: async (users) => {
+        await sb.from("users").delete().neq("id", -1);
+        if (users.length) await sb.from("users").insert(users);
       },
-      async saveUsers(users) {
-        const { error: delErr } = await sb.from("users").delete().neq("id", -1);
-        if (delErr) throw new Error(delErr.message);
-        if (!users.length) return;
-        const { error } = await sb.from("users").insert(users);
-        if (error) throw new Error(error.message);
+      getProducts: async () => (await sb.from("products").select("*").order("id", { ascending: true })).data || [],
+      saveProducts: async (products) => {
+        await sb.from("products").delete().neq("id", -1);
+        if (products.length) await sb.from("products").insert(products);
       },
-      async getProducts() {
-        const { data, error } = await sb.from("products").select("*").order("id", { ascending: true });
-        if (error) throw new Error(error.message);
-        return data || [];
+      getOrders: async () => (await sb.from("orders").select("*")).data || [],
+      saveOrders: async (orders) => {
+        await sb.from("orders").delete().neq("id", "");
+        if (orders.length) await sb.from("orders").insert(orders);
       },
-      async saveProducts(products) {
-        const { error: delErr } = await sb.from("products").delete().neq("id", -1);
-        if (delErr) throw new Error(delErr.message);
-        if (!products.length) return;
-        const { error } = await sb.from("products").insert(products);
-        if (error) throw new Error(error.message);
+      getCarts: async () => (await sb.from("carts").select("*")).data || [],
+      saveCarts: async (carts) => {
+        await sb.from("carts").delete().neq("userId", -1);
+        if (carts.length) await sb.from("carts").insert(carts);
       },
-      async getOrders() {
-        const { data, error } = await sb.from("orders").select("*");
-        if (error) throw new Error(error.message);
-        return data || [];
-      },
-      async saveOrders(orders) {
-        const { error: delErr } = await sb.from("orders").delete().neq("id", "");
-        if (delErr) throw new Error(delErr.message);
-        if (!orders.length) return;
-        const { error } = await sb.from("orders").insert(orders);
-        if (error) throw new Error(error.message);
-      },
-      async getCarts() {
-        const { data, error } = await sb.from("carts").select("*");
-        if (error) throw new Error(error.message);
-        return data || [];
-      },
-      async saveCarts(carts) {
-        const { error: delErr } = await sb.from("carts").delete().neq("userId", -1);
-        if (delErr) throw new Error(delErr.message);
-        if (!carts.length) return;
-        const { error } = await sb.from("carts").insert(carts);
-        if (error) throw new Error(error.message);
+      getPromoRedemptions: async () => (await sb.from("promo_redemptions").select("*")).data || [],
+      savePromoRedemptions: async (rows) => {
+        await sb.from("promo_redemptions").delete().neq("id", -1);
+        if (rows.length) await sb.from("promo_redemptions").insert(rows);
       },
     };
   } catch {
@@ -146,37 +144,55 @@ function createJsonAdapter() {
     saveOrders: (orders) => writeJson(ORDERS_PATH, orders),
     getCarts: () => readJson(CARTS_PATH),
     saveCarts: (carts) => writeJson(CARTS_PATH, carts),
+    getPromoRedemptions: () => readJson(PROMO_REDEMPTIONS_PATH),
+    savePromoRedemptions: (rows) => writeJson(PROMO_REDEMPTIONS_PATH, rows),
   };
 }
 
 let db = createJsonAdapter();
 
 async function initDb() {
-  const supabaseAdapter = await createSupabaseAdapter();
-  db = supabaseAdapter || createJsonAdapter();
+  db = (await createSupabaseAdapter()) || createJsonAdapter();
   console.log(`[DB] Using ${db.mode}`);
 }
 
 async function auth(req, res, next) {
-  const authHeader = req.headers.authorization || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
   const payload = verifyToken(token);
   if (!payload) return res.status(401).json({ message: "Invalid token" });
 
-  const users = await db.getUsers();
-  const user = users.find((u) => u.id === payload.uid);
+  const user = (await db.getUsers()).find((u) => u.id === payload.uid);
   if (!user) return res.status(401).json({ message: "Invalid token" });
-
   req.user = user;
   next();
 }
 
-function requireAdmin(req, res, next) {
-  if (req.user?.role !== "admin") return res.status(403).json({ message: "Admin access required" });
-  next();
-}
+const requireAdmin = (req, res, next) => (req.user?.role === "admin" ? next() : res.status(403).json({ message: "Admin access required" }));
 
 app.get("/api/health", (_req, res) => res.json({ ok: true, db: db.mode }));
+
+app.post("/api/otp/send", async (req, res) => {
+  const { email, phone } = req.body || {};
+  const n = normalizeContact(email, phone);
+  if (!n.email || !/^\d{10}$/.test(n.phone)) return res.status(400).json({ message: "Valid email and 10-digit phone required" });
+
+  const emailOtp = generateOtp();
+  const phoneOtp = generateOtp();
+  otpStore.set(contactKey(n.email, n.phone), { emailOtp, phoneOtp, verified: false, expiresAt: Date.now() + OTP_TTL_MS });
+
+  res.json({ message: "OTP sent", dev: { emailOtp, phoneOtp } });
+});
+
+app.post("/api/otp/verify", async (req, res) => {
+  const { email, phone, emailOtp, phoneOtp } = req.body || {};
+  const key = contactKey(email, phone);
+  const entry = otpStore.get(key);
+  if (!entry || entry.expiresAt < Date.now()) return res.status(400).json({ message: "OTP expired. Please request again." });
+  if (entry.emailOtp !== String(emailOtp || "") || entry.phoneOtp !== String(phoneOtp || "")) return res.status(400).json({ message: "Invalid OTP" });
+
+  otpStore.set(key, { ...entry, verified: true });
+  res.json({ verified: true });
+});
 
 app.post("/api/auth/signup", async (req, res) => {
   const { name, email, password } = req.body || {};
@@ -184,19 +200,9 @@ app.post("/api/auth/signup", async (req, res) => {
 
   const users = await db.getUsers();
   const normalizedEmail = String(email).trim().toLowerCase();
-  if (users.some((u) => u.email === normalizedEmail)) {
-    return res.status(409).json({ message: "Email already exists" });
-  }
+  if (users.some((u) => u.email === normalizedEmail)) return res.status(409).json({ message: "Email already exists" });
 
-  const user = {
-    id: Date.now(),
-    name: String(name).trim(),
-    email: normalizedEmail,
-    passwordHash: hashPassword(password),
-    role: users.length === 0 ? "admin" : "customer",
-    createdAt: new Date().toISOString(),
-  };
-
+  const user = { id: Date.now(), name: String(name).trim(), email: normalizedEmail, passwordHash: hashPassword(password), role: users.length === 0 ? "admin" : "customer", createdAt: new Date().toISOString() };
   users.push(user);
   await db.saveUsers(users);
   await db.saveCarts([...(await db.getCarts()), { userId: user.id, items: [], updatedAt: new Date().toISOString() }]);
@@ -206,13 +212,8 @@ app.post("/api/auth/signup", async (req, res) => {
 app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) return res.status(400).json({ message: "email and password are required" });
-
-  const users = await db.getUsers();
-  const user = users.find((u) => u.email === String(email).trim().toLowerCase());
-  if (!user || !verifyPassword(password, user.passwordHash)) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
+  const user = (await db.getUsers()).find((u) => u.email === String(email).trim().toLowerCase());
+  if (!user || !verifyPassword(password, user.passwordHash)) return res.status(401).json({ message: "Invalid credentials" });
   res.json({ token: createToken(user), user: sanitizeUser(user) });
 });
 
@@ -221,18 +222,9 @@ app.get("/api/products", async (_req, res) => res.json({ products: await db.getP
 
 app.post("/api/products", auth, requireAdmin, async (req, res) => {
   const { name, description, price, image, alt } = req.body || {};
-  if (!name || !description || !price || !image || !alt) {
-    return res.status(400).json({ message: "name, description, price, image, alt are required" });
-  }
+  if (!name || !description || !price || !image || !alt) return res.status(400).json({ message: "name, description, price, image, alt are required" });
   const products = await db.getProducts();
-  const product = {
-    id: Math.max(0, ...products.map((p) => Number(p.id) || 0)) + 1,
-    name: String(name).trim(),
-    description: String(description).trim(),
-    price: Number(price),
-    image: String(image).trim(),
-    alt: String(alt).trim(),
-  };
+  const product = { id: Math.max(0, ...products.map((p) => Number(p.id) || 0)) + 1, name: String(name).trim(), description: String(description).trim(), price: Number(price), image: String(image).trim(), alt: String(alt).trim() };
   products.push(product);
   await db.saveProducts(products);
   res.status(201).json({ product });
@@ -243,7 +235,6 @@ app.put("/api/products/:id", auth, requireAdmin, async (req, res) => {
   const products = await db.getProducts();
   const index = products.findIndex((p) => Number(p.id) === id);
   if (index === -1) return res.status(404).json({ message: "Product not found" });
-
   products[index] = { ...products[index], ...req.body, id };
   await db.saveProducts(products);
   res.json({ product: products[index] });
@@ -259,15 +250,13 @@ app.delete("/api/products/:id", auth, requireAdmin, async (req, res) => {
 });
 
 app.get("/api/cart", auth, async (req, res) => {
-  const carts = await db.getCarts();
-  const cart = carts.find((c) => c.userId === req.user.id) || { userId: req.user.id, items: [] };
+  const cart = (await db.getCarts()).find((c) => c.userId === req.user.id) || { userId: req.user.id, items: [] };
   res.json({ items: cart.items || [] });
 });
 
 app.put("/api/cart", auth, async (req, res) => {
   const { items } = req.body || {};
   if (!Array.isArray(items)) return res.status(400).json({ message: "items array required" });
-
   const carts = await db.getCarts();
   const next = carts.filter((c) => c.userId !== req.user.id);
   next.push({ userId: req.user.id, items, updatedAt: new Date().toISOString() });
@@ -276,39 +265,65 @@ app.put("/api/cart", auth, async (req, res) => {
 });
 
 app.get("/api/orders", auth, async (req, res) => {
-  const orders = await db.getOrders();
-  const myOrders = orders.filter((o) => o.userId === req.user.id);
+  const myOrders = (await db.getOrders()).filter((o) => o.userId === req.user.id);
   res.json({ orders: myOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) });
 });
 
-app.post("/api/orders", auth, async (req, res) => {
-  const { items, subtotal, total, address, payment, promoCode = null, discountPercent = 0 } = req.body || {};
-  if (!Array.isArray(items) || !items.length || !address || !payment) {
-    return res.status(400).json({ message: "items, address and payment are required" });
+async function createOrderRecord({ userId = null, body }) {
+  const { items, subtotal, total, address, payment, promoCode = null, discountPercent = 0 } = body || {};
+  if (!Array.isArray(items) || !items.length || !address || !payment) throw new Error("items, address and payment are required");
+  if (!address?.email || !address?.phone) throw new Error("email and phone are required");
+  if (!requireVerifiedOtp(address.email, address.phone)) throw new Error("Please verify OTP for email and phone");
+
+  const normalizedPromo = String(promoCode || "").trim().toUpperCase() || null;
+  if (normalizedPromo) {
+    const redeemed = await db.getPromoRedemptions();
+    const key = contactKey(address.email, address.phone);
+    if (redeemed.some((r) => r.promoCode === normalizedPromo && r.contactKey === key)) {
+      throw new Error("Promo code already redeemed for this email and phone");
+    }
+    redeemed.push({ id: Date.now(), promoCode: normalizedPromo, contactKey: key, email: normalizeContact(address.email, address.phone).email, phone: normalizeContact(address.email, address.phone).phone, createdAt: new Date().toISOString() });
+    await db.savePromoRedemptions(redeemed);
   }
 
-  const orders = await db.getOrders();
   const order = {
     id: `ORD-${Date.now()}`,
-    userId: req.user.id,
+    userId,
+    guest: !userId,
     items,
     subtotal: Number(subtotal) || 0,
     total: Number(total) || Number(subtotal) || 0,
-    promoCode,
+    promoCode: normalizedPromo,
     discountPercent: Number(discountPercent) || 0,
     address,
     payment,
     createdAt: new Date().toISOString(),
   };
 
+  const orders = await db.getOrders();
   orders.push(order);
   await db.saveOrders(orders);
+  return order;
+}
 
-  const carts = await db.getCarts();
-  const clearedCarts = carts.map((c) => (c.userId === req.user.id ? { ...c, items: [], updatedAt: new Date().toISOString() } : c));
-  await db.saveCarts(clearedCarts);
+app.post("/api/orders", auth, async (req, res) => {
+  try {
+    const order = await createOrderRecord({ userId: req.user.id, body: req.body });
+    const carts = await db.getCarts();
+    await db.saveCarts(carts.map((c) => (c.userId === req.user.id ? { ...c, items: [], updatedAt: new Date().toISOString() } : c)));
+    res.status(201).json({ order });
+  } catch (err) {
+    res.status(400).json({ message: err.message || "Invalid order" });
+  }
+});
 
-  res.status(201).json({ order });
+app.post("/api/orders/guest", async (req, res) => {
+  try {
+    const order = await createOrderRecord({ userId: null, body: req.body });
+    res.status(201).json({ order });
+  } catch (err) {
+    res.status(400).json({ message: err.message || "Invalid guest order" });
+  }
 });
 
 app.post("/api/payments/razorpay/order", async (req, res) => {
@@ -319,9 +334,7 @@ app.post("/api/payments/razorpay/order", async (req, res) => {
 
 app.post("/api/payments/razorpay/verify", async (req, res) => {
   const { razorpay_payment_id, razorpay_order_id } = req.body || {};
-  if (!razorpay_payment_id || !razorpay_order_id) {
-    return res.status(400).json({ message: "Payment verification payload missing" });
-  }
+  if (!razorpay_payment_id || !razorpay_order_id) return res.status(400).json({ message: "Payment verification payload missing" });
   res.json({ verified: true });
 });
 
@@ -331,7 +344,5 @@ app.use((err, _req, res, _next) => {
 });
 
 initDb().finally(() => {
-  app.listen(PORT, () => {
-    console.log(`Backend API running on http://localhost:${PORT}`);
-  });
+  app.listen(PORT, () => console.log(`Backend API running on http://localhost:${PORT}`));
 });

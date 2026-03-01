@@ -28,17 +28,15 @@ export function OrdersProvider({ children }) {
   }, [loadOrders]);
 
   const addOrder = useCallback(async (orderData) => {
-    if (!user) {
-      throw new Error("Please login to place an order.");
-    }
-
-    const data = await api("/orders", {
+    const endpoint = user ? "/orders" : "/orders/guest";
+    const data = await api(endpoint, {
       method: "POST",
+      noAuth: !user,
       body: orderData,
     });
 
     if (data?.order) {
-      setOrders((prev) => [data.order, ...prev]);
+      if (user) setOrders((prev) => [data.order, ...prev]);
       return data.order;
     }
 
