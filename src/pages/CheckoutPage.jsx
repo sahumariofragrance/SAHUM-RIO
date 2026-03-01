@@ -82,7 +82,12 @@ export default function CheckoutPage({ setCurrentPage }) {
   const [error, setError] = useState(null);
   const [step, setStep] = useState("checkout"); // "checkout" | "success"
   const [confirmedOrderId, setConfirmedOrderId] = useState(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromoCode, setAppliedPromoCode] = useState(null);
   const successRef = useRef(null);
+
+  const discountPercent = appliedPromoCode === "WELCOME10" ? 10 : 0;
+  const total = Math.max(0, subtotal - (subtotal * discountPercent) / 100);
 
   const testMode = isTestMode(process.env.REACT_APP_RAZORPAY_KEY_ID);
 
@@ -117,14 +122,14 @@ export default function CheckoutPage({ setCurrentPage }) {
     try {
       setLoading(true);
       setError(null);
-      paymentLog("info", "INITIATED", { amount: subtotal, discountPercent: 0 });
+      paymentLog("info", "INITIATED", { amount: total, discountPercent });
 
       // ── Step 1: Create order on backend ────────────────────────────────────
       const orderRes = await fetch("/api/payments/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Math.round(subtotal * 100), // Razorpay expects paise
+          amount: Math.round(total * 100), // Razorpay expects paise
           currency: "INR",
           customer: {
             name: formData.name,
@@ -134,8 +139,8 @@ export default function CheckoutPage({ setCurrentPage }) {
           notes: {
             address: `${formData.address}, ${formData.city}, ${formData.state} - ${formData.pin}`,
             instructions: formData.notes || "",
-            promo_code: "",
-            discount_percent: "0",
+            promo_code: appliedPromoCode || "",
+            discount_percent: String(discountPercent),
           },
         }),
       });
@@ -185,11 +190,13 @@ export default function CheckoutPage({ setCurrentPage }) {
       }
       paymentLog("info", "VERIFIED", { payment_id: paymentResponse.razorpay_payment_id });
 
-      // ── Persist order to context / localStorage ────────────────────────────
+      // ── Persist order to backend/context ─────────────────────────────────────
       const createdOrder = await addOrder({
         items: items.map((i) => ({ ...i })),
         subtotal,
-        total: subtotal,
+        total,
+        promoCode: appliedPromoCode,
+        discountPercent,
         address: { ...formData },
         payment: { id: paymentResponse.razorpay_payment_id, method: "Razorpay" },
       });
@@ -208,7 +215,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     } finally {
       setLoading(false);
     }
-  }, [formValid, formData, subtotal, items, clearCart, addOrder, user]);
+  }, [formValid, formData, subtotal, items, clearCart, addOrder, user, total, appliedPromoCode, discountPercent]);
 
   // ── Success screen ──────────────────────────────────────────────────────────
   if (step === "success") {
@@ -302,10 +309,34 @@ export default function CheckoutPage({ setCurrentPage }) {
         {/* Order summary — first on mobile so user sees total before filling form */}
         <div className="order-1 lg:order-2">
           <div className="sticky top-20">
+            <Card className="mb-4 p-4">
+              <h3 className="text-sm font-semibold">Promo Code</h3>
+              <div className="mt-2 flex gap-2">
+                <input
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  placeholder="Enter code"
+                  className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setAppliedPromoCode(promoCode.trim() || null)}
+                  className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm hover:bg-[var(--color-surface-muted)]"
+                >
+                  Apply
+                </button>
+              </div>
+              {appliedPromoCode && (
+                <p className="mt-2 text-xs text-green-600">
+                  {appliedPromoCode === "WELCOME10" ? "Promo applied: 10% off" : "Invalid promo code"}
+                </p>
+              )}
+            </Card>
             <CartSummary
               items={items}
               subtotal={subtotal}
-              total={subtotal}
+              total={total}
+              discountPercent={discountPercent}
               formValid={formValid}
               testMode={testMode}
               onCheckout={initiatePayment}

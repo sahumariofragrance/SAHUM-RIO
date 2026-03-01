@@ -1,69 +1,76 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from "react";
+import api from "../lib/api";
+import { useAuth } from "./AuthContext";
 
 const CartCtx = createContext(null);
-const CART_STORAGE_KEY = "sahumario_cart";
 
 export function CartProvider({ children }) {
-  // Initialise from localStorage on first render
-  const [items, setItems] = useState(() => {
-    try {
-      const stored = localStorage.getItem(CART_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const { user } = useAuth();
+  const [items, setItems] = useState([]);
 
-  // Persist cart to localStorage whenever it changes
+  const syncRemote = useCallback(async (nextItems) => {
+    if (!user) return;
+    await api("/cart", { method: "PUT", body: { items: nextItems } });
+  }, [user]);
+
   useEffect(() => {
-    try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-    } catch {
-      // Silently ignore write errors (e.g. private browsing storage limit)
+    let mounted = true;
+    async function loadCart() {
+      if (!user) {
+        if (mounted) setItems([]);
+        return;
+      }
+
+      try {
+        const data = await api("/cart");
+        if (mounted) setItems(data?.items || []);
+      } catch {
+        if (mounted) setItems([]);
+      }
     }
-  }, [items]);
+
+    loadCart();
+    return () => { mounted = false; };
+  }, [user]);
 
   const addToCart = useCallback((product) => {
-    if (!product?.id || !product?.price) {
-      console.warn("CartContext: addToCart called with invalid product", product);
-      return;
-    }
+    if (!product?.id || !product?.price) return;
+
     setItems((prev) => {
       const existing = prev.find((item) => item.product_id === product.id);
-      if (existing) {
-        // Increment quantity if already in cart
-        return prev.map((item) =>
-          item.product_id === product.id ? { ...item, qty: item.qty + 1 } : item
-        );
-      }
-      return [...prev, { product_id: product.id, name: product.name, price: product.price, qty: 1 }];
+      const next = existing
+        ? prev.map((item) =>
+            item.product_id === product.id ? { ...item, qty: item.qty + 1 } : item
+          )
+        : [...prev, { product_id: product.id, name: product.name, price: product.price, qty: 1 }];
+      syncRemote(next).catch(() => {});
+      return next;
     });
-  }, []);
+  }, [syncRemote]);
 
   const updateQty = useCallback((itemId, qty) => {
     setItems((prev) => {
-      // Removing item when qty reaches 0
-      if (qty <= 0) return prev.filter((item) => item.product_id !== itemId);
-      return prev.map((item) => (item.product_id === itemId ? { ...item, qty } : item));
+      const next = qty <= 0
+        ? prev.filter((item) => item.product_id !== itemId)
+        : prev.map((item) => (item.product_id === itemId ? { ...item, qty } : item));
+      syncRemote(next).catch(() => {});
+      return next;
     });
-  }, []);
+  }, [syncRemote]);
 
   const removeItem = useCallback((itemId) => {
-    setItems((prev) => prev.filter((item) => item.product_id !== itemId));
-  }, []);
+    setItems((prev) => {
+      const next = prev.filter((item) => item.product_id !== itemId);
+      syncRemote(next).catch(() => {});
+      return next;
+    });
+  }, [syncRemote]);
 
   const clearCart = useCallback(() => {
     setItems([]);
-  }, []);
+    syncRemote([]).catch(() => {});
+  }, [syncRemote]);
 
-  // Derived totals — no tax applied; add tax logic here if required
   const count = useMemo(() => items.reduce((sum, item) => sum + item.qty, 0), [items]);
   const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.qty * item.price, 0), [items]);
 
