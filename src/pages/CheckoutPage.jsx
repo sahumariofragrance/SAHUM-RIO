@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { ChevronLeft, AlertCircle, X, Package, CheckCircle2 } from "lucide-react";
 import { Card } from "../components/ui";
 import ShippingForm from "../components/ShippingForm";
@@ -7,6 +7,10 @@ import { useCart } from "../context/cartContext";
 import { useOrders } from "../context/OrdersContext";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
+import { supabase } from "../lib/supabase";
+
+const FIRST_ORDERS_DISCOUNT_PERCENT = 10;
+const FIRST_ORDERS_DISCOUNT_LIMIT = 50;
 
 // Step progress indicator — advances to step 2 (Payment) while processing
 function CheckoutSteps({ current }) {
@@ -73,16 +77,57 @@ function ErrorBanner({ message, onDismiss }) {
 
 export default function CheckoutPage({ setCurrentPage }) {
   const { items, subtotal, clearCart } = useCart();
-  const { addOrder } = useOrders();
+  const { addOrder, orders } = useOrders();
   const [formData, setFormData] = useState({});
   const [formValid, setFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [step, setStep] = useState("checkout"); // "checkout" | "success"
   const [confirmedOrderId, setConfirmedOrderId] = useState(null);
+  const [totalOrdersPlaced, setTotalOrdersPlaced] = useState(orders.length);
   const successRef = useRef(null);
 
   const testMode = isTestMode(process.env.REACT_APP_RAZORPAY_KEY_ID);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadOrderCount() {
+      try {
+        const { count, error: countError } = await supabase
+          .from("orders")
+          .select("id", { count: "exact", head: true });
+
+        if (countError) throw countError;
+        if (isMounted && Number.isFinite(count)) {
+          setTotalOrdersPlaced(count);
+        }
+      } catch {
+        if (isMounted) {
+          setTotalOrdersPlaced((prev) => Math.max(prev, orders.length));
+        }
+      }
+    }
+
+    loadOrderCount();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [orders.length]);
+
+  const discountEligible = totalOrdersPlaced < FIRST_ORDERS_DISCOUNT_LIMIT;
+  const discountPercent = discountEligible ? FIRST_ORDERS_DISCOUNT_PERCENT : 0;
+  const discountAmount = useMemo(
+    () => Math.round(subtotal * discountPercent) / 100,
+    [subtotal, discountPercent]
+  );
+  const total = useMemo(() => subtotal - discountAmount, [subtotal, discountAmount]);
+  const orderNumber = totalOrdersPlaced + 1;
+  const discountedOrdersRemaining = Math.max(
+    FIRST_ORDERS_DISCOUNT_LIMIT - totalOrdersPlaced,
+    0
+  );
 
   // Auto-focus success heading for screen readers when payment completes
   useEffect(() => {
@@ -110,14 +155,14 @@ export default function CheckoutPage({ setCurrentPage }) {
     try {
       setLoading(true);
       setError(null);
-      paymentLog("info", "INITIATED", { amount: subtotal, discountPercent: 0 });
+      paymentLog("info", "INITIATED", { amount: total, discountPercent });
 
       // ── Step 1: Create order on backend ────────────────────────────────────
       const orderRes = await fetch("/api/payments/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Math.round(subtotal * 100), // Razorpay expects paise
+          amount: Math.round(total * 100), // Razorpay expects paise
           currency: "INR",
           customer: {
             name: formData.name,
@@ -127,8 +172,8 @@ export default function CheckoutPage({ setCurrentPage }) {
           notes: {
             address: `${formData.address}, ${formData.city}, ${formData.state} - ${formData.pin}`,
             instructions: formData.notes || "",
-            promo_code: "",
-            discount_percent: "0",
+            promo_code: discountEligible ? "FIRST50" : "",
+            discount_percent: String(discountPercent),
           },
         }),
       });
@@ -183,9 +228,10 @@ export default function CheckoutPage({ setCurrentPage }) {
         id: paymentResponse.razorpay_order_id,
         items: items.map((i) => ({ ...i })),
         subtotal,
-        discountedSubtotal: subtotal,
-        promoCode: null,
-        discountPercent: 0,
+        discountedSubtotal: total,
+        promoCode: discountEligible ? "FIRST50" : null,
+        discountPercent,
+        total,
         address: { ...formData },
         payment: { id: paymentResponse.razorpay_payment_id, method: "Razorpay" },
         createdAt: new Date().toISOString(),
@@ -194,6 +240,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       clearCart();
       setConfirmedOrderId(paymentResponse.razorpay_order_id);
       setStep("success");
+      setTotalOrdersPlaced((prev) => prev + 1);
     } catch (err) {
       const msg = friendlyPaymentError(err);
       if (msg) {
@@ -205,7 +252,17 @@ export default function CheckoutPage({ setCurrentPage }) {
     } finally {
       setLoading(false);
     }
-  }, [formValid, formData, subtotal, items, clearCart, addOrder]);
+  }, [
+    addOrder,
+    clearCart,
+    discountEligible,
+    discountPercent,
+    formData,
+    formValid,
+    items,
+    subtotal,
+    total,
+  ]);
 
   // ── Success screen ──────────────────────────────────────────────────────────
   if (step === "success") {
@@ -286,6 +343,12 @@ export default function CheckoutPage({ setCurrentPage }) {
       {/* Step advances to "Payment" while loading */}
       <CheckoutSteps current={loading ? 2 : 1} />
 
+      <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        {discountEligible
+          ? `This order qualifies for an automatic ${discountPercent}% discount as order #${orderNumber}. ${discountedOrdersRemaining} discounted order${discountedOrdersRemaining === 1 ? "" : "s"} remaining.`
+          : `The automatic ${FIRST_ORDERS_DISCOUNT_PERCENT}% discount has ended after the first ${FIRST_ORDERS_DISCOUNT_LIMIT} orders.`}
+      </div>
+
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Shipping form — rendered below summary on mobile, left on desktop */}
         <div className="order-2 lg:col-span-2 lg:order-1">
@@ -302,7 +365,8 @@ export default function CheckoutPage({ setCurrentPage }) {
             <CartSummary
               items={items}
               subtotal={subtotal}
-              total={subtotal}
+              total={total}
+              discountPercent={discountPercent}
               formValid={formValid}
               testMode={testMode}
               onCheckout={initiatePayment}
