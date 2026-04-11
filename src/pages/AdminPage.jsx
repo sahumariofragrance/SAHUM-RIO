@@ -21,6 +21,7 @@ import initialProducts from "../data/products.json";
 import { getGitHubFile, commitGitHubFile } from "../lib/github";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
+import { useRouter } from "../router";
 
 const PRODUCTS_REPO_PATH = "src/data/products.json";
 
@@ -58,7 +59,8 @@ function FormField({ label, name, value, onChange, error, placeholder, type = "t
   );
 }
 
-export default function AdminPage({ setCurrentPage }) {
+export default function AdminPage() {
+  const { navigate } = useRouter();
   const { user, logout } = useAuth();
 
   // --- Tab state ---
@@ -357,7 +359,7 @@ export default function AdminPage({ setCurrentPage }) {
           <button
             onClick={() => {
               logout();
-              setCurrentPage("home");
+              navigate("/");
             }}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-sm text-[var(--color-muted)] hover:text-red-600 hover:border-red-300 transition-colors"
           >

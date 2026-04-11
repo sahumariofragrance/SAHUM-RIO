@@ -1,17 +1,13 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { Button } from "./ui";
+import React, { useEffect, useState } from "react";
+import { RouterLink } from "../router";
 
-const Hero = React.memo(({ onExplore }) => {
+const Hero = React.memo(() => {
   const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setAnimate(true), 200);
     return () => clearTimeout(timer);
   }, []);
-
-  const handleExplore = useCallback(() => {
-    onExplore?.();
-  }, [onExplore]);
 
   return (
     <section
@@ -48,13 +44,12 @@ const Hero = React.memo(({ onExplore }) => {
             animate ? "opacity-100" : "opacity-0"
           }`}
         >
-          <Button
-            onClick={handleExplore}
-            size="lg"
-            className="shadow-lg"
+          <RouterLink
+            to="/perfumes"
+            className="inline-block rounded-lg bg-amber-600 px-6 py-3 text-lg font-medium text-white shadow-lg transition-colors hover:bg-amber-700"
           >
             Explore Collection
-          </Button>
+          </RouterLink>
         </div>
       </div>
     </section>
