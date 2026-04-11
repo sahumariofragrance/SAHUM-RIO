@@ -7,6 +7,7 @@ import { useCart } from "../context/cartContext";
 import { useOrders } from "../context/OrdersContext";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
+import { useRouter } from "../router";
 
 // Step progress indicator — advances to step 2 (Payment) while processing
 function CheckoutSteps({ current }) {
@@ -71,7 +72,8 @@ function ErrorBanner({ message, onDismiss }) {
   );
 }
 
-export default function CheckoutPage({ setCurrentPage }) {
+export default function CheckoutPage() {
+  const { navigate } = useRouter();
   const { items, subtotal, clearCart } = useCart();
   const { addOrder } = useOrders();
   const [formData, setFormData] = useState({});
@@ -233,13 +235,13 @@ export default function CheckoutPage({ setCurrentPage }) {
         )}
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <button
-            onClick={() => setCurrentPage("orders")}
+            onClick={() => navigate("/orders")}
             className="rounded-xl bg-amber-600 px-6 py-3 font-medium text-white transition-colors hover:bg-amber-700 active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"
           >
             View Orders
           </button>
           <button
-            onClick={() => setCurrentPage("perfumes")}
+            onClick={() => navigate("/perfumes")}
             className="rounded-xl border border-[var(--color-border)] px-6 py-3 font-medium transition-colors hover:bg-[var(--color-surface-muted)] active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"
           >
             Continue Shopping
@@ -262,7 +264,7 @@ export default function CheckoutPage({ setCurrentPage }) {
           Add some perfumes to your cart before checking out.
         </p>
         <button
-          onClick={() => setCurrentPage("perfumes")}
+          onClick={() => navigate("/perfumes")}
           className="mt-6 inline-flex items-center gap-2 rounded-xl bg-amber-600 px-6 py-3 font-medium text-white transition-colors hover:bg-amber-700 active:scale-95"
         >
           Browse Collection
@@ -275,7 +277,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     <section className="mx-auto max-w-5xl px-4 py-8 md:py-12">
       {/* Back navigation */}
       <button
-        onClick={() => setCurrentPage("perfumes")}
+        onClick={() => navigate("/perfumes")}
         className="inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] transition-colors hover:text-amber-600"
       >
         <ChevronLeft className="h-4 w-4" aria-hidden="true" />
@@ -306,7 +308,7 @@ export default function CheckoutPage({ setCurrentPage }) {
               formValid={formValid}
               testMode={testMode}
               onCheckout={initiatePayment}
-              onContinueShopping={() => setCurrentPage("perfumes")}
+              onContinueShopping={() => navigate("/perfumes")}
               loading={loading}
             />
           </div>

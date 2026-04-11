@@ -1,67 +1,32 @@
-import React, { useCallback } from 'react';
+import React from 'react';
+import { RouterLink, useRouter } from '../router';
 import { Menu, X, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/cartContext';
 import { useTheme } from '../context/ThemeContext';
 
-const NavLink = React.memo(({ id, isActive, onClick, children }) => (
-  <button
-    onClick={() => onClick(id)}
-    className={`${
-      isActive ? 'text-amber-600' : 'text-[var(--color-muted)]'
-    } hover:text-amber-600 transition px-3 py-2`}
-    aria-current={isActive ? 'page' : undefined}
-  >
-    {children}
-  </button>
-));
+const navLinkClass = (isActive) =>
+  `${isActive ? 'text-amber-600' : 'text-[var(--color-muted)]'} hover:text-amber-600 transition px-3 py-2`;
 
-NavLink.displayName = 'NavLink';
-
-const NavbarOptimized = React.memo(({ 
-  currentPage, 
-  setCurrentPage, 
-  onCartClick,
-  isMenuOpen,
-  setIsMenuOpen
-}) => {
+const NavbarOptimized = React.memo(({ onCartClick, isMenuOpen, setIsMenuOpen }) => {
+  const { pathname } = useRouter();
   const { count } = useCart();
   const { theme, toggleTheme } = useTheme();
 
-  const handleNavClick = useCallback((page) => {
-    setCurrentPage?.(page);
-    setIsMenuOpen?.(false);
-  }, [setCurrentPage, setIsMenuOpen]);
+  const closeMenu = () => setIsMenuOpen?.(false);
 
   return (
     <header className="sticky top-0 z-40 bg-[var(--color-surface)]/90 backdrop-blur border-b border-[var(--color-border)] transition-colors duration-200">
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <button 
-            onClick={() => handleNavClick('home')} 
-            className="flex items-center text-xl font-bold tracking-wide hover:opacity-80 transition"
-          >
-            <img
-              src="/logo.png"
-              alt="Sahumario Logo"
-              width={70}
-              height={70}
-              loading="lazy"
-            />
+          <RouterLink to="/" onClick={closeMenu} className="flex items-center text-xl font-bold tracking-wide hover:opacity-80 transition">
+            <img src="/logo.png" alt="Sahumario Logo" width={70} height={70} loading="lazy" />
             <span className="text-amber-600">SAHUMä</span>RIO
-          </button>
+          </RouterLink>
 
-          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
-            <NavLink id="home" isActive={currentPage === 'home'} onClick={handleNavClick}>
-              Home
-            </NavLink>
-            <NavLink id="perfumes" isActive={currentPage === 'perfumes'} onClick={handleNavClick}>
-              Perfumes
-            </NavLink>
-            <NavLink id="about" isActive={currentPage === 'about'} onClick={handleNavClick}>
-              About
-            </NavLink>
+            <RouterLink to="/" className={navLinkClass(pathname === "/")}>Home</RouterLink>
+            <RouterLink to="/perfumes" className={navLinkClass(pathname === "/perfumes")}>Perfumes</RouterLink>
+            <RouterLink to="/about" className={navLinkClass(pathname === "/about")}>About</RouterLink>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -75,11 +40,10 @@ const NavbarOptimized = React.memo(({
               {theme === 'light' ? '🌞' : '🌙'}
             </button>
 
-            {/* Cart icon - always visible */}
-            <button 
-              className="relative p-2 rounded-full hover:bg-[var(--color-surface-muted)] transition" 
-              title="Cart" 
-              type="button" 
+            <button
+              className="relative p-2 rounded-full hover:bg-[var(--color-surface-muted)] transition"
+              title="Cart"
+              type="button"
               onClick={onCartClick}
               aria-label={`Shopping cart with ${count} items`}
             >
@@ -92,7 +56,6 @@ const NavbarOptimized = React.memo(({
             </button>
           </div>
 
-          {/* Mobile menu button */}
           <button
             className="md:hidden p-2 rounded-lg hover:bg-[var(--color-surface-muted)] transition"
             onClick={() => setIsMenuOpen?.(!isMenuOpen)}
@@ -105,28 +68,12 @@ const NavbarOptimized = React.memo(({
           </button>
         </div>
 
-        {/* Mobile nav */}
         {isMenuOpen && (
           <nav id="mobile-nav" className="md:hidden pb-3 animate-in fade-in duration-200">
             <div className="flex flex-col gap-1 border-t border-[var(--color-border)] pt-3">
-              <button 
-                onClick={() => handleNavClick('home')} 
-                className="block w-full text-left px-3 py-2 rounded-md hover:bg-[var(--color-surface-muted)] transition"
-              >
-                Home
-              </button>
-              <button 
-                onClick={() => handleNavClick('perfumes')} 
-                className="block w-full text-left px-3 py-2 rounded-md hover:bg-[var(--color-surface-muted)] transition"
-              >
-                Perfumes
-              </button>
-              <button 
-                onClick={() => handleNavClick('about')} 
-                className="block w-full text-left px-3 py-2 rounded-md hover:bg-[var(--color-surface-muted)] transition"
-              >
-                About
-              </button>
+              <RouterLink to="/" onClick={closeMenu} className="block w-full text-left px-3 py-2 rounded-md hover:bg-[var(--color-surface-muted)] transition">Home</RouterLink>
+              <RouterLink to="/perfumes" onClick={closeMenu} className="block w-full text-left px-3 py-2 rounded-md hover:bg-[var(--color-surface-muted)] transition">Perfumes</RouterLink>
+              <RouterLink to="/about" onClick={closeMenu} className="block w-full text-left px-3 py-2 rounded-md hover:bg-[var(--color-surface-muted)] transition">About</RouterLink>
             </div>
           </nav>
         )}

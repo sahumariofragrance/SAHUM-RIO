@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { useRouter } from "../router";
 import { useAuth } from "../context/AuthContext";
 
-export default function LoginPage({
-  setCurrentPage,
-  redirectAfterLogin = "home",
-}) {
+export default function LoginPage({ redirectPath = "/" }) {
+  const { navigate } = useRouter();
   const { login, signup } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +26,7 @@ export default function LoginPage({
           password: formData.password,
         });
       }
-      setCurrentPage?.(redirectAfterLogin);
+      navigate(redirectPath);
     } catch (err) {
       setError((err && err.message) || "Authentication failed. Please try again.");
     } finally {
@@ -108,7 +107,10 @@ export default function LoginPage({
         <div className="text-center">
           <button
             type="button"
-            onClick={() => { setIsLogin((v) => !v); setError(null); }}
+            onClick={() => {
+              setIsLogin((v) => !v);
+              setError(null);
+            }}
             className="text-amber-600 hover:text-orange-600 font-medium"
           >
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Login"}

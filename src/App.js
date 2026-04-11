@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import NavbarOptimized from "./components/NavbarOptimized";
 import Footer from "./components/Footer";
 import Hero from "./components/Hero";
@@ -12,47 +12,48 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import RefundPolicyPage from "./pages/RefundPolicyPage";
 import ShippingPolicyPage from "./pages/ShippingPolicyPage";
 import TermsPage from "./pages/TermsPage";
+import NotFoundPage from "./pages/NotFoundPage";
 import CartDrawer from "./components/CartDrawer";
 import { useAuth } from "./context/AuthContext";
+import { useRouter } from "./router";
+
+function HomePage() {
+  return (
+    <>
+      <Hero />
+      <PerfumesPage />
+    </>
+  );
+}
 
 export default function App() {
+  const { pathname, navigate } = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const [currentPage, setCurrentPage] = useState("home");
   const [showCart, setShowCart] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const goCheckout = useCallback(() => {
     setShowCart(false);
-    setCurrentPage("checkout");
-  }, []);
-
-  const handleSetCurrentPage = useCallback((page) => {
-    setCurrentPage(page);
-    setIsMenuOpen(false);
-  }, []);
+    navigate("/checkout");
+  }, [navigate]);
 
   const handleCartClick = useCallback(() => {
     setShowCart(true);
   }, []);
 
-  const renderPage = () => {
-    switch (currentPage) {
-      case "home":
-        return (
-          <>
-            <Hero onExplore={() => handleSetCurrentPage("perfumes")} />
-            <PerfumesPage />
-          </>
-        );
-      case "perfumes":
+  const page = useMemo(() => {
+    switch (pathname) {
+      case "/":
+        return <HomePage />;
+      case "/perfumes":
         return <PerfumesPage />;
-      case "about":
+      case "/about":
         return <AboutPage />;
-      case "checkout":
-        return <CheckoutPage setCurrentPage={handleSetCurrentPage} />;
-      case "orders":
+      case "/checkout":
+        return <CheckoutPage />;
+      case "/orders":
         return <OrdersPage />;
-      case "admin":
+      case "/admin":
         if (authLoading) {
           return (
             <div className="flex justify-center py-24">
@@ -60,49 +61,32 @@ export default function App() {
             </div>
           );
         }
-        if (!user) {
-          return (
-            <LoginPage
-              setCurrentPage={handleSetCurrentPage}
-              redirectAfterLogin="admin"
-            />
-          );
-        }
-        return <AdminPage setCurrentPage={handleSetCurrentPage} />;
-      case "privacy-policy":
+        return user ? <AdminPage /> : <LoginPage redirectPath="/admin" />;
+      case "/privacy-policy":
         return <PrivacyPolicyPage />;
-      case "refund-policy":
+      case "/refund-policy":
         return <RefundPolicyPage />;
-      case "shipping-policy":
+      case "/shipping-policy":
         return <ShippingPolicyPage />;
-      case "terms":
+      case "/terms":
+      case "/terms-and-conditions":
         return <TermsPage />;
       default:
-        return <PerfumesPage />;
+        return <NotFoundPage />;
     }
-  };
+  }, [pathname, authLoading, user]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-bg)] text-[var(--color-text)] transition-colors duration-200">
-      <NavbarOptimized
-        currentPage={currentPage}
-        setCurrentPage={handleSetCurrentPage}
-        onCartClick={handleCartClick}
-        isMenuOpen={isMenuOpen}
-        setIsMenuOpen={setIsMenuOpen}
-      />
+      <NavbarOptimized onCartClick={handleCartClick} isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
 
-      <main className="flex-1">
-        {renderPage()}
+      <main className="flex-1" onClick={() => setIsMenuOpen(false)}>
+        {page}
       </main>
 
-      <Footer setCurrentPage={handleSetCurrentPage} />
+      <Footer />
 
-      <CartDrawer
-        open={showCart}
-        onClose={() => setShowCart(false)}
-        onCheckout={goCheckout}
-      />
+      <CartDrawer open={showCart} onClose={() => setShowCart(false)} onCheckout={goCheckout} />
     </div>
   );
 }
