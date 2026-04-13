@@ -1,12 +1,16 @@
 import React, { useCallback } from "react";
 
-const FooterLink = React.memo(({ onClick, children }) => (
-  <button
-    onClick={onClick}
+const FooterLink = React.memo(({ onClick, href = "#", children }) => (
+  <a
+    href={href}
+    onClick={(event) => {
+      event.preventDefault();
+      onClick?.();
+    }}
     className="hover:text-amber-600 transition-colors"
   >
     {children}
-  </button>
+  </a>
 ));
 
 FooterLink.displayName = 'FooterLink';
@@ -65,22 +69,34 @@ const Footer = React.memo(({ setCurrentPage }) => {
           <h5 className="font-medium">Policies</h5>
           <ul className="mt-2 space-y-1 text-[var(--color-muted)]">
             <li>
-              <FooterLink onClick={() => handleNavClick("privacy-policy")}>
+              <FooterLink
+                href="/privacy-policy"
+                onClick={() => handleNavClick("privacy-policy")}
+              >
                 Privacy Policy
               </FooterLink>
             </li>
             <li>
-              <FooterLink onClick={() => handleNavClick("refund-policy")}>
+              <FooterLink
+                href="/refund-return-policy"
+                onClick={() => handleNavClick("refund-policy")}
+              >
                 Refund &amp; Return Policy
               </FooterLink>
             </li>
             <li>
-              <FooterLink onClick={() => handleNavClick("shipping-policy")}>
+              <FooterLink
+                href="/shipping-policy"
+                onClick={() => handleNavClick("shipping-policy")}
+              >
                 Shipping Policy
               </FooterLink>
             </li>
             <li>
-              <FooterLink onClick={() => handleNavClick("terms")}>
+              <FooterLink
+                href="/terms-conditions"
+                onClick={() => handleNavClick("terms")}
+              >
                 Terms &amp; Conditions
               </FooterLink>
             </li>
