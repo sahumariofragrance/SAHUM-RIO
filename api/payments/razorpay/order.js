@@ -6,16 +6,39 @@
  * Returns: Razorpay order object { id, amount, currency, ... }
  */
 const Razorpay = require("razorpay");
+const crypto = require("crypto");
+
+function setSecurityHeaders(res) {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+}
+
+function sanitizeText(value, maxLength = 120) {
+  return String(value || "").replace(/[\r\n\t]/g, " ").slice(0, maxLength).trim();
+}
 
 module.exports = async (req, res) => {
+  setSecurityHeaders(res);
+
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
+  if (!req.headers["content-type"]?.includes("application/json")) {
+    return res.status(415).json({ message: "Content-Type must be application/json" });
+  }
+
   const { amount, currency = "INR", customer = {}, notes = {} } = req.body || {};
 
-  if (!amount || typeof amount !== "number" || amount < 100) {
-    return res.status(400).json({ message: "amount must be a number >= 100 (paise)" });
+  if (!Number.isInteger(amount) || amount < 100 || amount > 50000000) {
+    return res
+      .status(400)
+      .json({ message: "amount must be an integer between 100 and 50,000,000 paise" });
+  }
+
+  if (currency !== "INR") {
+    return res.status(400).json({ message: "Unsupported currency" });
   }
 
   const keyId = process.env.RAZORPAY_KEY_ID;
@@ -32,12 +55,12 @@ module.exports = async (req, res) => {
     const order = await razorpay.orders.create({
       amount,
       currency,
-      receipt: `rcpt_${Date.now()}`,
+      receipt: `rcpt_${crypto.randomBytes(8).toString("hex")}`,
       notes: {
         ...notes,
-        customer_name: customer.name || "",
-        customer_phone: customer.phone || "",
-        customer_email: customer.email || "",
+        customer_name: sanitizeText(customer.name),
+        customer_phone: sanitizeText(customer.phone, 30),
+        customer_email: sanitizeText(customer.email),
       },
     });
 
