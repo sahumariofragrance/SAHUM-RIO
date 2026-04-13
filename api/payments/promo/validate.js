@@ -30,8 +30,16 @@ function resolvePromoMap() {
 }
 
 module.exports = async (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
+  }
+
+  if (!req.headers["content-type"]?.includes("application/json")) {
+    return res.status(415).json({ message: "Content-Type must be application/json" });
   }
 
   const { code } = req.body || {};

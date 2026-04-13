@@ -10,8 +10,16 @@
 const crypto = require("crypto");
 
 module.exports = async (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
+  }
+
+  if (!req.headers["content-type"]?.includes("application/json")) {
+    return res.status(415).json({ message: "Content-Type must be application/json" });
   }
 
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};
@@ -33,7 +41,13 @@ module.exports = async (req, res) => {
     .update(`${razorpay_order_id}|${razorpay_payment_id}`)
     .digest("hex");
 
-  if (expectedSignature !== razorpay_signature) {
+  const receivedBuffer = Buffer.from(String(razorpay_signature), "utf8");
+  const expectedBuffer = Buffer.from(expectedSignature, "utf8");
+  const validSignature =
+    receivedBuffer.length === expectedBuffer.length &&
+    crypto.timingSafeEqual(receivedBuffer, expectedBuffer);
+
+  if (!validSignature) {
     console.warn("[Razorpay] Signature mismatch — possible tampered payment request", {
       order_id: razorpay_order_id,
       payment_id: razorpay_payment_id,
