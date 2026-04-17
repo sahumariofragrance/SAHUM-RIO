@@ -36,13 +36,6 @@ const Hero = React.memo(({ onExplore }) => {
         >
           Long-lasting fragrances that tell your story.
         </p>
-        <p
-          className={`mt-3 inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 text-sm font-semibold text-amber-700 transition-opacity duration-1000 delay-300 ${
-            animate ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          Promo Code: WELCOME10
-        </p>
         <div
           className={`mt-8 transition-opacity duration-1000 delay-500 ${
             animate ? "opacity-100" : "opacity-0"
