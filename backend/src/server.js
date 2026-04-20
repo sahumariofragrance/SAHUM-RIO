@@ -1,0 +1,396 @@
+const express = require("express");
+const fs = require("fs/promises");
+const path = require("path");
+const crypto = require("crypto");
+
+const app = express();
+const PORT = Number(process.env.PORT || 8000);
+const TOKEN_SECRET = process.env.TOKEN_SECRET || "dev-secret-change-me";
+const OTP_TTL_MS = 10 * 60 * 1000;
+const OTP_RATE_WINDOW_MS = 5 * 60 * 1000;
+const OTP_RATE_MAX = 3;
+
+const DATA_DIR = path.resolve(__dirname, "../data");
+const USERS_PATH = path.join(DATA_DIR, "users.json");
+const PRODUCTS_PATH = path.join(DATA_DIR, "products.json");
+const ORDERS_PATH = path.join(DATA_DIR, "orders.json");
+const CARTS_PATH = path.join(DATA_DIR, "carts.json");
+const PROMO_REDEMPTIONS_PATH = path.join(DATA_DIR, "promo_redemptions.json");
+
+const otpStore = new Map();
+const otpRateStore = new Map();
+
+app.use(express.json({ limit: "1mb" }));
+
+const b64url = (input) => Buffer.from(input).toString("base64url");
+const sign = (value) => crypto.createHmac("sha256", TOKEN_SECRET).update(value).digest("base64url");
+
+function createToken(user) {
+  const payload = JSON.stringify({ uid: user.id, exp: Date.now() + 7 * 24 * 3600 * 1000 });
+  const encoded = b64url(payload);
+  return `${encoded}.${sign(encoded)}`;
+}
+
+function verifyToken(token) {
+  const [encoded, signature] = String(token || "").split(".");
+  if (!encoded || !signature || sign(encoded) !== signature) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
+    if (!payload?.uid || Date.now() > payload.exp) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, stored) {
+  const [salt, hash] = String(stored || "").split(":");
+  if (!salt || !hash) return false;
+  const testHash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(testHash, "hex"));
+}
+
+async function readJson(filePath, fallback = []) {
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+async function writeJson(filePath, data) {
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+}
+
+function sanitizeUser(user) {
+  return { id: user.id, name: user.name, email: user.email, role: user.role || "customer" };
+}
+
+function normalizeContact(email, phone) {
+  return {
+    email: String(email || "").trim().toLowerCase(),
+    phone: String(phone || "").replace(/\D/g, ""),
+  };
+}
+
+function contactKey(email, phone) {
+  const n = normalizeContact(email, phone);
+  return `${n.email}::${n.phone}`;
+}
+
+function generateOtp() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function isOtpRateLimited(email, phone) {
+  const n = normalizeContact(email, phone);
+  const now = Date.now();
+  const keys = [
+    `email:${n.email}`,
+    `phone:${n.phone}`,
+    `pair:${n.email}::${n.phone}`,
+  ];
+
+  for (const key of keys) {
+    const recent = (otpRateStore.get(key) || []).filter((ts) => now - ts < OTP_RATE_WINDOW_MS);
+    otpRateStore.set(key, recent);
+    if (recent.length >= OTP_RATE_MAX) return true;
+  }
+
+  keys.forEach((key) => {
+    const recent = otpRateStore.get(key) || [];
+    recent.push(now);
+    otpRateStore.set(key, recent);
+  });
+
+  return false;
+}
+
+function requireVerifiedOtp(email, phone) {
+  const key = contactKey(email, phone);
+  const entry = otpStore.get(key);
+  return !!entry && entry.verified === true && entry.expiresAt > Date.now();
+}
+
+async function createSupabaseAdapter() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+
+  try {
+    const { createClient } = await import("@supabase/supabase-js");
+    const sb = createClient(url, key, { auth: { persistSession: false } });
+
+    return {
+      mode: "supabase-postgres",
+      getUsers: async () => (await sb.from("users").select("*")).data || [],
+      saveUsers: async (users) => {
+        await sb.from("users").delete().neq("id", -1);
+        if (users.length) await sb.from("users").insert(users);
+      },
+      getProducts: async () => (await sb.from("products").select("*").order("id", { ascending: true })).data || [],
+      saveProducts: async (products) => {
+        await sb.from("products").delete().neq("id", -1);
+        if (products.length) await sb.from("products").insert(products);
+      },
+      getOrders: async () => (await sb.from("orders").select("*")).data || [],
+      saveOrders: async (orders) => {
+        await sb.from("orders").delete().neq("id", "");
+        if (orders.length) await sb.from("orders").insert(orders);
+      },
+      getCarts: async () => (await sb.from("carts").select("*")).data || [],
+      saveCarts: async (carts) => {
+        await sb.from("carts").delete().neq("userId", -1);
+        if (carts.length) await sb.from("carts").insert(carts);
+      },
+      getPromoRedemptions: async () => (await sb.from("promo_redemptions").select("*")).data || [],
+      savePromoRedemptions: async (rows) => {
+        await sb.from("promo_redemptions").delete().neq("id", -1);
+        if (rows.length) await sb.from("promo_redemptions").insert(rows);
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+function createJsonAdapter() {
+  return {
+    mode: "json-fallback",
+    getUsers: () => readJson(USERS_PATH),
+    saveUsers: (users) => writeJson(USERS_PATH, users),
+    getProducts: () => readJson(PRODUCTS_PATH),
+    saveProducts: (products) => writeJson(PRODUCTS_PATH, products),
+    getOrders: () => readJson(ORDERS_PATH),
+    saveOrders: (orders) => writeJson(ORDERS_PATH, orders),
+    getCarts: () => readJson(CARTS_PATH),
+    saveCarts: (carts) => writeJson(CARTS_PATH, carts),
+    getPromoRedemptions: () => readJson(PROMO_REDEMPTIONS_PATH),
+    savePromoRedemptions: (rows) => writeJson(PROMO_REDEMPTIONS_PATH, rows),
+  };
+}
+
+let db = createJsonAdapter();
+async function initDb() {
+  db = (await createSupabaseAdapter()) || createJsonAdapter();
+  console.log(`[DB] Using ${db.mode}`);
+}
+
+async function auth(req, res, next) {
+  const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+  const payload = verifyToken(token);
+  if (!payload) return res.status(401).json({ message: "Invalid token" });
+
+  const user = (await db.getUsers()).find((u) => u.id === payload.uid);
+  if (!user) return res.status(401).json({ message: "Invalid token" });
+  req.user = user;
+  next();
+}
+
+const requireAdmin = (req, res, next) => (req.user?.role === "admin" ? next() : res.status(403).json({ message: "Admin access required" }));
+
+app.get("/api/health", (_req, res) => res.json({ ok: true, db: db.mode }));
+
+app.post("/api/otp/send", async (req, res) => {
+  const { email, phone } = req.body || {};
+  const n = normalizeContact(email, phone);
+
+  if (!n.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(n.email) || !/^\d{10}$/.test(n.phone)) {
+    return res.status(400).json({ message: "Valid email and 10-digit phone required" });
+  }
+
+  if (isOtpRateLimited(n.email, n.phone)) {
+    return res.status(429).json({ message: "Too many OTP requests. Please try again later." });
+  }
+
+  const emailOtp = generateOtp();
+  const phoneOtp = generateOtp();
+  otpStore.set(contactKey(n.email, n.phone), {
+    emailOtp,
+    phoneOtp,
+    verified: false,
+    expiresAt: Date.now() + OTP_TTL_MS,
+  });
+
+  res.json({ message: "OTP sent", dev: { emailOtp, phoneOtp } });
+});
+
+app.post("/api/otp/verify", async (req, res) => {
+  const { email, phone, emailOtp, phoneOtp } = req.body || {};
+  const key = contactKey(email, phone);
+  const entry = otpStore.get(key);
+  if (!entry || entry.expiresAt < Date.now()) return res.status(400).json({ message: "OTP expired. Please request again." });
+  if (entry.emailOtp !== String(emailOtp || "") || entry.phoneOtp !== String(phoneOtp || "")) return res.status(400).json({ message: "Invalid OTP" });
+
+  otpStore.set(key, { ...entry, verified: true });
+  res.json({ verified: true });
+});
+
+app.post("/api/auth/signup", async (req, res) => {
+  const { name, email, password } = req.body || {};
+  if (!name || !email || !password) return res.status(400).json({ message: "name, email and password are required" });
+
+  const users = await db.getUsers();
+  const normalizedEmail = String(email).trim().toLowerCase();
+  if (users.some((u) => u.email === normalizedEmail)) return res.status(409).json({ message: "Email already exists" });
+
+  const user = { id: Date.now(), name: String(name).trim(), email: normalizedEmail, passwordHash: hashPassword(password), role: users.length === 0 ? "admin" : "customer", createdAt: new Date().toISOString() };
+  users.push(user);
+  await db.saveUsers(users);
+  await db.saveCarts([...(await db.getCarts()), { userId: user.id, items: [], updatedAt: new Date().toISOString() }]);
+  res.status(201).json({ token: createToken(user), user: sanitizeUser(user) });
+});
+
+app.post("/api/auth/login", async (req, res) => {
+  const { email, password } = req.body || {};
+  if (!email || !password) return res.status(400).json({ message: "email and password are required" });
+  const user = (await db.getUsers()).find((u) => u.email === String(email).trim().toLowerCase());
+  if (!user || !verifyPassword(password, user.passwordHash)) return res.status(401).json({ message: "Invalid credentials" });
+  res.json({ token: createToken(user), user: sanitizeUser(user) });
+});
+
+app.get("/api/auth/me", auth, async (req, res) => res.json({ user: sanitizeUser(req.user) }));
+app.get("/api/products", async (_req, res) => res.json({ products: await db.getProducts() }));
+
+app.post("/api/products", auth, requireAdmin, async (req, res) => {
+  const { name, description, price, image, alt } = req.body || {};
+  if (!name || !description || !price || !image || !alt) return res.status(400).json({ message: "name, description, price, image, alt are required" });
+  const products = await db.getProducts();
+  const product = { id: Math.max(0, ...products.map((p) => Number(p.id) || 0)) + 1, name: String(name).trim(), description: String(description).trim(), price: Number(price), image: String(image).trim(), alt: String(alt).trim() };
+  products.push(product);
+  await db.saveProducts(products);
+  res.status(201).json({ product });
+});
+
+app.put("/api/products/:id", auth, requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  const products = await db.getProducts();
+  const index = products.findIndex((p) => Number(p.id) === id);
+  if (index === -1) return res.status(404).json({ message: "Product not found" });
+  products[index] = { ...products[index], ...req.body, id };
+  await db.saveProducts(products);
+  res.json({ product: products[index] });
+});
+
+app.delete("/api/products/:id", auth, requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  const products = await db.getProducts();
+  const next = products.filter((p) => Number(p.id) !== id);
+  if (next.length === products.length) return res.status(404).json({ message: "Product not found" });
+  await db.saveProducts(next);
+  res.status(204).send();
+});
+
+app.get("/api/cart", auth, async (req, res) => {
+  const cart = (await db.getCarts()).find((c) => c.userId === req.user.id) || { userId: req.user.id, items: [] };
+  res.json({ items: cart.items || [] });
+});
+
+app.put("/api/cart", auth, async (req, res) => {
+  const { items } = req.body || {};
+  if (!Array.isArray(items)) return res.status(400).json({ message: "items array required" });
+  const carts = await db.getCarts();
+  const next = carts.filter((c) => c.userId !== req.user.id);
+  next.push({ userId: req.user.id, items, updatedAt: new Date().toISOString() });
+  await db.saveCarts(next);
+  res.json({ items });
+});
+
+app.get("/api/orders", auth, async (req, res) => {
+  const myOrders = (await db.getOrders()).filter((o) => o.userId === req.user.id);
+  res.json({ orders: myOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) });
+});
+
+async function createOrderRecord({ userId = null, body }) {
+  const { items, subtotal, total, address, payment, promoCode = null, discountPercent = 0 } = body || {};
+  if (!Array.isArray(items) || !items.length || !address || !payment) throw new Error("items, address and payment are required");
+
+  const contact = normalizeContact(address?.email, address?.phone);
+  if (!contact.email || !contact.phone) throw new Error("email and phone are required");
+  if (!requireVerifiedOtp(contact.email, contact.phone)) throw new Error("Please verify OTP for email and phone");
+
+  const normalizedPromo = String(promoCode || "").trim().toUpperCase() || null;
+  if (normalizedPromo) {
+    const redeemed = await db.getPromoRedemptions();
+    const alreadyUsed = redeemed.some(
+      (r) => r.promoCode === normalizedPromo && (r.email === contact.email || r.phone === contact.phone)
+    );
+    if (alreadyUsed) throw new Error("Promo code already redeemed for this email or phone");
+
+    redeemed.push({
+      id: Date.now(),
+      promoCode: normalizedPromo,
+      email: contact.email,
+      phone: contact.phone,
+      createdAt: new Date().toISOString(),
+    });
+    await db.savePromoRedemptions(redeemed);
+  }
+
+  const order = {
+    id: `ORD-${Date.now()}`,
+    userId,
+    guest: !userId,
+    items,
+    subtotal: Number(subtotal) || 0,
+    total: Number(total) || Number(subtotal) || 0,
+    promoCode: normalizedPromo,
+    discountPercent: Number(discountPercent) || 0,
+    address: { ...address, email: contact.email, phone: contact.phone },
+    payment,
+    createdAt: new Date().toISOString(),
+  };
+
+  const orders = await db.getOrders();
+  orders.push(order);
+  await db.saveOrders(orders);
+  return order;
+}
+
+app.post("/api/orders", auth, async (req, res) => {
+  try {
+    const order = await createOrderRecord({ userId: req.user.id, body: req.body });
+    const carts = await db.getCarts();
+    await db.saveCarts(carts.map((c) => (c.userId === req.user.id ? { ...c, items: [], updatedAt: new Date().toISOString() } : c)));
+    res.status(201).json({ order });
+  } catch (err) {
+    res.status(400).json({ message: err.message || "Invalid order" });
+  }
+});
+
+app.post("/api/orders/guest", async (req, res) => {
+  try {
+    const order = await createOrderRecord({ userId: null, body: req.body });
+    res.status(201).json({ order });
+  } catch (err) {
+    res.status(400).json({ message: err.message || "Invalid guest order" });
+  }
+});
+
+app.post("/api/payments/razorpay/order", async (req, res) => {
+  const { amount, currency = "INR" } = req.body || {};
+  if (!amount || Number(amount) <= 0) return res.status(400).json({ message: "Valid amount is required" });
+  res.json({ id: `order_${Date.now()}`, amount: Number(amount), currency });
+});
+
+app.post("/api/payments/razorpay/verify", async (req, res) => {
+  const { razorpay_payment_id, razorpay_order_id } = req.body || {};
+  if (!razorpay_payment_id || !razorpay_order_id) return res.status(400).json({ message: "Payment verification payload missing" });
+  res.json({ verified: true });
+});
+
+app.use((err, _req, res, _next) => {
+  console.error(err);
+  res.status(500).json({ message: "Internal server error" });
+});
+
+initDb().finally(() => {
+  app.listen(PORT, () => console.log(`Backend API running on http://localhost:${PORT}`));
+});

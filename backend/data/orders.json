@@ -1,0 +1,29 @@
+[
+  {
+    "id": "ORD-1772388942179",
+    "userId": 1772388941914,
+    "items": [
+      {
+        "product_id": 1,
+        "name": "Bloom",
+        "price": 749,
+        "qty": 1
+      }
+    ],
+    "subtotal": 749,
+    "total": 749,
+    "address": {
+      "name": "A",
+      "phone": "1",
+      "address": "x",
+      "city": "y",
+      "state": "z",
+      "pin": "000"
+    },
+    "payment": {
+      "method": "Razorpay",
+      "id": "pay_1"
+    },
+    "createdAt": "2026-03-01T18:15:42.179Z"
+  }
+]

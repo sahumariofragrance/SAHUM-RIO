@@ -61,7 +61,7 @@ export default function OrdersPage() {
                     ? `Card •••• ${o.payment.last4}`
                     : o.payment.method === "UPI"
                     ? `UPI ${o.payment.upiId}`
-                    : "Cash on Delivery"}
+                    : o.payment.method || "Cash on Delivery"}
                 </div>
               </div>
             </div>

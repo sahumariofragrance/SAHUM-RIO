@@ -8,19 +8,19 @@ const ShippingForm = React.memo(({ onFormChange, initialValues = {} }) => {
 
   const validateField = useCallback((name, value) => {
     const newErrors = { ...errors };
-    
+
     switch (name) {
       case 'name':
         if (!value.trim()) newErrors.name = 'Name is required';
         else delete newErrors.name;
         break;
       case 'phone':
-        if (!value || !/^\d{10}$/.test(value.replace(/\D/g, ''))) 
+        if (!value || !/^\d{10}$/.test(value.replace(/\D/g, '')))
           newErrors.phone = 'Valid 10-digit phone required';
         else delete newErrors.phone;
         break;
       case 'email':
-        if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) 
+        if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
           newErrors.email = 'Valid email required';
         else delete newErrors.email;
         break;
@@ -33,14 +33,14 @@ const ShippingForm = React.memo(({ onFormChange, initialValues = {} }) => {
         else delete newErrors.city;
         break;
       case 'pin':
-        if (!value || !/^\d{6}$/.test(value)) 
+        if (!value || !/^\d{6}$/.test(value))
           newErrors.pin = 'Valid 6-digit PIN required';
         else delete newErrors.pin;
         break;
       default:
         break;
     }
-    
+
     return newErrors;
   }, [errors]);
 
@@ -50,10 +50,9 @@ const ShippingForm = React.memo(({ onFormChange, initialValues = {} }) => {
       const newForm = { ...prev, [name]: value };
       const newErrors = validateField(name, value);
       setErrors(newErrors);
-      // Pass validity as second arg so parent can enable/disable the pay button
       const valid =
         !Object.keys(newErrors).length &&
-        !!(newForm.name && newForm.phone && newForm.address && newForm.city && newForm.state && newForm.pin);
+        !!(newForm.name && newForm.phone && newForm.email && newForm.address && newForm.city && newForm.state && newForm.pin);
       onFormChange(newForm, valid);
       return newForm;
     });
@@ -84,8 +83,9 @@ const ShippingForm = React.memo(({ onFormChange, initialValues = {} }) => {
 
       <Input
         name="email"
-        label="Email (optional)"
+        label="Email"
         type="email"
+        required
         value={form.email || ''}
         onChange={handleChange}
         error={errors.email}
@@ -137,7 +137,6 @@ const ShippingForm = React.memo(({ onFormChange, initialValues = {} }) => {
         onChange={handleChange}
         rows={2}
       />
-
     </form>
   );
 });

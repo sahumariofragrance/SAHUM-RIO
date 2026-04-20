@@ -1,14 +1,27 @@
-// src/pages/PerfumesPage.jsx
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import ProductGrid from "../components/ProductGrid";
 import ProductDetailModal from "../components/ProductDetailModal";
 import SectionHeader from "../components/SectionHeader";
 import localProducts from "../data/products.json";
 import { useCart } from "../context/cartContext";
+import api from "../lib/api";
 
 export default function PerfumesPage() {
   const { items, addToCart, updateQty } = useCart();
   const [selectedProductId, setSelectedProductId] = useState(null);
+  const [productsData, setProductsData] = useState(localProducts);
+
+  useEffect(() => {
+    api("/products", { noAuth: true })
+      .then((data) => {
+        if (Array.isArray(data?.products) && data.products.length) {
+          setProductsData(data.products);
+        }
+      })
+      .catch(() => {
+        setProductsData(localProducts);
+      });
+  }, []);
 
   const itemQtyById = useMemo(
     () =>
@@ -21,11 +34,11 @@ export default function PerfumesPage() {
 
   const products = useMemo(
     () =>
-      localProducts.map((product) => ({
+      productsData.map((product) => ({
         ...product,
         qty: itemQtyById[product.id] ?? 0,
       })),
-    [itemQtyById]
+    [productsData, itemQtyById]
   );
 
   const selectedPerfume = useMemo(
@@ -55,7 +68,7 @@ export default function PerfumesPage() {
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-12">
-      <SectionHeader 
+      <SectionHeader
         title="Our Collection"
         subtitle="Discover our range of authentic oil-based perfumes."
       />

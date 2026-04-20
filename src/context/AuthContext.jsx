@@ -1,58 +1,56 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import api, { getToken, setToken } from "../lib/api";
 
 const AuthCtx = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  // true while restoring session from localStorage — prevents login-form flash
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Restore existing session synchronously from localStorage
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    const token = getToken();
+    if (!token) {
       setLoading(false);
-    });
+      return;
+    }
 
-    // Keep user in sync across login, logout, and automatic token refresh
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    api("/auth/me")
+      .then((data) => setUser(data?.user ?? null))
+      .catch(() => {
+        setToken("");
+        setUser(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const login = async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const data = await api("/auth/login", {
+      method: "POST",
+      noAuth: true,
+      body: { email, password },
     });
-    if (error) throw new Error(error.message);
-    return data.user;
+    setToken(data?.token);
+    setUser(data?.user ?? null);
+    return data?.user;
   };
 
   const signup = async ({ name, email, password }) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name } }, // stored in user_metadata
+    const data = await api("/auth/signup", {
+      method: "POST",
+      noAuth: true,
+      body: { name, email, password },
     });
-    if (error) throw new Error(error.message);
-    return data.user;
+    setToken(data?.token);
+    setUser(data?.user ?? null);
+    return data?.user;
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    setToken("");
+    setUser(null);
   };
 
-  return (
-    <AuthCtx.Provider value={{ user, loading, login, signup, logout }}>
-      {children}
-    </AuthCtx.Provider>
-  );
+  return <AuthCtx.Provider value={{ user, loading, login, signup, logout }}>{children}</AuthCtx.Provider>;
 }
 
 export function useAuth() {
