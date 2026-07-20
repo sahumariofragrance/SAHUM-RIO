@@ -1,3 +1,10 @@
-# https://www.robotstxt.org/robotstxt.html
+# robots.txt — sahumario.com
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /checkout
+Disallow: /orders
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://www.sahumario.com/sitemap.xml

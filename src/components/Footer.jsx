@@ -21,7 +21,7 @@ const Footer = React.memo(({ setCurrentPage }) => {
   }, [setCurrentPage]);
 
   const handleEmailClick = useCallback(() => {
-    window.location.href = 'mailto:sahumariofragnance@gmail.com';
+    window.location.href = 'mailto:sahumariofragrance@gmail.com';
   }, []);
 
   return (
@@ -109,10 +109,10 @@ const Footer = React.memo(({ setCurrentPage }) => {
           <p className="mt-2 text-[var(--color-muted)]">
             Email:{" "}
             <a
-              href="mailto:sahumariofragnance@gmail.com"
+              href="mailto:sahumariofragrance@gmail.com"
               className="hover:text-amber-600 transition-colors"
             >
-              sahumariofragnance@gmail.com
+              sahumariofragrance@gmail.com
             </a>
           </p>
           <p className="text-[var(--color-muted)]">

@@ -16,7 +16,7 @@ const Hero = React.memo(({ onExplore }) => {
   return (
     <section
       className="relative overflow-hidden bg-cover bg-center"
-      style={{ backgroundImage: "url('/hero-bg.svg')" }}
+      style={{ backgroundImage: "url('/hero-bg.png')" }}
       aria-label="Hero banner"
     >
       <div className="absolute inset-0 bg-[var(--color-hero-overlay)] backdrop-blur-sm"></div>
@@ -36,6 +36,7 @@ const Hero = React.memo(({ onExplore }) => {
         >
           Long-lasting fragrances that tell your story.
         </p>
+        {/* Promo pill — commented out, re-enable when promotion is live
         <p
           className={`mt-3 inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 text-sm font-semibold text-amber-700 transition-opacity duration-1000 delay-300 ${
             animate ? "opacity-100" : "opacity-0"
@@ -43,6 +44,7 @@ const Hero = React.memo(({ onExplore }) => {
         >
           Promo Code: WELCOME10
         </p>
+        */}
         <div
           className={`mt-8 transition-opacity duration-1000 delay-500 ${
             animate ? "opacity-100" : "opacity-0"

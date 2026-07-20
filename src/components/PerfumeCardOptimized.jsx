@@ -7,7 +7,8 @@ const PerfumeCardOptimized = React.memo(({
   quantity = 0, 
   onClickCard, 
   onAdd, 
-  onUpdateQty 
+  onUpdateQty,
+  priority = false,
 }) => {
   const { id, name, description, price, image, alt } = product;
 
@@ -30,6 +31,7 @@ const PerfumeCardOptimized = React.memo(({
           src={image}
           alt={alt || name}
           className="w-full h-full object-cover"
+          priority={priority}
         />
       </div>
 

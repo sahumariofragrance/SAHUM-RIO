@@ -78,11 +78,24 @@ export default function CheckoutPage({ setCurrentPage }) {
   const [formValid, setFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [correctedAmount, setCorrectedAmount] = useState(null); // set if server fixes price
   const [step, setStep] = useState("checkout"); // "checkout" | "success"
   const [confirmedOrderId, setConfirmedOrderId] = useState(null);
-  const successRef = useRef(null);
+  const successRef    = useRef(null);
+  const isMounted     = useRef(true);   // guards setState after unmount
+  const isProcessing  = useRef(false);  // prevents double-submit
+  const abortCtrlRef  = useRef(null);   // cancels in-flight requests on unmount
 
   const testMode = isTestMode(process.env.REACT_APP_RAZORPAY_KEY_ID);
+
+  // Unmount cleanup — cancel in-flight requests, stop state updates
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      abortCtrlRef.current?.abort();
+    };
+  }, []);
 
   // Auto-focus success heading for screen readers when payment completes
   useEffect(() => {
@@ -96,6 +109,9 @@ export default function CheckoutPage({ setCurrentPage }) {
   }, []);
 
   const initiatePayment = useCallback(async () => {
+    // Prevent double-submit
+    if (isProcessing.current) return;
+
     if (!formValid) {
       setError("Please complete all required shipping fields before proceeding.");
       return;
@@ -107,28 +123,31 @@ export default function CheckoutPage({ setCurrentPage }) {
       return;
     }
 
+    isProcessing.current = true;
+    const abort = new AbortController();
+    abortCtrlRef.current = abort;
+
     try {
-      setLoading(true);
-      setError(null);
-      paymentLog("info", "INITIATED", { amount: subtotal, discountPercent: 0 });
+      if (isMounted.current) { setLoading(true); setError(null); setCorrectedAmount(null); }
+      paymentLog("info", "INITIATED", { itemCount: items.length });
 
       // ── Step 1: Create order on backend ────────────────────────────────────
+      //  Send the actual cart items so the server can verify the total
+      //  independently (qty × ₹749). The server ignores our frontendAmount
+      //  and always charges the server-computed correct price.
+      const frontendAmountPaise = Math.round(subtotal * 100);
       const orderRes = await fetch("/api/payments/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: abort.signal,
         body: JSON.stringify({
-          amount: Math.round(subtotal * 100), // Razorpay expects paise
+          items:    items.map((i) => ({ product_id: i.product_id, qty: i.qty })),
+          frontendAmount: frontendAmountPaise,
           currency: "INR",
           customer: {
-            name: formData.name,
+            name:  formData.name,
             phone: formData.phone,
             email: formData.email || "",
-          },
-          notes: {
-            address: `${formData.address}, ${formData.city}, ${formData.state} - ${formData.pin}`,
-            instructions: formData.notes || "",
-            promo_code: "",
-            discount_percent: "0",
           },
         }),
       });
@@ -139,15 +158,29 @@ export default function CheckoutPage({ setCurrentPage }) {
       }
 
       const order = await orderRes.json();
-      paymentLog("info", "ORDER_CREATED", { order_id: order.id });
+      paymentLog("info", "ORDER_CREATED", { order_id: order.id, amount: order.amount });
+
+      // ── Server-verified amount ─────────────────────────────────────────────
+      //  If the server detected a price mismatch it returns correctedAmount (INR).
+      //  Surface a visible warning so the user sees the actual charge.
+      if (order.correctedAmount != null) {
+        const correctedINR = order.correctedAmount;
+        setCorrectedAmount(correctedINR);
+        paymentLog("warn", "AMOUNT_CORRECTED", {
+          frontend_paise: frontendAmountPaise,
+          server_inr: correctedINR,
+        });
+      }
 
       // ── Step 2: Load Razorpay SDK on demand ────────────────────────────────
       await loadRazorpayScript();
 
       // ── Step 3: Open checkout modal ────────────────────────────────────────
+      //  Always use order.amount from the server — this is the server-verified
+      //  correct amount regardless of what the frontend computed.
       const paymentResponse = await openRazorpayCheckout({
         key: razorpayKey,
-        amount: order.amount,
+        amount: order.amount,   // server-authoritative (paise)
         currency: order.currency,
         name: "SAHUMäRIO",
         description: `${items.length} perfume${items.length > 1 ? "s" : ""}`,
@@ -169,7 +202,12 @@ export default function CheckoutPage({ setCurrentPage }) {
       const verifyRes = await fetch("/api/payments/razorpay/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paymentResponse),
+        signal: abort.signal,
+        body: JSON.stringify({
+          razorpay_order_id:   paymentResponse.razorpay_order_id,
+          razorpay_payment_id: paymentResponse.razorpay_payment_id,
+          razorpay_signature:  paymentResponse.razorpay_signature,
+        }),
       });
 
       if (!verifyRes.ok) {
@@ -179,11 +217,13 @@ export default function CheckoutPage({ setCurrentPage }) {
       paymentLog("info", "VERIFIED", { payment_id: paymentResponse.razorpay_payment_id });
 
       // ── Persist order to context / localStorage ────────────────────────────
+      //  Record the actual charged amount (server amount in INR) for receipts.
+      const chargedAmountINR = order.amount / 100;
       addOrder({
         id: paymentResponse.razorpay_order_id,
         items: items.map((i) => ({ ...i })),
-        subtotal,
-        discountedSubtotal: subtotal,
+        subtotal: chargedAmountINR,
+        discountedSubtotal: chargedAmountINR,
         promoCode: null,
         discountPercent: 0,
         address: { ...formData },
@@ -195,15 +235,19 @@ export default function CheckoutPage({ setCurrentPage }) {
       setConfirmedOrderId(paymentResponse.razorpay_order_id);
       setStep("success");
     } catch (err) {
+      // AbortError means the component unmounted — don't update state
+      if (err.name === "AbortError") return;
+
       const msg = friendlyPaymentError(err);
       if (msg) {
-        setError(msg);
+        if (isMounted.current) setError(msg);
         paymentLog("error", "FAILED", { message: err.message });
       } else {
         paymentLog("info", "CANCELLED");
       }
     } finally {
-      setLoading(false);
+      isProcessing.current = false;
+      if (isMounted.current) setLoading(false);
     }
   }, [formValid, formData, subtotal, items, clearCart, addOrder]);
 
@@ -290,6 +334,26 @@ export default function CheckoutPage({ setCurrentPage }) {
         {/* Shipping form — rendered below summary on mobile, left on desktop */}
         <div className="order-2 lg:col-span-2 lg:order-1">
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
+          {correctedAmount != null && (
+            <div
+              role="alert"
+              className="mb-6 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-800"
+            >
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+              <p className="flex-1 text-sm">
+                <strong>Price updated by server:</strong> Your cart total has been verified and
+                corrected to <strong>₹{correctedAmount.toLocaleString("en-IN")}</strong>. This
+                is the amount you will be charged.
+              </p>
+              <button
+                onClick={() => setCorrectedAmount(null)}
+                aria-label="Dismiss price correction notice"
+                className="rounded p-0.5 transition-colors hover:bg-amber-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
           <Card className="p-6">
             <h2 className="mb-6 text-lg font-semibold">Shipping Address</h2>
             <ShippingForm onFormChange={handleFormChange} initialValues={formData} />

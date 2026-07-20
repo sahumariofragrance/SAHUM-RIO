@@ -59,7 +59,7 @@ export default function TermsPage() {
           You understand, agree and acknowledge that SAHUMÄRIO uses third-party service
           providers to store and process your personal information. SAHUMÄRIO provides no
           guarantee that such third-party service providers will protect your personal
-          information and shall not be liable for any actions, omission, misconduct, fraud
+          information and shall not be liable for any actions, omissions, misconduct, fraud
           or negligence of these third parties.
         </P>
       </Section>
@@ -96,8 +96,7 @@ export default function TermsPage() {
         <P>
           The products and services provided by SAHUMÄRIO on this website are for personal
           use only. Selling or reselling of products and services obtained through SAHUMÄRIO
-          website is completely prohibited. Our products are non-returnable due to hygiene
-          and personal care nature of the product.
+          website is completely prohibited. Our products are non-returnable due to the hygiene and personal care nature of the products.
         </P>
         <P>
           However, in the unlikely event of a damaged, defective or different item being

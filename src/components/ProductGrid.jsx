@@ -19,7 +19,7 @@ const ProductGrid = React.memo(({
   // Static classes so Tailwind can detect and include them in the production build
   return (
     <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-      {products.map((product) => (
+      {products.map((product, index) => (
         <PerfumeCardOptimized
           key={product.id}
           product={product}
@@ -27,6 +27,7 @@ const ProductGrid = React.memo(({
           onClickCard={() => onSelectProduct(product)}
           onAdd={() => onAddToCart(product)}
           onUpdateQty={(id, newQty) => onUpdateQty(id, newQty)}
+          priority={index === 0} // First card = LCP image — load eagerly
         />
       ))}
     </div>

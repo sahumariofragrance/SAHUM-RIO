@@ -95,7 +95,7 @@ const CartSummary = React.memo(
         {/* Trust indicator */}
         <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-[var(--color-muted)]">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-          Secured &amp; encrypted payment
+          Secure &amp; encrypted payment
         </div>
 
         {/* Secondary action */}

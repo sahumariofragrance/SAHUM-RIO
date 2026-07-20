@@ -87,7 +87,7 @@ export default function RefundPolicyPage() {
         </P>
         <P>
           The customer should contact our customer care within 24–48 hours in the event
-          they receive a damaged, broken, or leaked product.
+          you receive a damaged, broken, or leaked product.
         </P>
       </Section>
 
@@ -103,7 +103,7 @@ export default function RefundPolicyPage() {
         </P>
         <P>
           Orders cannot be cancelled once shipped from the warehouses. An amount of ₹75
-          will be deducted if the order is shipped and returned back to the seller
+          will be deducted if the order is shipped and returned to the seller
           (prepaid orders).
         </P>
       </Section>
@@ -118,7 +118,7 @@ export default function RefundPolicyPage() {
         <P>
           Refunds for paid orders shall be credited to the original payment account within
           15 days of cancellation acceptance. For COD orders, refund shall be issued to the
-          bank account shared with the customer support team within 4–7 working days.
+          bank account provided to the customer support team within 4–7 working days.
         </P>
 
         <P>

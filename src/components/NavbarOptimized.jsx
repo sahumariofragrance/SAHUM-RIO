@@ -7,8 +7,8 @@ const NavLink = React.memo(({ id, isActive, onClick, children }) => (
   <button
     onClick={() => onClick(id)}
     className={`${
-      isActive ? 'text-amber-600' : 'text-[var(--color-muted)]'
-    } hover:text-amber-600 transition px-3 py-2`}
+      isActive ? 'text-amber-400' : 'text-stone-300'
+    } hover:text-amber-400 transition-colors px-3 py-2 text-sm font-medium`}
     aria-current={isActive ? 'page' : undefined}
   >
     {children}
@@ -33,7 +33,7 @@ const NavbarOptimized = React.memo(({
   }, [setCurrentPage, setIsMenuOpen]);
 
   return (
-    <header className="sticky top-0 z-40 bg-[var(--color-surface)]/90 backdrop-blur border-b border-[var(--color-border)] transition-colors duration-200">
+    <header className="sticky top-0 z-40 transition-colors duration-200" style={{ backgroundColor: '#3b1708', borderBottom: '1px solid #7c2d12' }}>
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -47,8 +47,9 @@ const NavbarOptimized = React.memo(({
               width={70}
               height={70}
               loading="lazy"
+              className="drop-shadow-sm"
             />
-            <span className="text-amber-600">SAHUMä</span>RIO
+            <span className="text-amber-400">SAHUMä</span><span className="text-white">RIO</span>
           </button>
 
           {/* Desktop nav */}
@@ -67,7 +68,10 @@ const NavbarOptimized = React.memo(({
           <div className="flex items-center gap-2">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-[var(--color-surface-muted)] transition"
+              className="p-2 rounded-full text-stone-300 hover:text-white transition"
+              style={{ '--hover-bg': '#7c2d12' }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#7c2d12'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
               title="Toggle theme"
               type="button"
               aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
@@ -75,11 +79,13 @@ const NavbarOptimized = React.memo(({
               {theme === 'light' ? '🌞' : '🌙'}
             </button>
 
-            {/* Cart icon - always visible */}
-            <button 
-              className="relative p-2 rounded-full hover:bg-[var(--color-surface-muted)] transition" 
-              title="Cart" 
-              type="button" 
+            {/* Cart icon */}
+            <button
+              className="relative p-2 rounded-full text-stone-300 hover:text-white transition"
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#7c2d12'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+              title="Cart"
+              type="button"
               onClick={onCartClick}
               aria-label={`Shopping cart with ${count} items`}
             >
@@ -94,7 +100,9 @@ const NavbarOptimized = React.memo(({
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden p-2 rounded-lg hover:bg-[var(--color-surface-muted)] transition"
+            className="md:hidden p-2 rounded-lg text-stone-300 hover:text-white transition"
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#7c2d12'}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
             onClick={() => setIsMenuOpen?.(!isMenuOpen)}
             aria-label="Toggle Menu"
             aria-expanded={isMenuOpen}
@@ -107,23 +115,29 @@ const NavbarOptimized = React.memo(({
 
         {/* Mobile nav */}
         {isMenuOpen && (
-          <nav id="mobile-nav" className="md:hidden pb-3 animate-in fade-in duration-200">
-            <div className="flex flex-col gap-1 border-t border-[var(--color-border)] pt-3">
-              <button 
-                onClick={() => handleNavClick('home')} 
-                className="block w-full text-left px-3 py-2 rounded-md hover:bg-[var(--color-surface-muted)] transition"
+          <nav id="mobile-nav" className="md:hidden pb-3">
+            <div className="flex flex-col gap-1 pt-3" style={{ borderTop: '1px solid #7c2d12' }}>
+              <button
+                onClick={() => handleNavClick('home')}
+                className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white transition text-sm font-medium"
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#7c2d12'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 Home
               </button>
-              <button 
-                onClick={() => handleNavClick('perfumes')} 
-                className="block w-full text-left px-3 py-2 rounded-md hover:bg-[var(--color-surface-muted)] transition"
+              <button
+                onClick={() => handleNavClick('perfumes')}
+                className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white transition text-sm font-medium"
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#7c2d12'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 Perfumes
               </button>
-              <button 
-                onClick={() => handleNavClick('about')} 
-                className="block w-full text-left px-3 py-2 rounded-md hover:bg-[var(--color-surface-muted)] transition"
+              <button
+                onClick={() => handleNavClick('about')}
+                className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white transition text-sm font-medium"
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#7c2d12'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 About
               </button>
