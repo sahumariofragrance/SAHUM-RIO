@@ -41,6 +41,11 @@ export function AuthProvider({ children }) {
       options: { data: { name } }, // stored in user_metadata
     });
     if (error) throw new Error(error.message);
+    
+    // If Supabase requires email confirmation, session will be null
+    if (data.user && !data.session) {
+      throw new Error("Account created! Please check your email for a confirmation link before logging in.");
+    }
     return data.user;
   };
 

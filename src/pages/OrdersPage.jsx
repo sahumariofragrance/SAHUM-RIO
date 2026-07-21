@@ -34,7 +34,9 @@ export default function OrdersPage({ setCurrentPage }) {
     return (
       <section className="mx-auto max-w-4xl px-4 py-10">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Your Orders</h2>
+          <h2 className="text-2xl font-semibold">
+            {user.user_metadata?.name ? `${user.user_metadata.name}'s Orders` : 'Your Orders'}
+          </h2>
           <button onClick={handleLogout} className="flex items-center gap-2 text-sm text-[var(--color-muted)] hover:text-red-500 transition-colors">
             <LogOut className="h-4 w-4" /> Log Out
           </button>
@@ -47,7 +49,9 @@ export default function OrdersPage({ setCurrentPage }) {
   return (
     <section className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">Your Orders</h2>
+        <h2 className="text-2xl font-semibold">
+          {user.user_metadata?.name ? `${user.user_metadata.name}'s Orders` : 'Your Orders'}
+        </h2>
         <button onClick={handleLogout} className="flex items-center gap-2 text-sm text-[var(--color-muted)] hover:text-red-500 transition-colors">
           <LogOut className="h-4 w-4" /> Log Out
         </button>

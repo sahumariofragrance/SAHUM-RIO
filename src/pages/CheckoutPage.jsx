@@ -332,6 +332,24 @@ export default function CheckoutPage({ setCurrentPage }) {
     );
   }
 
+  // ── Auth guard ─────────────────────────────────────────────────────────────
+  if (!user) {
+    return (
+      <section className="mx-auto max-w-md px-4 py-16 text-center">
+        <h2 className="text-2xl font-semibold">Sign in to checkout</h2>
+        <p className="mt-2 text-[var(--color-muted)]">
+          You must have an account to place an order and track your shipments.
+        </p>
+        <button
+          onClick={() => setCurrentPage?.("login")}
+          className="mt-6 inline-flex w-full justify-center rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-amber-700 active:scale-95"
+        >
+          Log In or Sign Up
+        </button>
+      </section>
+    );
+  }
+
   // ── Empty cart guard ───────────────────────────────────────────────────────
   if (items.length === 0) {
     return (
