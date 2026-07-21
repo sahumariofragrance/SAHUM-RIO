@@ -76,8 +76,53 @@ export function OrdersProvider({ children }) {
     }
   }, []);
 
+  const fetchAddress = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return null;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        console.warn("[Orders] Failed to fetch address:", error.message);
+      }
+      return data || null;
+    } catch (err) {
+      console.warn("[Orders] Failed to fetch address:", err.message);
+      return null;
+    }
+  }, []);
+
+  const saveAddress = useCallback(async (addressData) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return false;
+
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({
+          id: session.user.id,
+          ...addressData,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.warn("[Orders] Failed to save address:", error.message);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.warn("[Orders] Failed to save address:", err.message);
+      return false;
+    }
+  }, []);
+
   return (
-    <OrdersContext.Provider value={{ orders, addOrder }}>
+    <OrdersContext.Provider value={{ orders, addOrder, fetchAddress, saveAddress }}>
       {children}
     </OrdersContext.Provider>
   );

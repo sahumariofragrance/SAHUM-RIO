@@ -5,6 +5,7 @@ import ShippingForm from "../components/ShippingForm";
 import CartSummary from "../components/CartSummary";
 import { useCart } from "../context/cartContext";
 import { useOrders } from "../context/OrdersContext";
+import { useAuth } from "../context/AuthContext";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
 
@@ -73,14 +74,17 @@ function ErrorBanner({ message, onDismiss }) {
 
 export default function CheckoutPage({ setCurrentPage }) {
   const { items, subtotal, clearCart } = useCart();
-  const { addOrder } = useOrders();
+  const { addOrder, fetchAddress, saveAddress } = useOrders();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({});
   const [formValid, setFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [correctedAmount, setCorrectedAmount] = useState(null); // set if server fixes price
-  const [step, setStep] = useState("checkout"); // "checkout" | "success"
+  const [correctedAmount, setCorrectedAmount] = useState(null);
+  const [step, setStep] = useState("checkout");
   const [confirmedOrderId, setConfirmedOrderId] = useState(null);
+  const [saveToProfile, setSaveToProfile] = useState(true);
+  const [addressLoaded, setAddressLoaded] = useState(false);
   const successRef    = useRef(null);
   const isMounted     = useRef(true);   // guards setState after unmount
   const isProcessing  = useRef(false);  // prevents double-submit
@@ -101,6 +105,29 @@ export default function CheckoutPage({ setCurrentPage }) {
   useEffect(() => {
     if (step === "success") successRef.current?.focus();
   }, [step]);
+
+  // Fetch saved address on mount
+  useEffect(() => {
+    if (user && !addressLoaded) {
+      fetchAddress().then(addr => {
+        if (addr && isMounted.current) {
+          const prefill = {
+            name: addr.name || "",
+            phone: addr.phone || "",
+            email: addr.email || "",
+            address: addr.address || "",
+            city: addr.city || "",
+            state: addr.state || "Maharashtra",
+            pin: addr.pin || ""
+          };
+          setFormData(prefill);
+        }
+        if (isMounted.current) setAddressLoaded(true);
+      });
+    } else if (!user && !addressLoaded) {
+      setAddressLoaded(true);
+    }
+  }, [user, fetchAddress, addressLoaded]);
 
   const handleFormChange = useCallback((data, valid) => {
     setFormData(data);
@@ -231,6 +258,18 @@ export default function CheckoutPage({ setCurrentPage }) {
         createdAt: new Date().toISOString(),
       });
 
+      if (user && saveToProfile) {
+        saveAddress({
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email || "",
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          pin: formData.pin
+        });
+      }
+
       clearCart();
       setConfirmedOrderId(paymentResponse.razorpay_order_id);
       setStep("success");
@@ -356,7 +395,27 @@ export default function CheckoutPage({ setCurrentPage }) {
           )}
           <Card className="p-6">
             <h2 className="mb-6 text-lg font-semibold">Shipping Address</h2>
-            <ShippingForm onFormChange={handleFormChange} initialValues={formData} />
+            {addressLoaded ? (
+              <>
+                <ShippingForm key={user ? "user" : "guest"} onFormChange={handleFormChange} initialValues={formData} />
+                {user && (
+                  <div className="mt-4 flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id="saveProfile" 
+                      checked={saveToProfile}
+                      onChange={(e) => setSaveToProfile(e.target.checked)}
+                      className="rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600"
+                    />
+                    <label htmlFor="saveProfile" className="text-sm text-[var(--color-text)]">
+                      Save this address to my profile
+                    </label>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="h-64 animate-pulse rounded-lg bg-[var(--color-surface-muted)]" />
+            )}
           </Card>
         </div>
 

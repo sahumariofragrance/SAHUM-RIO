@@ -24,6 +24,7 @@ const PAGE_PATH_MAP = {
   checkout:         "/checkout",
   orders:           "/orders",
   admin:            "/admin",
+  login:            "/login",
   "privacy-policy": "/privacy-policy",
   "refund-policy":  "/refund-return-policy",
   "shipping-policy":"/shipping-policy",
@@ -56,6 +57,10 @@ const PAGE_META = {
   orders: {
     title: "Your Orders — SAHUMäRIO",
     description: "View your past orders from SAHUMäRIO.",
+  },
+  login: {
+    title: "Log In or Sign Up — SAHUMäRIO",
+    description: "Create an account or log in to track your orders and save your shipping address.",
   },
   "privacy-policy": {
     title: "Privacy Policy — SAHUMäRIO",
@@ -174,7 +179,7 @@ export default function App() {
       case "orders":
         return (
           <Suspense fallback={<PageSkeleton />}>
-            <OrdersPage />
+            <OrdersPage setCurrentPage={handleSetCurrentPage} />
           </Suspense>
         );
       case "admin":
@@ -195,6 +200,20 @@ export default function App() {
         return (
           <Suspense fallback={<PageSkeleton />}>
             <AdminPage setCurrentPage={handleSetCurrentPage} />
+          </Suspense>
+        );
+      case "login":
+        if (user) {
+          // If already logged in, redirect to orders
+          return (
+            <Suspense fallback={<PageSkeleton />}>
+              <OrdersPage />
+            </Suspense>
+          );
+        }
+        return (
+          <Suspense fallback={<PageSkeleton />}>
+            <LoginPage setCurrentPage={handleSetCurrentPage} redirectAfterLogin="home" />
           </Suspense>
         );
       case "privacy-policy":

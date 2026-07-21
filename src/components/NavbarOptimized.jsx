@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { Menu, X, ShoppingCart } from 'lucide-react';
+import { Menu, X, ShoppingCart, User } from 'lucide-react';
 import { useCart } from '../context/cartContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 const NavLink = React.memo(({ id, isActive, onClick, children }) => (
   <button
@@ -26,6 +27,7 @@ const NavbarOptimized = React.memo(({
 }) => {
   const { count } = useCart();
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
 
   const handleNavClick = useCallback((page) => {
     setCurrentPage?.(page);
@@ -79,6 +81,21 @@ const NavbarOptimized = React.memo(({
               {theme === 'light' ? '🌙' : '🌞'}
             </button>
 
+            {/* Account / Login icon */}
+            <button
+              className={`p-2 rounded-full transition-colors ${
+                currentPage === 'login' || currentPage === 'orders' || currentPage === 'admin'
+                  ? 'text-amber-400 bg-[#7c2d12]'
+                  : 'text-stone-300 hover:text-white hover:bg-[#7c2d12]'
+              }`}
+              title={user ? "My Account" : "Login / Sign Up"}
+              type="button"
+              onClick={() => handleNavClick(user ? 'orders' : 'login')}
+              aria-label={user ? "My Account" : "Login or Sign Up"}
+            >
+              <User className="h-5 w-5" />
+            </button>
+
             {/* Cart icon */}
             <button
               className="relative p-2 rounded-full text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors"
@@ -130,6 +147,12 @@ const NavbarOptimized = React.memo(({
                 className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors text-sm font-medium"
               >
                 About
+              </button>
+              <button
+                onClick={() => handleNavClick(user ? 'orders' : 'login')}
+                className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors text-sm font-medium"
+              >
+                {user ? "My Account" : "Login / Sign Up"}
               </button>
             </div>
           </nav>
