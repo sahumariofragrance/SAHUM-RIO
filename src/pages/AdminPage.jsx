@@ -15,6 +15,7 @@ import {
   Check,
   XCircle,
   Image as ImageIcon,
+  Package,
 } from "lucide-react";
 import { Card } from "../components/ui";
 import initialProducts from "../data/products.json";
@@ -64,6 +65,11 @@ export default function AdminPage({ setCurrentPage }) {
   // --- Tab state ---
   const [tab, setTab] = useState("pending");
 
+  // --- Admin Orders state ---
+  const [adminOrders, setAdminOrders] = useState([]);
+  const [adminOrdersLoading, setAdminOrdersLoading] = useState(false);
+  const [adminOrdersError, setAdminOrdersError] = useState("");
+
   // --- Live products state ---
   const [products, setProducts] = useState(initialProducts);
   const [editingId, setEditingId] = useState(null);
@@ -92,6 +98,39 @@ export default function AdminPage({ setCurrentPage }) {
   useEffect(() => {
     loadPending();
   }, []);
+
+  useEffect(() => {
+    if (tab === "orders") {
+      loadAdminOrders();
+    }
+  }, [tab]);
+
+  async function loadAdminOrders() {
+    setAdminOrdersLoading(true);
+    setAdminOrdersError("");
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .order("createdAt", { ascending: false });
+    if (error) {
+      setAdminOrdersError(error.message);
+    } else {
+      setAdminOrders(data || []);
+    }
+    setAdminOrdersLoading(false);
+  }
+
+  async function updateOrderStatus(orderId, newStatus) {
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: newStatus })
+      .eq("id", orderId);
+    if (!error) {
+      setAdminOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    } else {
+      alert("Failed to update status: " + error.message);
+    }
+  }
 
   async function loadPending() {
     setPendingLoading(true);
@@ -394,6 +433,16 @@ export default function AdminPage({ setCurrentPage }) {
         >
           Live Products
           {dirty && <span className="ml-1 text-amber-600">●</span>}
+        </button>
+        <button
+          onClick={() => setTab("orders")}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            tab === "orders"
+              ? "border-amber-600 text-amber-600"
+              : "border-transparent text-[var(--color-muted)] hover:text-[var(--color-text)]"
+          }`}
+        >
+          Customer Orders
         </button>
       </div>
 
@@ -866,6 +915,87 @@ export default function AdminPage({ setCurrentPage }) {
               </p>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ===== ORDERS TAB ===== */}
+      {tab === "orders" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-[var(--color-muted)]">
+              View and manage customer orders.
+            </p>
+          </div>
+          
+          {adminOrdersLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-amber-600" aria-hidden="true" />
+            </div>
+          ) : adminOrdersError ? (
+            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{adminOrdersError}</span>
+            </div>
+          ) : adminOrders.length === 0 ? (
+            <div className="py-12 text-center">
+              <Package className="h-10 w-10 text-[var(--color-muted)] mx-auto mb-3" aria-hidden="true" />
+              <p className="text-[var(--color-muted)]">No orders yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {adminOrders.map((o) => (
+                <Card key={o.id} className="overflow-hidden">
+                  <div className="px-4 py-3 bg-[var(--color-surface-muted)] border-b border-[var(--color-border)] flex flex-wrap items-center justify-between gap-4">
+                    <div className="text-sm text-[var(--color-text)]">
+                      <div className="font-semibold">Order #{o.id}</div>
+                      <div className="text-[var(--color-muted)] text-xs">{new Date(o.createdAt).toLocaleString()}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium">Status:</span>
+                      <select 
+                        value={o.status || "Processing"}
+                        onChange={(e) => updateOrderStatus(o.id, e.target.value)}
+                        className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      >
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-2">Customer Details</h4>
+                      <div className="text-sm">
+                        <p className="font-medium">{o.address?.name}</p>
+                        <p>{o.address?.phone}</p>
+                        {o.address?.email && <p>{o.address.email}</p>}
+                        <p className="mt-1 text-[var(--color-muted)]">
+                          {o.address?.address}, {o.address?.city}, {o.address?.state} - {o.address?.pin}
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-2">Order Items</h4>
+                      <ul className="text-sm space-y-1">
+                        {o.items?.map((it, idx) => (
+                          <li key={idx} className="flex justify-between">
+                            <span>{it.qty}x {it.name}</span>
+                            <span>₹{it.qty * it.price}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-3 pt-2 border-t border-[var(--color-border)] flex justify-between font-semibold">
+                        <span>Total Paid ({o.payment?.method})</span>
+                        <span className="text-amber-600">₹{o.total ?? o.subtotal}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
