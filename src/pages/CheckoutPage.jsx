@@ -288,7 +288,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       isProcessing.current = false;
       if (isMounted.current) setLoading(false);
     }
-  }, [formValid, formData, subtotal, items, clearCart, addOrder]);
+  }, [formValid, formData, subtotal, items, clearCart, addOrder, saveAddress, saveToProfile, user]);
 
   // ── Success screen ──────────────────────────────────────────────────────────
   if (step === "success") {
