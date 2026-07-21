@@ -58,8 +58,11 @@
     <!-- Preconnect to domains we load resources from -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://checkout.razorpay.com" />
+    <!-- Razorpay: DNS-prefetch only (only needed if user reaches checkout) -->
+    <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
     <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
+    <!-- Hero background: preload so LCP image is available immediately -->
+    <link rel="preload" href="/hero-bg.svg" as="image" type="image/svg+xml" />
 
     <!-- ── PWA / App metadata ────────────────────────────────────────────── -->
     <meta name="theme-color" content="#3b1708" />

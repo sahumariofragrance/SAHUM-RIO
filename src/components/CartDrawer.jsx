@@ -82,7 +82,7 @@ const CartDrawer = React.memo(({ open, onClose, onCheckout }) => {
     >
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${
+        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
           open ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}
@@ -90,7 +90,7 @@ const CartDrawer = React.memo(({ open, onClose, onCheckout }) => {
 
       {/* Panel */}
       <aside
-        className={`absolute right-0 top-0 h-full w-full max-w-sm sm:max-w-md bg-[var(--color-surface)] shadow-xl transition-transform ${
+        className={`absolute right-0 top-0 h-full w-full max-w-sm sm:max-w-md bg-[var(--color-surface)] shadow-xl transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         role="dialog"

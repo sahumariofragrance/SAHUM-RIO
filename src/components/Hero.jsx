@@ -16,20 +16,23 @@ const Hero = React.memo(({ onExplore }) => {
   return (
     <section
       className="relative overflow-hidden bg-cover bg-center"
-      style={{ backgroundImage: "url('/hero-bg.png')" }}
+      style={{ backgroundImage: "url('/hero-bg.svg')" }}
       aria-label="Hero banner"
     >
-      <div className="absolute inset-0 bg-[var(--color-hero-overlay)] backdrop-blur-sm"></div>
+      {/* Subtle color overlay (no blur — the SVG has its own depth) */}
+      <div className="absolute inset-0 bg-[var(--color-hero-overlay)]" />
 
       <div className="relative mx-auto max-w-6xl px-4 py-20 text-center">
         <h1
-          className={`text-4xl md:text-6xl font-semibold tracking-tight transition-transform duration-1000 ${
+          style={{ willChange: "transform, opacity" }}
+          className={`text-4xl md:text-6xl font-semibold tracking-tight transition-[transform,opacity] duration-1000 ${
             animate ? "translate-y-0 opacity-100" : "-translate-y-10 opacity-0"
           }`}
         >
           Authentic <span className="text-amber-600">Oil-Based</span> Perfumes
         </h1>
         <p
+          style={{ willChange: "opacity" }}
           className={`mt-4 text-[var(--color-muted)] max-w-2xl mx-auto text-lg transition-opacity duration-1000 delay-200 ${
             animate ? "opacity-100" : "opacity-0"
           }`}
@@ -46,6 +49,7 @@ const Hero = React.memo(({ onExplore }) => {
         </p>
         */}
         <div
+          style={{ willChange: "opacity" }}
           className={`mt-8 transition-opacity duration-1000 delay-500 ${
             animate ? "opacity-100" : "opacity-0"
           }`}
