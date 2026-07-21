@@ -26,8 +26,16 @@ const Razorpay = require("razorpay");
 const crypto   = require("crypto");
 
 // ── Catalogue constants ────────────────────────────────────────────────────
-const PRICE_PER_UNIT   = 749;           // INR — single source of truth for pricing
-const VALID_PRODUCT_IDS = new Set([1, 2, 3, 4, 5]);
+// Single source of truth: add a new product here when you add it to products.json
+const PRODUCT_CATALOGUE = new Map([
+  [1, { price: 749 }],  // Bloom
+  [2, { price: 749 }],  // Dew Drop
+  [3, { price: 749 }],  // Lemon Breeze
+  [4, { price: 749 }],  // Morning Dew
+  [5, { price: 749 }],  // Night Queen
+  [6, { price:   1 }],  // Perfume Papers (test)
+]);
+const VALID_PRODUCT_IDS = new Set(PRODUCT_CATALOGUE.keys());
 const MAX_QTY_PER_ITEM  = 20;           // per line item
 const MAX_TOTAL_ITEMS   = 50;           // across entire cart
 const MAX_AMOUNT_PAISE  = 50_000_000;   // Razorpay upper limit (₹5 lakh)
@@ -143,8 +151,13 @@ module.exports = async (req, res) => {
     });
   }
 
-  // ── Server-side amount calculation ───────────────────────────────────────
-  const serverAmountINR   = totalItemCount * PRICE_PER_UNIT;
+  // ── Server-side amount calculation (uses per-product prices) ─────────────
+  let serverAmountINR = 0;
+  for (const item of items) {
+    const pid = safeParseInt(item.product_id);
+    const qty = safeParseInt(item.qty);
+    serverAmountINR += PRODUCT_CATALOGUE.get(pid).price * qty;
+  }
   const serverAmountPaise = serverAmountINR * 100;
 
   if (serverAmountPaise < MIN_AMOUNT_PAISE || serverAmountPaise > MAX_AMOUNT_PAISE) {
