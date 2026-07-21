@@ -111,11 +111,11 @@ export default function AdminPage({ setCurrentPage }) {
     const { data, error } = await supabase
       .from("orders")
       .select("*")
-      .order("createdAt", { ascending: false });
+      .order("created_at", { ascending: false });
     if (error) {
       setAdminOrdersError(error.message);
     } else {
-      setAdminOrders(data || []);
+      setAdminOrders(data ? data.map(o => ({ ...o, createdAt: o.created_at })) : []);
     }
     setAdminOrdersLoading(false);
   }

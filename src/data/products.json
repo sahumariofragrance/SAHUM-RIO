@@ -38,5 +38,13 @@
     "price": 749,
     "image": "/products/night_queen.jpg",
     "alt": "Bottle of White Musk perfume"
+  },
+  {
+    "id": 6,
+    "name": "Perfume Papers",
+    "description": "Sample testing paper strips for live production testing.",
+    "price": 1,
+    "image": "/products/bloom.jpg",
+    "alt": "Perfume testing papers"
   }
 ]
