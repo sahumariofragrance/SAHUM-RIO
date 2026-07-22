@@ -197,6 +197,11 @@ export default function App() {
             </Suspense>
           );
         }
+        // Only the admin email can access this page
+        if (user.email !== "sahumariofragrance@gmail.com") {
+          handleSetCurrentPage("home");
+          return null;
+        }
         return (
           <Suspense fallback={<PageSkeleton />}>
             <AdminPage setCurrentPage={handleSetCurrentPage} />
