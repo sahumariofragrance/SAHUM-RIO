@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Menu, X, ShoppingCart, User } from 'lucide-react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { Menu, X, ShoppingCart, User, LogOut, Package } from 'lucide-react';
 import { useCart } from '../context/cartContext';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -27,12 +27,33 @@ const NavbarOptimized = React.memo(({
 }) => {
   const { count } = useCart();
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleNavClick = useCallback((page) => {
     setCurrentPage?.(page);
     setIsMenuOpen?.(false);
+    setDropdownOpen(false);
   }, [setCurrentPage, setIsMenuOpen]);
+
+  const handleLogout = useCallback(async () => {
+    setDropdownOpen(false);
+    setIsMenuOpen?.(false);
+    await logout();
+    setCurrentPage?.('home');
+  }, [logout, setCurrentPage, setIsMenuOpen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 transition-colors duration-200" style={{ backgroundColor: '#3b1708', borderBottom: '1px solid #7c2d12' }}>
@@ -81,20 +102,50 @@ const NavbarOptimized = React.memo(({
               {theme === 'light' ? '🌙' : '🌞'}
             </button>
 
-            {/* Account / Login icon */}
-            <button
-              className={`p-2 rounded-full transition-colors ${
-                currentPage === 'login' || currentPage === 'orders' || currentPage === 'admin'
-                  ? 'text-amber-400 bg-[#7c2d12]'
-                  : 'text-stone-300 hover:text-white hover:bg-[#7c2d12]'
-              }`}
-              title={user ? "My Account" : "Login / Sign Up"}
-              type="button"
-              onClick={() => handleNavClick(user ? 'orders' : 'login')}
-              aria-label={user ? "My Account" : "Login or Sign Up"}
-            >
-              <User className="h-5 w-5" />
-            </button>
+            {/* Account dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                className={`p-2 rounded-full transition-colors ${
+                  dropdownOpen || currentPage === 'login' || currentPage === 'orders'
+                    ? 'text-amber-400 bg-[#7c2d12]'
+                    : 'text-stone-300 hover:text-white hover:bg-[#7c2d12]'
+                }`}
+                title={user ? user.email : "Login / Sign Up"}
+                type="button"
+                onClick={() => user ? setDropdownOpen(v => !v) : handleNavClick('login')}
+                aria-label={user ? "My Account" : "Login or Sign Up"}
+                aria-expanded={dropdownOpen}
+              >
+                <User className="h-5 w-5" />
+              </button>
+
+              {/* Dropdown panel — only when logged in */}
+              {user && dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-52 rounded-xl border border-[#7c2d12] bg-[#3b1708] shadow-xl py-1 z-50">
+                  {/* User email */}
+                  <div className="px-4 py-2 border-b border-[#7c2d12]">
+                    <p className="text-xs text-stone-400">Signed in as</p>
+                    <p className="text-sm text-amber-300 font-medium truncate">{user.user_metadata?.name || user.email}</p>
+                  </div>
+                  {/* My Orders */}
+                  <button
+                    onClick={() => handleNavClick('orders')}
+                    className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors"
+                  >
+                    <Package className="h-4 w-4" />
+                    My Orders
+                  </button>
+                  {/* Logout */}
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-[#7c2d12] transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Log Out
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Cart icon */}
             <button
@@ -130,30 +181,24 @@ const NavbarOptimized = React.memo(({
         {isMenuOpen && (
           <nav id="mobile-nav" className="md:hidden pb-3">
             <div className="flex flex-col gap-1 pt-3" style={{ borderTop: '1px solid #7c2d12' }}>
-              <button
-                onClick={() => handleNavClick('home')}
-                className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors text-sm font-medium"
-              >
-                Home
-              </button>
-              <button
-                onClick={() => handleNavClick('perfumes')}
-                className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors text-sm font-medium"
-              >
-                Perfumes
-              </button>
-              <button
-                onClick={() => handleNavClick('about')}
-                className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors text-sm font-medium"
-              >
-                About
-              </button>
-              <button
-                onClick={() => handleNavClick(user ? 'orders' : 'login')}
-                className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors text-sm font-medium"
-              >
-                {user ? "My Account" : "Login / Sign Up"}
-              </button>
+              <button onClick={() => handleNavClick('home')} className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors text-sm font-medium">Home</button>
+              <button onClick={() => handleNavClick('perfumes')} className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors text-sm font-medium">Perfumes</button>
+              <button onClick={() => handleNavClick('about')} className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors text-sm font-medium">About</button>
+              {user ? (
+                <>
+                  <div className="px-3 py-1 text-xs text-stone-400">{user.user_metadata?.name || user.email}</div>
+                  <button onClick={() => handleNavClick('orders')} className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors text-sm font-medium">
+                    <Package className="h-4 w-4" /> My Orders
+                  </button>
+                  <button onClick={handleLogout} className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-red-400 hover:text-red-300 hover:bg-[#7c2d12] transition-colors text-sm font-medium">
+                    <LogOut className="h-4 w-4" /> Log Out
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => handleNavClick('login')} className="block w-full text-left px-3 py-2 rounded-md text-stone-300 hover:text-white hover:bg-[#7c2d12] transition-colors text-sm font-medium">
+                  Login / Sign Up
+                </button>
+              )}
             </div>
           </nav>
         )}
