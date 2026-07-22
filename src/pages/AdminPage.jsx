@@ -108,16 +108,30 @@ export default function AdminPage({ setCurrentPage }) {
   async function loadAdminOrders() {
     setAdminOrdersLoading(true);
     setAdminOrdersError("");
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) {
-      setAdminOrdersError(error.message);
-    } else {
-      setAdminOrders(data ? data.map(o => ({ ...o, createdAt: o.created_at })) : []);
+    try {
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Request timed out. Check your connection and try again.")), 10000)
+      );
+      const query = supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      const { data, error } = await Promise.race([query, timeout]);
+
+      if (error) {
+        setAdminOrdersError(error.message || "Failed to load orders.");
+      } else {
+        setAdminOrders(data && data.length > 0
+          ? data.map(o => ({ ...o, createdAt: o.created_at }))
+          : []
+        );
+      }
+    } catch (err) {
+      setAdminOrdersError(err.message || "Something went wrong loading orders.");
+    } finally {
+      setAdminOrdersLoading(false);
     }
-    setAdminOrdersLoading(false);
   }
 
   async function updateOrderStatus(orderId, newStatus) {
@@ -932,9 +946,17 @@ export default function AdminPage({ setCurrentPage }) {
               <Loader2 className="h-6 w-6 animate-spin text-amber-600" aria-hidden="true" />
             </div>
           ) : adminOrdersError ? (
-            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>{adminOrdersError}</span>
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
+                <span>{adminOrdersError}</span>
+              </div>
+              <button
+                onClick={loadAdminOrders}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors"
+              >
+                <Loader2 className="h-3 w-3" /> Retry
+              </button>
             </div>
           ) : adminOrders.length === 0 ? (
             <div className="py-12 text-center">
