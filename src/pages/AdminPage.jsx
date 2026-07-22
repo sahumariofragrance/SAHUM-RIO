@@ -110,21 +110,35 @@ export default function AdminPage({ setCurrentPage }) {
     setAdminOrdersError("");
     try {
       const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Request timed out. Check your connection and try again.")), 10000)
+        setTimeout(() => reject(new Error("Request timed out after 10 seconds.")), 10000)
       );
-      const query = supabase
-        .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false });
 
-      const { data, error } = await Promise.race([query, timeout]);
+      // Attempt 1: Try RPC function (bypasses RLS)
+      let { data, error } = await Promise.race([
+        supabase.rpc("get_all_orders_admin"),
+        timeout
+      ]);
+
+      // Attempt 2: If RPC fails or doesn't exist, fall back to direct table SELECT
+      if (error) {
+        console.warn("[Admin] RPC get_all_orders_admin failed, falling back to direct table query:", error.message);
+        const directRes = await Promise.race([
+          supabase.from("orders").select("*").order("created_at", { ascending: false }),
+          timeout
+        ]);
+        data = directRes.data;
+        error = directRes.error;
+      }
 
       if (error) {
-        setAdminOrdersError(error.message || "Failed to load orders.");
+        setAdminOrdersError(
+          "Unable to fetch orders. Please ensure you have executed the Supabase SQL setup script. Error: " + error.message
+        );
       } else {
-        setAdminOrders(data && data.length > 0
-          ? data.map(o => ({ ...o, createdAt: o.created_at }))
-          : []
+        setAdminOrders(
+          data && data.length > 0
+            ? data.map(o => ({ ...o, createdAt: o.created_at || o.createdAt }))
+            : []
         );
       }
     } catch (err) {
@@ -135,14 +149,26 @@ export default function AdminPage({ setCurrentPage }) {
   }
 
   async function updateOrderStatus(orderId, newStatus) {
-    const { error } = await supabase
+    // Attempt 1: Direct table update
+    let { error } = await supabase
       .from("orders")
       .update({ status: newStatus })
       .eq("id", orderId);
+
+    // Attempt 2: Fallback to RPC update if direct update failed (e.g. due to RLS)
+    if (error) {
+      console.warn("[Admin] Direct update failed, attempting RPC fallback:", error.message);
+      const rpcRes = await supabase.rpc("update_order_status_admin", {
+        order_id: orderId,
+        new_status: newStatus
+      });
+      error = rpcRes.error;
+    }
+
     if (!error) {
       setAdminOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
     } else {
-      alert("Failed to update status: " + error.message);
+      alert("Failed to update order status: " + error.message);
     }
   }
 

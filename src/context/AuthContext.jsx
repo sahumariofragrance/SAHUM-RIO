@@ -31,6 +31,7 @@ export function AuthProvider({ children }) {
       password,
     });
     if (error) throw new Error(error.message);
+    if (data?.user) setUser(data.user);
     return data.user;
   };
 
@@ -46,6 +47,7 @@ export function AuthProvider({ children }) {
     if (data.user && !data.session) {
       throw new Error("Account created! Please check your email for a confirmation link before logging in.");
     }
+    if (data?.user) setUser(data.user);
     return data.user;
   };
 
