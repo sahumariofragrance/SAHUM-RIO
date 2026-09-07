@@ -38,13 +38,6 @@
     "price": 749,
     "image": "/products/night_queen.jpg",
     "alt": "Bottle of White Musk perfume"
-  },
-  {
-    "id": 6,
-    "name": "Perfume Papers",
-    "description": "Blotter paper test strips to sample your favourite fragrance before you buy. 10 strips per pack.",
-    "price": 1,
-    "image": "/products/perfume_papers.png",
-    "alt": "Perfume blotter test paper strips"
   }
+  
 ]
