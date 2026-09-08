@@ -1,455 +1,226 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
-import { ChevronLeft, AlertCircle, X, Package, CheckCircle2 } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { AlertCircle, CheckCircle2, ChevronLeft, Package, X } from "lucide-react";
 import { Card } from "../components/ui";
 import ShippingForm from "../components/ShippingForm";
 import CartSummary from "../components/CartSummary";
 import { useCart } from "../context/cartContext";
 import { useOrders } from "../context/OrdersContext";
 import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabase";
+import { completeVerifiedOrder } from "../lib/completeOrder";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
 
-// Step progress indicator — advances to step 2 (Payment) while processing
-function CheckoutSteps({ current }) {
-  const steps = [
-    { id: 1, label: "Shipping" },
-    { id: 2, label: "Payment" },
-  ];
-
-  return (
-    <nav aria-label="Checkout progress" className="mt-4 flex items-center">
-      {steps.map((step, idx) => (
-        <React.Fragment key={step.id}>
-          <div className="flex items-center gap-2">
-            <div
-              className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold transition-colors ${
-                step.id < current
-                  ? "bg-green-600 text-white"
-                  : step.id === current
-                  ? "bg-amber-600 text-white"
-                  : "border-2 border-[var(--color-border)] text-[var(--color-muted)]"
-              }`}
-            >
-              {step.id < current ? <CheckCircle2 className="h-4 w-4" /> : step.id}
-            </div>
-            <span
-              className={`text-sm font-medium ${
-                step.id === current
-                  ? "text-[var(--color-text)]"
-                  : "text-[var(--color-muted)]"
-              }`}
-            >
-              {step.label}
-            </span>
-          </div>
-          {idx < steps.length - 1 && (
-            <div className="mx-3 h-px flex-1 bg-[var(--color-border)]" />
-          )}
-        </React.Fragment>
-      ))}
-    </nav>
-  );
-}
-
-// Inline dismissable error banner
 function ErrorBanner({ message, onDismiss }) {
   if (!message) return null;
   return (
-    <div
-      role="alert"
-      className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700"
-    >
-      <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+    <div role="alert" className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
+      <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
       <p className="flex-1 text-sm">{message}</p>
-      <button
-        onClick={onDismiss}
-        aria-label="Dismiss error"
-        className="rounded p-0.5 transition-colors hover:bg-red-100"
-      >
-        <X className="h-4 w-4" />
-      </button>
+      <button type="button" onClick={onDismiss} aria-label="Dismiss error" className="rounded p-0.5 hover:bg-red-100"><X className="h-4 w-4" /></button>
     </div>
   );
 }
 
 export default function CheckoutPage({ setCurrentPage }) {
   const { items, subtotal, clearCart } = useCart();
-  const { addOrder, fetchAddress, saveAddress } = useOrders();
+  const { refreshOrders, fetchAddress, saveAddress } = useOrders();
   const { user } = useAuth();
   const [formData, setFormData] = useState({});
   const [formValid, setFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
   const [correctedAmount, setCorrectedAmount] = useState(null);
-  const [step, setStep] = useState("checkout");
   const [confirmedOrderId, setConfirmedOrderId] = useState(null);
+  const [success, setSuccess] = useState(false);
   const [saveToProfile, setSaveToProfile] = useState(true);
   const [addressLoaded, setAddressLoaded] = useState(false);
-  const successRef    = useRef(null);
-  const isMounted     = useRef(true);   // guards setState after unmount
-  const isProcessing  = useRef(false);  // prevents double-submit
-  const abortCtrlRef  = useRef(null);   // cancels in-flight requests on unmount
-
+  const processingRef = useRef(false);
+  const successRef = useRef(null);
   const testMode = isTestMode(process.env.REACT_APP_RAZORPAY_KEY_ID);
 
-  // Unmount cleanup — cancel in-flight requests, stop state updates
   useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-      abortCtrlRef.current?.abort();
-    };
-  }, []);
+    if (success) successRef.current?.focus();
+  }, [success]);
 
-  // Auto-focus success heading for screen readers when payment completes
   useEffect(() => {
-    if (step === "success") successRef.current?.focus();
-  }, [step]);
-
-  // Fetch saved address on mount
-  useEffect(() => {
-    if (user && !addressLoaded) {
-      fetchAddress().then(addr => {
-        if (addr && isMounted.current) {
-          const prefill = {
-            name: addr.name || "",
-            phone: addr.phone || "",
-            email: addr.email || "",
-            address: addr.address || "",
-            city: addr.city || "",
-            state: addr.state || "Maharashtra",
-            pin: addr.pin || ""
-          };
-          setFormData(prefill);
-        }
-        if (isMounted.current) setAddressLoaded(true);
-      });
-    } else if (!user && !addressLoaded) {
+    let mounted = true;
+    if (!user) {
       setAddressLoaded(true);
+      return () => { mounted = false; };
     }
-  }, [user, fetchAddress, addressLoaded]);
+    fetchAddress().then((address) => {
+      if (!mounted) return;
+      if (address) {
+        setFormData({
+          name: address.name || "",
+          phone: address.phone || "",
+          email: address.email || user.email || "",
+          address: address.address || "",
+          city: address.city || "",
+          state: address.state || "Maharashtra",
+          pin: address.pin || "",
+        });
+      }
+      setAddressLoaded(true);
+    });
+    return () => { mounted = false; };
+  }, [user, fetchAddress]);
 
   const handleFormChange = useCallback((data, valid) => {
     setFormData(data);
-    setFormValid(!!valid);
-    setError(null);
+    setFormValid(Boolean(valid));
+    setError("");
   }, []);
 
   const initiatePayment = useCallback(async () => {
-    // Prevent double-submit
-    if (isProcessing.current) return;
-
+    if (processingRef.current) return;
+    if (!user) {
+      setError("Please sign in before checkout.");
+      return;
+    }
     if (!formValid) {
       setError("Please complete all required shipping fields before proceeding.");
       return;
     }
-
     const razorpayKey = process.env.REACT_APP_RAZORPAY_KEY_ID;
     if (!razorpayKey) {
       setError("Payment gateway is not configured. Please contact support.");
       return;
     }
 
-    isProcessing.current = true;
-    const abort = new AbortController();
-    abortCtrlRef.current = abort;
+    processingRef.current = true;
+    setLoading(true);
+    setError("");
+    setCorrectedAmount(null);
 
     try {
-      if (isMounted.current) { setLoading(true); setError(null); setCorrectedAmount(null); }
-      paymentLog("info", "INITIATED", { itemCount: items.length });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Your session expired. Please log in again before paying.");
 
-      // ── Step 1: Create order on backend ────────────────────────────────────
-      //  Send the actual cart items so the server can verify the total
-      //  independently (qty × ₹749). The server ignores our frontendAmount
-      //  and always charges the server-computed correct price.
-      const frontendAmountPaise = Math.round(subtotal * 100);
+      paymentLog("info", "INITIATED", { itemCount: items.length });
+      const frontendAmount = Math.round(subtotal * 100);
       const orderRes = await fetch("/api/payments/razorpay/order", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: abort.signal,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
-          items:    items.map((i) => ({ product_id: i.product_id, qty: i.qty })),
-          frontendAmount: frontendAmountPaise,
+          items: items.map((item) => ({ product_id: item.product_id, qty: item.qty })),
+          frontendAmount,
           currency: "INR",
-          customer: {
-            name:  formData.name,
-            phone: formData.phone,
-            email: formData.email || "",
-          },
+          customer: { name: formData.name, phone: formData.phone, email: formData.email || user.email || "" },
         }),
       });
+      const orderPayload = await orderRes.json().catch(() => ({}));
+      if (!orderRes.ok) throw new Error(orderPayload.message || "Unable to create payment order. Please try again.");
+      if (orderPayload.correctedAmount != null) setCorrectedAmount(orderPayload.correctedAmount);
 
-      if (!orderRes.ok) {
-        const body = await orderRes.json().catch(() => ({}));
-        throw new Error(body.message || "Unable to create payment order. Please try again.");
-      }
-
-      const order = await orderRes.json();
-      paymentLog("info", "ORDER_CREATED", { order_id: order.id, amount: order.amount });
-
-      // ── Server-verified amount ─────────────────────────────────────────────
-      //  If the server detected a price mismatch it returns correctedAmount (INR).
-      //  Surface a visible warning so the user sees the actual charge.
-      if (order.correctedAmount != null) {
-        const correctedINR = order.correctedAmount;
-        setCorrectedAmount(correctedINR);
-        paymentLog("warn", "AMOUNT_CORRECTED", {
-          frontend_paise: frontendAmountPaise,
-          server_inr: correctedINR,
-        });
-      }
-
-      // ── Step 2: Load Razorpay SDK on demand ────────────────────────────────
       await loadRazorpayScript();
-
-      // ── Step 3: Open checkout modal ────────────────────────────────────────
-      //  Always use order.amount from the server — this is the server-verified
-      //  correct amount regardless of what the frontend computed.
       const paymentResponse = await openRazorpayCheckout({
         key: razorpayKey,
-        amount: order.amount,   // server-authoritative (paise)
-        currency: order.currency,
+        amount: orderPayload.amount,
+        currency: orderPayload.currency,
         name: "SAHUMäRIO",
-        description: `${items.length} perfume${items.length > 1 ? "s" : ""}`,
+        description: `${items.length} perfume${items.length === 1 ? "" : "s"}`,
         image: "/logo.png",
-        order_id: order.id,
-        prefill: {
-          name: formData.name,
-          email: formData.email || "",
-          contact: formData.phone,
-        },
-        notes: {
-          address: `${formData.address}, ${formData.city}, ${formData.state} - ${formData.pin}`,
-        },
+        order_id: orderPayload.id,
+        prefill: { name: formData.name, email: formData.email || user.email || "", contact: formData.phone },
+        notes: { shipping_city: formData.city, shipping_pin: formData.pin },
         theme: { color: "#d97706" },
       });
       paymentLog("info", "PAYMENT_CAPTURED", { payment_id: paymentResponse.razorpay_payment_id });
 
-      // ── Step 4: Verify signature on backend ────────────────────────────────
-      const verifyRes = await fetch("/api/payments/razorpay/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: abort.signal,
-        body: JSON.stringify({
-          razorpay_order_id:   paymentResponse.razorpay_order_id,
-          razorpay_payment_id: paymentResponse.razorpay_payment_id,
-          razorpay_signature:  paymentResponse.razorpay_signature,
-        }),
+      const completed = await completeVerifiedOrder({
+        paymentResponse,
+        items,
+        address: { ...formData, email: formData.email || user.email || "" },
       });
+      paymentLog("info", "ORDER_SAVED", { order_id: completed.id });
 
-      if (!verifyRes.ok) {
-        const body = await verifyRes.json().catch(() => ({}));
-        throw new Error(body.message || "Payment verification failed. Please contact support.");
+      if (saveToProfile) {
+        await saveAddress({ ...formData, email: formData.email || user.email || "" });
       }
-      paymentLog("info", "VERIFIED", { payment_id: paymentResponse.razorpay_payment_id });
-
-      // ── Persist order to context / localStorage ────────────────────────────
-      //  Record the actual charged amount (server amount in INR) for receipts.
-      const chargedAmountINR = order.amount / 100;
-      addOrder({
-        id: paymentResponse.razorpay_order_id,
-        items: items.map((i) => ({ ...i })),
-        subtotal: chargedAmountINR,
-        discountedSubtotal: chargedAmountINR,
-        promoCode: null,
-        discountPercent: 0,
-        address: { ...formData },
-        payment: { id: paymentResponse.razorpay_payment_id, method: "Razorpay" },
-        createdAt: new Date().toISOString(),
-      });
-
-      if (user && saveToProfile) {
-        saveAddress({
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email || "",
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          pin: formData.pin
-        });
-      }
-
+      await refreshOrders(user.id);
       clearCart();
-      setConfirmedOrderId(paymentResponse.razorpay_order_id);
-      setStep("success");
+      setConfirmedOrderId(completed.id);
+      setSuccess(true);
     } catch (err) {
-      // AbortError means the component unmounted — don't update state
-      if (err.name === "AbortError") return;
-
-      const msg = friendlyPaymentError(err);
-      if (msg) {
-        if (isMounted.current) setError(msg);
-        paymentLog("error", "FAILED", { message: err.message });
-      } else {
-        paymentLog("info", "CANCELLED");
-      }
+      const msg = friendlyPaymentError(err) || err?.message || "Checkout failed. Please try again.";
+      setError(msg);
+      paymentLog("error", "FAILED", { message: err?.message });
     } finally {
-      isProcessing.current = false;
-      if (isMounted.current) setLoading(false);
+      processingRef.current = false;
+      setLoading(false);
     }
-  }, [formValid, formData, subtotal, items, clearCart, addOrder, saveAddress, saveToProfile, user]);
+  }, [user, formValid, formData, items, subtotal, saveToProfile, saveAddress, refreshOrders, clearCart]);
 
-  // ── Success screen ──────────────────────────────────────────────────────────
-  if (step === "success") {
+  if (success) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <div className="mb-6 flex justify-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle2 className="h-10 w-10 text-green-600" aria-hidden="true" />
-          </div>
-        </div>
-        <h2
-          ref={successRef}
-          tabIndex={-1}
-          className="text-2xl font-semibold outline-none"
-        >
-          Payment Successful!
-        </h2>
-        <p className="mt-2 text-[var(--color-muted)]">
-          Your order has been placed and is being processed.
-        </p>
-        {confirmedOrderId && (
-          <p className="mt-1 font-mono text-xs text-[var(--color-muted)]">
-            Order ID: {confirmedOrderId}
-          </p>
-        )}
-        <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <button
-            onClick={() => setCurrentPage("orders")}
-            className="rounded-xl bg-amber-600 px-6 py-3 font-medium text-white transition-colors hover:bg-amber-700 active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"
-          >
-            View Orders
-          </button>
-          <button
-            onClick={() => setCurrentPage("perfumes")}
-            className="rounded-xl border border-[var(--color-border)] px-6 py-3 font-medium transition-colors hover:bg-[var(--color-surface-muted)] active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"
-          >
-            Continue Shopping
-          </button>
+      <section className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100"><CheckCircle2 className="h-10 w-10 text-green-600" /></div>
+        <h1 ref={successRef} tabIndex={-1} className="mt-6 text-3xl font-semibold outline-none">Payment successful</h1>
+        <p className="mt-3 text-[var(--color-muted)]">Your payment was verified and your order is now waiting for SAHUMäRIO review.</p>
+        {confirmedOrderId && <p className="mt-2 font-mono text-xs text-[var(--color-muted)]">Order ID: {confirmedOrderId}</p>}
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <button onClick={() => setCurrentPage?.("orders")} className="rounded-xl bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700">View My Orders</button>
+          <button onClick={() => setCurrentPage?.("perfumes")} className="rounded-xl border border-[var(--color-border)] px-6 py-3 font-medium hover:bg-[var(--color-surface-muted)]">Continue Shopping</button>
         </div>
       </section>
     );
   }
 
-  // ── Auth guard ─────────────────────────────────────────────────────────────
   if (!user) {
     return (
       <section className="mx-auto max-w-md px-4 py-16 text-center">
-        <h2 className="text-2xl font-semibold">Sign in to checkout</h2>
-        <p className="mt-2 text-[var(--color-muted)]">
-          You must have an account to place an order and track your shipments.
-        </p>
-        <button
-          onClick={() => setCurrentPage?.("login")}
-          className="mt-6 inline-flex w-full justify-center rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-amber-700 active:scale-95"
-        >
-          Log In or Sign Up
-        </button>
+        <h1 className="text-2xl font-semibold">Sign in to checkout</h1>
+        <p className="mt-2 text-[var(--color-muted)]">An account is required so your paid order and tracking stay linked to you.</p>
+        <button onClick={() => setCurrentPage?.("login")} className="mt-6 w-full rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white hover:bg-amber-700">Log In or Sign Up</button>
       </section>
     );
   }
 
-  // ── Empty cart guard ───────────────────────────────────────────────────────
-  if (items.length === 0) {
+  if (!items.length) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <Package
-          className="mx-auto mb-4 h-16 w-16 text-[var(--color-muted)]"
-          aria-hidden="true"
-        />
-        <h2 className="text-2xl font-semibold">Your cart is empty</h2>
-        <p className="mt-2 text-[var(--color-muted)]">
-          Add some perfumes to your cart before checking out.
-        </p>
-        <button
-          onClick={() => setCurrentPage("perfumes")}
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-amber-600 px-6 py-3 font-medium text-white transition-colors hover:bg-amber-700 active:scale-95"
-        >
-          Browse Collection
-        </button>
+      <section className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <Package className="mx-auto h-14 w-14 text-[var(--color-muted)]" />
+        <h1 className="mt-4 text-2xl font-semibold">Your cart is empty</h1>
+        <button onClick={() => setCurrentPage?.("perfumes")} className="mt-6 rounded-xl bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700">Browse Collection</button>
       </section>
     );
   }
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-8 md:py-12">
-      {/* Back navigation */}
-      <button
-        onClick={() => setCurrentPage("perfumes")}
-        className="inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] transition-colors hover:text-amber-600"
-      >
-        <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-        Back to shop
-      </button>
-
-      <h1 className="mt-2 text-2xl font-semibold">Checkout</h1>
-      {/* Step advances to "Payment" while loading */}
-      <CheckoutSteps current={loading ? 2 : 1} />
+      <button type="button" onClick={() => setCurrentPage?.("perfumes")} className="inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] hover:text-amber-600"><ChevronLeft className="h-4 w-4" />Back to shop</button>
+      <h1 className="mt-2 text-3xl font-semibold">Checkout</h1>
+      <p className="mt-2 text-sm text-[var(--color-muted)]">Payment is verified on our server before your order is created.</p>
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Shipping form — rendered below summary on mobile, left on desktop */}
         <div className="order-2 lg:col-span-2 lg:order-1">
-          <ErrorBanner message={error} onDismiss={() => setError(null)} />
+          <ErrorBanner message={error} onDismiss={() => setError("")} />
           {correctedAmount != null && (
-            <div
-              role="alert"
-              className="mb-6 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-800"
-            >
-              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-              <p className="flex-1 text-sm">
-                <strong>Price updated by server:</strong> Your cart total has been verified and
-                corrected to <strong>₹{correctedAmount.toLocaleString("en-IN")}</strong>. This
-                is the amount you will be charged.
-              </p>
-              <button
-                onClick={() => setCorrectedAmount(null)}
-                aria-label="Dismiss price correction notice"
-                className="rounded p-0.5 transition-colors hover:bg-amber-100"
-              >
-                <X className="h-4 w-4" />
-              </button>
+            <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+              Server-verified total: <strong>₹{Number(correctedAmount).toLocaleString("en-IN")}</strong>. This is the amount presented to Razorpay.
             </div>
           )}
           <Card className="p-6">
             <h2 className="mb-6 text-lg font-semibold">Shipping Address</h2>
             {addressLoaded ? (
               <>
-                <ShippingForm key={user ? "user" : "guest"} onFormChange={handleFormChange} initialValues={formData} />
-                {user && (
-                  <div className="mt-4 flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
-                      id="saveProfile" 
-                      checked={saveToProfile}
-                      onChange={(e) => setSaveToProfile(e.target.checked)}
-                      className="rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600"
-                    />
-                    <label htmlFor="saveProfile" className="text-sm text-[var(--color-text)]">
-                      Save this address to my profile
-                    </label>
-                  </div>
-                )}
+                <ShippingForm key={user.id} onFormChange={handleFormChange} initialValues={formData} />
+                <label className="mt-4 flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={saveToProfile} onChange={(e) => setSaveToProfile(e.target.checked)} className="rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600" />
+                  Save this address to my profile
+                </label>
               </>
-            ) : (
-              <div className="h-64 animate-pulse rounded-lg bg-[var(--color-surface-muted)]" />
-            )}
+            ) : <div className="h-64 animate-pulse rounded-lg bg-[var(--color-surface-muted)]" />}
           </Card>
         </div>
-
-        {/* Order summary — first on mobile so user sees total before filling form */}
         <div className="order-1 lg:order-2">
           <div className="sticky top-20">
-            <CartSummary
-              items={items}
-              subtotal={subtotal}
-              total={subtotal}
-              formValid={formValid}
-              testMode={testMode}
-              onCheckout={initiatePayment}
-              onContinueShopping={() => setCurrentPage("perfumes")}
-              loading={loading}
-            />
+            <CartSummary items={items} subtotal={subtotal} total={subtotal} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading} />
           </div>
         </div>
       </div>
