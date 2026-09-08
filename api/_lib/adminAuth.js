@@ -5,12 +5,11 @@ const { createClient } = require("@supabase/supabase-js");
 function getEnv() {
   const url = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
   const anonKey = process.env.SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!url || !anonKey || !serviceRoleKey) {
+  if (!url || !anonKey) {
     throw new Error("Supabase server environment variables are not configured");
   }
-  return { url, anonKey, serviceRoleKey };
+  return { url, anonKey };
 }
 
 function readBearer(req) {
@@ -27,36 +26,32 @@ async function requireAdmin(req) {
     throw err;
   }
 
-  const { url, anonKey, serviceRoleKey } = getEnv();
-  const authClient = createClient(url, anonKey, {
+  const { url, anonKey } = getEnv();
+  const adminClient = createClient(url, anonKey, {
     auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const adminClient = createClient(url, serviceRoleKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
   });
 
-  const { data: userData, error: userError } = await authClient.auth.getUser(token);
+  const { data: userData, error: userError } = await adminClient.auth.getUser(token);
   if (userError || !userData?.user) {
     const err = new Error("Invalid or expired session");
     err.statusCode = 401;
     throw err;
   }
 
-  const user = userData.user;
-  const { data: adminRow, error: adminError } = await adminClient
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
+  const { data: isAdmin, error: adminError } = await adminClient.rpc("is_admin");
   if (adminError) throw adminError;
-  if (!adminRow) {
+  if (!isAdmin) {
     const err = new Error("Administrator access required");
     err.statusCode = 403;
     throw err;
   }
 
-  return { user, adminClient };
+  return { user: userData.user, adminClient };
 }
 
 function setApiHeaders(res) {
