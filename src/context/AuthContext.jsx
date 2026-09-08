@@ -5,17 +5,14 @@ const AuthCtx = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  // true while restoring session from localStorage — prevents login-form flash
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Restore existing session synchronously from localStorage
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Keep user in sync across login, logout, and automatic token refresh
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -39,11 +36,10 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } }, // stored in user_metadata
+      options: { data: { name } },
     });
     if (error) throw new Error(error.message);
-    
-    // If Supabase requires email confirmation, session will be null
+
     if (data.user && !data.session) {
       throw new Error("Account created! Please check your email for a confirmation link before logging in.");
     }
@@ -51,12 +47,35 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
+  const requestPasswordReset = async (email) => {
+    const redirectTo = `${window.location.origin}/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) throw new Error(error.message);
+  };
+
+  const updatePassword = async (password) => {
+    const { data, error } = await supabase.auth.updateUser({ password });
+    if (error) throw new Error(error.message);
+    return data.user;
+  };
+
   const logout = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw new Error(error.message);
   };
 
   return (
-    <AuthCtx.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthCtx.Provider
+      value={{
+        user,
+        loading,
+        login,
+        signup,
+        logout,
+        requestPasswordReset,
+        updatePassword,
+      }}
+    >
       {children}
     </AuthCtx.Provider>
   );
