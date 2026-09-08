@@ -2,130 +2,134 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { supabase } from "../lib/supabase";
 
 const OrdersContext = createContext(null);
-const ORDERS_KEY = "sahumario_orders";
+const cacheKey = (userId) => `sahumario_orders_${userId}`;
+const normalizeOrder = (o) => ({ ...o, createdAt: o.created_at || o.createdAt });
 
 export function OrdersProvider({ children }) {
-  const [orders, setOrders] = useState(() => {
-    try {
-      const raw = localStorage.getItem(ORDERS_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState("");
+  const [activeUserId, setActiveUserId] = useState(null);
 
-  // Persist orders to localStorage whenever they change
-  useEffect(() => {
+  const refreshOrders = useCallback(async (userIdOverride) => {
+    setOrdersLoading(true);
+    setOrdersError("");
     try {
-      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-    } catch {
-      // Silently ignore write errors (e.g. private browsing storage limit)
-    }
-  }, [orders]);
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = userIdOverride || session?.user?.id;
+      if (!userId) {
+        setActiveUserId(null);
+        setOrders([]);
+        return;
+      }
 
-  // When user logs in, load their orders from Supabase (source of truth)
+      setActiveUserId(userId);
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+
+      const next = (data || []).map(normalizeOrder);
+      setOrders(next);
+      try { localStorage.setItem(cacheKey(userId), JSON.stringify(next)); } catch {}
+    } catch (err) {
+      setOrdersError("We couldn't refresh your orders. Showing the most recent saved copy when available.");
+      if (activeUserId) {
+        try {
+          const cached = localStorage.getItem(cacheKey(activeUserId));
+          if (cached) setOrders(JSON.parse(cached));
+        } catch {}
+      }
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [activeUserId]);
+
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session?.user) return;
+    let mounted = true;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      const id = session?.user?.id;
+      if (!id) {
+        setOrders([]);
+        setOrdersLoading(false);
+        return;
+      }
       try {
-        const { data, error } = await supabase
-          .from("orders")
-          .select("*")
-          .eq("user_id", session.user.id)
-          .order("created_at", { ascending: false });
+        const cached = localStorage.getItem(cacheKey(id));
+        if (cached) setOrders(JSON.parse(cached));
+      } catch {}
+      refreshOrders(id);
+    });
 
-        if (error || !data) return;
-
-        // Normalize Supabase rows to match local order shape
-        setOrders(data.map((o) => ({ ...o, createdAt: o.created_at })));
-      } catch {
-        // Network issue — keep showing local orders
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const id = session?.user?.id;
+      if (!id) {
+        setActiveUserId(null);
+        setOrders([]);
+        setOrdersError("");
+        setOrdersLoading(false);
+      } else {
+        try {
+          const cached = localStorage.getItem(cacheKey(id));
+          setOrders(cached ? JSON.parse(cached) : []);
+        } catch { setOrders([]); }
+        refreshOrders(id);
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => { mounted = false; subscription.unsubscribe(); };
+  }, [refreshOrders]);
 
-  // orderData shape: { id, items, subtotal, address, payment, createdAt }
+  useEffect(() => {
+    if (!activeUserId) return;
+    try { localStorage.setItem(cacheKey(activeUserId), JSON.stringify(orders)); } catch {}
+  }, [orders, activeUserId]);
+
   const addOrder = useCallback(async (orderData) => {
-    // 1. Optimistic local update (immediate)
-    setOrders((prev) => [orderData, ...prev]);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) throw new Error("Please sign in before placing an order.");
 
-    // 2. Persist to Supabase if user is logged in
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    const localOrder = normalizeOrder({ ...orderData, status: orderData.status || "Pending" });
+    setActiveUserId(session.user.id);
+    setOrders((prev) => [localOrder, ...prev.filter(o => o.id !== localOrder.id)]);
 
-      if (session?.user) {
-        const { error } = await supabase.from("orders").insert({
-          id: orderData.id,
-          user_id: session.user.id,
-          items: orderData.items,
-          subtotal: orderData.subtotal,
-          address: orderData.address,
-          payment: orderData.payment,
-          created_at: orderData.createdAt,
-        });
-        if (error) console.warn("[Orders] Supabase insert failed:", error.message);
-      }
-    } catch (err) {
-      console.warn("[Orders] Failed to sync to Supabase:", err.message);
+    const { error } = await supabase.from("orders").insert({
+      id: orderData.id,
+      user_id: session.user.id,
+      items: orderData.items,
+      subtotal: orderData.subtotal,
+      total: orderData.total ?? orderData.subtotal,
+      address: orderData.address,
+      payment: orderData.payment,
+      status: orderData.status || "Pending",
+      created_at: orderData.createdAt,
+    });
+    if (error) {
+      setOrders((prev) => prev.filter(o => o.id !== localOrder.id));
+      throw new Error("Your payment succeeded, but we couldn't save the order. Please contact support with your payment ID.");
     }
-  }, []);
+    await refreshOrders(session.user.id);
+  }, [refreshOrders]);
 
   const fetchAddress = useCallback(async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return null;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-        console.warn("[Orders] Failed to fetch address:", error.message);
-      }
-      return data || null;
-    } catch (err) {
-      console.warn("[Orders] Failed to fetch address:", err.message);
-      return null;
-    }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return null;
+    const { data, error } = await supabase.from("profiles").select("*").eq("id", session.user.id).maybeSingle();
+    if (error) return null;
+    return data || null;
   }, []);
 
   const saveAddress = useCallback(async (addressData) => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return false;
-
-      const { error } = await supabase
-        .from("profiles")
-        .upsert({
-          id: session.user.id,
-          ...addressData,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) {
-        console.warn("[Orders] Failed to save address:", error.message);
-        return false;
-      }
-      return true;
-    } catch (err) {
-      console.warn("[Orders] Failed to save address:", err.message);
-      return false;
-    }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return false;
+    const { error } = await supabase.from("profiles").upsert({ id: session.user.id, ...addressData, updated_at: new Date().toISOString() });
+    return !error;
   }, []);
 
-  return (
-    <OrdersContext.Provider value={{ orders, addOrder, fetchAddress, saveAddress }}>
-      {children}
-    </OrdersContext.Provider>
-  );
+  return <OrdersContext.Provider value={{ orders, ordersLoading, ordersError, addOrder, refreshOrders, fetchAddress, saveAddress }}>{children}</OrdersContext.Provider>;
 }
 
 export function useOrders() {
