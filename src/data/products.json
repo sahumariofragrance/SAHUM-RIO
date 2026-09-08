@@ -1,50 +1,7 @@
 [
-  {
-    "id": 1,
-    "name": "Bloom",
-    "description": "Warm, resinous amber with smoky oud base.",
-    "price": 749,
-    "image": "/products/bloom.jpg",
-    "alt": "Bottle of Amber Oud perfume"
-  },
-  {
-    "id": 2,
-    "name": "Dew Drop",
-    "description": "Clean, soft musk with subtle floral notes.",
-    "price": 750,
-    "image": "/products/dew_drop.jpg",
-    "alt": "Sahumario Dew Drop Eau de Parfum 50ml"
-  },
-  {
-    "id": 3,
-    "name": "Lemon Breeze",
-    "description": "Clean, soft musk with subtle floral notes.",
-    "price": 749,
-    "image": "/products/lemon_breeze.jpg",
-    "alt": "Bottle of White Musk perfume"
-  },
-  {
-    "id": 4,
-    "name": "Morning Dew",
-    "description": "Clean, soft musk with subtle floral notes.",
-    "price": 749,
-    "image": "/products/morning_dew.jpg",
-    "alt": "Bottle of White Musk perfume"
-  },
-  {
-    "id": 5,
-    "name": "Night Queen",
-    "description": "Clean, soft musk with subtle floral notes.",
-    "price": 749,
-    "image": "/products/night_queen.jpg",
-    "alt": "Bottle of White Musk perfume"
-  },
-  {
-    "id": 6,
-    "name": "Perfume Papers",
-    "description": "Blotter paper test strips to sample your favourite fragrance before you buy. 10 strips per pack.",
-    "price": 1,
-    "image": "/products/perfume_papers.png",
-    "alt": "Perfume blotter test paper strips"
-  }
+  { "id": 1, "name": "Bloom", "description": "Warm, resinous amber with smoky oud base.", "price": 749, "image": "/products/bloom.jpg", "alt": "Bottle of Amber Oud perfume" },
+  { "id": 2, "name": "Dew Drop", "description": "Clean, soft musk with subtle floral notes.", "price": 750, "image": "/products/dew_drop.jpg", "alt": "Sahumario Dew Drop Eau de Parfum 50ml" },
+  { "id": 3, "name": "Lemon Breeze", "description": "Clean, soft musk with subtle floral notes.", "price": 749, "image": "/products/lemon_breeze.jpg", "alt": "Bottle of White Musk perfume" },
+  { "id": 4, "name": "Morning Dew", "description": "Clean, soft musk with subtle floral notes.", "price": 749, "image": "/products/morning_dew.jpg", "alt": "Bottle of White Musk perfume" },
+  { "id": 5, "name": "Night Queen", "description": "Clean, soft musk with subtle floral notes.", "price": 749, "image": "/products/night_queen.jpg", "alt": "Bottle of White Musk perfume" }
 ]
