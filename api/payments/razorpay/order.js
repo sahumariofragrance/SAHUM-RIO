@@ -34,6 +34,13 @@ function setSecurityHeaders(res) {
 function sanitizeText(value, max = 120) { return value == null ? "" : String(value).replace(/[\u0000-\u001F\u007F\r\n\t]/g, " ").trim().slice(0, max); }
 function safeInt(value) { return typeof value === "number" && Number.isInteger(value) ? value : typeof value === "string" && /^\d+$/.test(value.trim()) ? parseInt(value, 10) : NaN; }
 function plain(v) { return v !== null && typeof v === "object" && !Array.isArray(v); }
+function cartHash(userId, items) {
+  const canonical = items
+    .map((item) => `${item.product_id}:${item.qty}`)
+    .sort()
+    .join("|");
+  return crypto.createHash("sha256").update(`${userId}|${canonical}`).digest("hex");
+}
 
 module.exports = async (req, res) => {
   setSecurityHeaders(res);
@@ -48,6 +55,7 @@ module.exports = async (req, res) => {
     if (!Array.isArray(items) || !items.length) return res.status(400).json({ message: "items must be a non-empty array" });
 
     const seen = new Set(); let count = 0; let amountINR = 0;
+    const normalizedItems = [];
     for (const item of items) {
       if (!plain(item)) return res.status(400).json({ message: "Invalid item" });
       const id = safeInt(item.product_id); const qty = safeInt(item.qty); const product = PRODUCT_CATALOGUE.get(id);
@@ -55,6 +63,7 @@ module.exports = async (req, res) => {
       if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY_PER_ITEM) return res.status(400).json({ message: "Invalid quantity" });
       if (seen.has(id)) return res.status(400).json({ message: `Duplicate product_id ${id}` });
       seen.add(id); count += qty; amountINR += product.price * qty;
+      normalizedItems.push({ product_id: id, qty });
     }
     if (count > MAX_TOTAL_ITEMS) return res.status(400).json({ message: "Cart quantity is too large" });
     const amount = amountINR * 100;
@@ -77,6 +86,8 @@ module.exports = async (req, res) => {
         customer_email: sanitizeText(safeCustomer.email || user.email, 200),
         server_verified_amount_inr: String(amountINR),
         total_qty: String(count),
+        cart_hash: cartHash(user.id, normalizedItems),
+        intent_version: "2",
       },
     });
     const response = { id: order.id, amount: order.amount, currency: order.currency, receipt: order.receipt };
