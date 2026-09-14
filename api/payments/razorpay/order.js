@@ -1,15 +1,15 @@
-/** POST /api/payments/razorpay/order — creates a server-priced Razorpay order. */
+/** POST /api/payments/razorpay/order — creates a server-priced Razorpay order and durable payment intent. */
 "use strict";
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { requireCustomer } = require("../../_lib/customerAuth");
 
 const PRODUCT_CATALOGUE = new Map([
-  [1, { price: 749 }],
-  [2, { price: 750 }],
-  [3, { price: 749 }],
-  [4, { price: 749 }],
-  [5, { price: 749 }],
+  [1, { name: "Bloom", price: 749 }],
+  [2, { name: "Dew Drop", price: 750 }],
+  [3, { name: "Lemon Breeze", price: 749 }],
+  [4, { name: "Morning Dew", price: 749 }],
+  [5, { name: "Night Queen", price: 749 }],
 ]);
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
@@ -35,11 +35,20 @@ function sanitizeText(value, max = 120) { return value == null ? "" : String(val
 function safeInt(value) { return typeof value === "number" && Number.isInteger(value) ? value : typeof value === "string" && /^\d+$/.test(value.trim()) ? parseInt(value, 10) : NaN; }
 function plain(v) { return v !== null && typeof v === "object" && !Array.isArray(v); }
 function cartHash(userId, items) {
-  const canonical = items
-    .map((item) => `${item.product_id}:${item.qty}`)
-    .sort()
-    .join("|");
+  const canonical = items.map((item) => `${item.product_id}:${item.qty}`).sort().join("|");
   return crypto.createHash("sha256").update(`${userId}|${canonical}`).digest("hex");
+}
+function safeAddress(address, user) {
+  const source = plain(address) ? address : {};
+  return {
+    name: sanitizeText(source.name, 120),
+    phone: sanitizeText(source.phone, 30),
+    email: sanitizeText(source.email || user.email, 200),
+    address: sanitizeText(source.address, 300),
+    city: sanitizeText(source.city, 100),
+    state: sanitizeText(source.state, 100),
+    pin: sanitizeText(source.pin, 20),
+  };
 }
 
 module.exports = async (req, res) => {
@@ -48,9 +57,9 @@ module.exports = async (req, res) => {
   if (!req.headers["content-type"]?.includes("application/json")) return res.status(415).json({ message: "Content-Type must be application/json" });
 
   try {
-    const { user } = await requireCustomer(req);
+    const { user, serverClient } = await requireCustomer(req);
     const body = plain(req.body) ? req.body : {};
-    const { items, frontendAmount, currency = "INR", customer = {} } = body;
+    const { items, frontendAmount, currency = "INR", customer = {}, address } = body;
     if (currency !== "INR") return res.status(400).json({ message: "Unsupported currency" });
     if (!Array.isArray(items) || !items.length) return res.status(400).json({ message: "items must be a non-empty array" });
 
@@ -63,11 +72,16 @@ module.exports = async (req, res) => {
       if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY_PER_ITEM) return res.status(400).json({ message: "Invalid quantity" });
       if (seen.has(id)) return res.status(400).json({ message: `Duplicate product_id ${id}` });
       seen.add(id); count += qty; amountINR += product.price * qty;
-      normalizedItems.push({ product_id: id, qty });
+      normalizedItems.push({ product_id: id, name: product.name, price: product.price, qty });
     }
     if (count > MAX_TOTAL_ITEMS) return res.status(400).json({ message: "Cart quantity is too large" });
     const amount = amountINR * 100;
     if (amount < MIN_AMOUNT_PAISE || amount > MAX_AMOUNT_PAISE) return res.status(400).json({ message: "Order amount is outside the allowed range" });
+
+    const shipping = safeAddress(address, user);
+    if (!shipping.name || !shipping.phone || !shipping.address || !shipping.city || !shipping.state || !shipping.pin) {
+      return res.status(400).json({ message: "Shipping address is incomplete" });
+    }
 
     const frontend = Number(frontendAmount);
     const mismatch = Number.isInteger(frontend) && frontend !== amount;
@@ -87,9 +101,26 @@ module.exports = async (req, res) => {
         server_verified_amount_inr: String(amountINR),
         total_qty: String(count),
         cart_hash: cartHash(user.id, normalizedItems),
-        intent_version: "2",
+        intent_version: "3",
       },
     });
+
+    const intent = await serverClient.from("payment_intents").insert({
+      razorpay_order_id: order.id,
+      user_id: user.id,
+      items: normalizedItems,
+      subtotal: amountINR,
+      amount_paise: amount,
+      currency: "INR",
+      address: shipping,
+      customer_email: shipping.email,
+      status: "created",
+    });
+    if (intent.error) {
+      console.error("[order] payment intent persistence failed", intent.error.message);
+      return res.status(503).json({ message: "Unable to prepare a recoverable payment. No payment was taken; please try again." });
+    }
+
     const response = { id: order.id, amount: order.amount, currency: order.currency, receipt: order.receipt };
     if (mismatch) response.correctedAmount = amountINR;
     return res.status(200).json(response);
