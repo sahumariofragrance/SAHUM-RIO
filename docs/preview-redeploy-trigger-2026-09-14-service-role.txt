@@ -1,0 +1,2 @@
+Preview redeploy trigger after adding SUPABASE_SERVICE_ROLE_KEY.
+No production code changes.
