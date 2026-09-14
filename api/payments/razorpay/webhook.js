@@ -54,25 +54,31 @@ module.exports = async (req, res) => {
       const currency = String(payment.currency || "");
       if (!Number.isSafeInteger(amount) || amount <= 0 || currency !== "INR" || payment.status !== "captured") return res.status(400).json({ message: "Captured payment payload is invalid" });
 
-      const before = await serviceClient.from("orders").select("id,payment").eq("id", orderId).maybeSingle();
-      if (before.error) throw before.error;
-      if (before.data?.payment?.id && before.data.payment.id !== paymentId) return res.status(409).json({ message: "Existing order payment mismatch" });
-
       const finalized = await serviceClient.rpc("finalize_razorpay_payment_intent", {
-        p_razorpay_order_id: orderId, p_razorpay_payment_id: paymentId, p_amount_paise: amount, p_currency: currency, p_event_id: eventId,
+        p_razorpay_order_id: orderId,
+        p_razorpay_payment_id: paymentId,
+        p_amount_paise: amount,
+        p_currency: currency,
+        p_event_id: eventId,
       });
       if (finalized.error) throw finalized.error;
-      const order = finalized.data;
-      if (!before.data && order?.id) {
+
+      const result = finalized.data && typeof finalized.data === "object" ? finalized.data : {};
+      const order = result.order;
+      const created = result.created === true;
+      if (created && order?.id) {
         try { await sendOrderReceived(order); } catch (emailError) { console.error("[razorpay/webhook] receipt email failed", emailError.message); }
       }
-      return res.status(200).json({ received: true, finalized: Boolean(order?.id), replay: Boolean(before.data) });
+      return res.status(200).json({ received: true, finalized: Boolean(order?.id), replay: !created });
     }
 
     if (eventName === "payment.authorized" || eventName === "payment.failed") {
       const mappedStatus = eventName === "payment.authorized" ? "authorized" : "failed";
       const recorded = await serviceClient.rpc("record_razorpay_payment_event", {
-        p_razorpay_order_id: String(payment.order_id), p_razorpay_payment_id: String(payment.id), p_status: mappedStatus, p_event_id: eventId,
+        p_razorpay_order_id: String(payment.order_id),
+        p_razorpay_payment_id: String(payment.id),
+        p_status: mappedStatus,
+        p_event_id: eventId,
       });
       if (recorded.error) throw recorded.error;
       return res.status(200).json({ received: true, recorded: Boolean(recorded.data) });
