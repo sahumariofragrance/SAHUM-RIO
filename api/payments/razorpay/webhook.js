@@ -1,6 +1,7 @@
 "use strict";
 
 const crypto = require("crypto");
+const Razorpay = require("razorpay");
 const { createClient } = require("@supabase/supabase-js");
 const { sendOrderReceived } = require("../../_lib/email");
 
@@ -14,10 +15,27 @@ function getServiceClient() {
   if (!url || !serviceRoleKey) return null;
   return createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
 }
+function getRazorpayClient() {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !keySecret) return null;
+  return new Razorpay({ key_id: keyId, key_secret: keySecret });
+}
 async function readRawBody(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   return Buffer.concat(chunks);
+}
+function cartHash(userId, items) {
+  const canonical = (Array.isArray(items) ? items : [])
+    .map((item) => `${Number(item.product_id)}:${Number(item.qty)}`)
+    .sort()
+    .join("|");
+  return crypto.createHash("sha256").update(`${userId}|${canonical}`).digest("hex");
+}
+function note(notes, key) {
+  if (!notes || typeof notes !== "object") return "";
+  return String(notes[key] == null ? "" : notes[key]);
 }
 
 module.exports = async (req, res) => {
@@ -29,7 +47,8 @@ module.exports = async (req, res) => {
   try {
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
     const serviceClient = getServiceClient();
-    if (!webhookSecret || !serviceClient) {
+    const razorpay = getRazorpayClient();
+    if (!webhookSecret || !serviceClient || !razorpay) {
       console.error("[razorpay/webhook] server environment is incomplete");
       return res.status(503).json({ message: "Webhook is not configured" });
     }
@@ -50,9 +69,47 @@ module.exports = async (req, res) => {
     if (eventName === "payment.captured") {
       const orderId = String(payment.order_id);
       const paymentId = String(payment.id);
-      const amount = Number(payment.amount);
-      const currency = String(payment.currency || "");
-      if (!Number.isSafeInteger(amount) || amount <= 0 || currency !== "INR" || payment.status !== "captured") return res.status(400).json({ message: "Captured payment payload is invalid" });
+
+      // Treat the signed webhook as a notification, then independently retrieve
+      // authoritative payment/order state from Razorpay before fulfillment.
+      const [gatewayPayment, gatewayOrder, intentResult] = await Promise.all([
+        razorpay.payments.fetch(paymentId),
+        razorpay.orders.fetch(orderId),
+        serviceClient.from("payment_intents")
+          .select("razorpay_order_id,user_id,items,subtotal,amount_paise,currency,status,razorpay_payment_id")
+          .eq("razorpay_order_id", orderId)
+          .maybeSingle(),
+      ]);
+      if (intentResult.error) throw intentResult.error;
+      const intent = intentResult.data;
+      if (!intent) return res.status(409).json({ message: "Unknown payment intent" });
+
+      const amount = Number(gatewayPayment?.amount);
+      const orderAmount = Number(gatewayOrder?.amount);
+      const intentAmount = Number(intent.amount_paise);
+      const currency = String(gatewayPayment?.currency || "");
+      const orderCurrency = String(gatewayOrder?.currency || "");
+      const expectedHash = cartHash(intent.user_id, intent.items);
+      const expectedSubtotal = String(Number(intent.subtotal));
+
+      const verified =
+        gatewayPayment?.id === paymentId &&
+        gatewayPayment?.order_id === orderId &&
+        gatewayPayment?.status === "captured" &&
+        gatewayPayment?.captured === true &&
+        Number.isSafeInteger(amount) && amount > 0 &&
+        amount === intentAmount &&
+        orderAmount === intentAmount &&
+        currency === "INR" && orderCurrency === "INR" && intent.currency === "INR" &&
+        gatewayOrder?.id === orderId &&
+        note(gatewayOrder.notes, "user_id") === String(intent.user_id) &&
+        note(gatewayOrder.notes, "server_verified_amount_inr") === expectedSubtotal &&
+        note(gatewayOrder.notes, "cart_hash") === expectedHash;
+
+      if (!verified) {
+        console.error("[razorpay/webhook] authoritative payment verification failed", { orderId, paymentId });
+        return res.status(409).json({ message: "Payment verification failed" });
+      }
 
       const finalized = await serviceClient.rpc("finalize_razorpay_payment_intent", {
         p_razorpay_order_id: orderId,
