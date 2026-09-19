@@ -10,7 +10,6 @@ export const PRODUCT_SLUGS = {
   3: "lemon-breeze",
   4: "morning-dew",
   5: "night-queen",
-  99: "payment-test",
 };
 
 export function productFromSlug(slug) {
