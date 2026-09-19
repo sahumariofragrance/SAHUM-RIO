@@ -9,7 +9,7 @@ export default function AccountPage({ setCurrentPage }) {
   return (
     <section className="mx-auto max-w-3xl px-4 py-10">
       <h1 className="text-3xl font-semibold">My Account</h1>
-      <p className="mt-2 text-[var(--color-muted)]">Your SAHUMäRIO account details and order access.</p>
+      <p className="mt-2 text-[var(--color-muted)]">Manage your SAHUMäRIO account and access your orders.</p>
       <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="border-b border-[var(--color-border)] p-5">
           <div className="flex items-center gap-3"><User className="h-5 w-5 text-amber-600" /><div><div className="text-xs text-[var(--color-muted)]">Name</div><div className="font-medium">{name || "Not provided"}</div></div></div>
