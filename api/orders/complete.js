@@ -2,16 +2,10 @@
 
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
+const { createClient } = require("@supabase/supabase-js");
 const { requireCustomer } = require("../_lib/customerAuth");
 const { sendOrderReceived } = require("../_lib/email");
 
-const CATALOGUE = new Map([
-  [1, { name: "Bloom", price: 749 }],
-  [2, { name: "Dew Drop", price: 750 }],
-  [3, { name: "Lemon Breeze", price: 749 }],
-  [4, { name: "Morning Dew", price: 749 }],
-  [5, { name: "Night Queen", price: 749 }],
-]);
 let razorpayClient = null;
 
 function getRazorpayClient() {
@@ -22,121 +16,149 @@ function getRazorpayClient() {
   razorpayClient = new Razorpay({ key_id: keyId, key_secret: keySecret });
   return razorpayClient;
 }
-function safeText(value, max = 200) {
-  return typeof value === "string" ? value.replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max) : "";
+
+function getServiceClient() {
+  const url = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceRoleKey) return null;
+  return createClient(url, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
-function validRazorpayId(value, prefix) { return typeof value === "string" && new RegExp(`^${prefix}_[A-Za-z0-9]{14,24}$`).test(value); }
+
+function validRazorpayId(value, prefix) {
+  return typeof value === "string" && new RegExp(`^${prefix}_[A-Za-z0-9]{14,24}$`).test(value);
+}
+
 function verifySignature(orderId, paymentId, signature) {
   const secret = process.env.RAZORPAY_KEY_SECRET;
-  if (!secret || !/^[a-f0-9]{64}$/.test(signature || "")) return false;
+  if (!secret || !/^[a-f0-9]{64}$/i.test(signature || "")) return false;
   const expected = crypto.createHmac("sha256", secret).update(`${orderId}|${paymentId}`).digest("hex");
   return crypto.timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expected, "hex"));
 }
+
 function cartHash(userId, items) {
-  const canonical = items.map((item) => `${item.product_id}:${item.qty}`).sort().join("|");
+  const canonical = (Array.isArray(items) ? items : [])
+    .map((item) => `${Number(item.product_id)}:${Number(item.qty)}`)
+    .sort()
+    .join("|");
   return crypto.createHash("sha256").update(`${userId}|${canonical}`).digest("hex");
 }
-function money(value) { return Number.isInteger(Number(value)) ? Number(value) : NaN; }
+
+function note(notes, key) {
+  if (!notes || typeof notes !== "object") return "";
+  return String(notes[key] == null ? "" : notes[key]);
+}
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Content-Type-Options", "nosniff");
   if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
-  if (!req.headers["content-type"]?.includes("application/json")) return res.status(415).json({ message: "Content-Type must be application/json" });
+  if (!req.headers["content-type"]?.includes("application/json")) {
+    return res.status(415).json({ message: "Content-Type must be application/json" });
+  }
 
   try {
-    const { user, serverClient } = await requireCustomer(req);
+    const { user } = await requireCustomer(req);
     const body = req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body : {};
     const orderId = body.razorpay_order_id;
     const paymentId = body.razorpay_payment_id;
     const signature = body.razorpay_signature;
-    if (!validRazorpayId(orderId, "order") || !validRazorpayId(paymentId, "pay") || !verifySignature(orderId, paymentId, signature)) {
+
+    if (
+      !validRazorpayId(orderId, "order") ||
+      !validRazorpayId(paymentId, "pay") ||
+      !verifySignature(orderId, paymentId, signature)
+    ) {
       return res.status(400).json({ message: "Payment verification failed" });
     }
 
-    const existing = await serverClient.from("orders").select("*").eq("id", orderId).eq("user_id", user.id).maybeSingle();
-    if (existing.error) throw existing.error;
-    if (existing.data) {
-      const existingPaymentId = existing.data.payment && existing.data.payment.id;
-      if (existingPaymentId && existingPaymentId !== paymentId) return res.status(409).json({ message: "Payment does not match the existing order" });
-      return res.status(200).json({ order: existing.data, replay: true });
-    }
-
-    if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 20) return res.status(400).json({ message: "Invalid order items" });
-    const normalizedItems = [];
-    const seen = new Set();
-    let subtotal = 0;
-    let totalQty = 0;
-    for (const item of body.items) {
-      const id = Number(item.product_id);
-      const qty = Number(item.qty);
-      const product = CATALOGUE.get(id);
-      if (!product || seen.has(id) || !Number.isInteger(qty) || qty < 1 || qty > 20) return res.status(400).json({ message: "Invalid product or quantity" });
-      seen.add(id);
-      normalizedItems.push({ product_id: id, name: product.name, price: product.price, qty });
-      subtotal += product.price * qty;
-      totalQty += qty;
-    }
-    if (totalQty > 50) return res.status(400).json({ message: "Cart quantity is too large" });
-    const expectedAmount = subtotal * 100;
-
     const razorpay = getRazorpayClient();
-    if (!razorpay) return res.status(500).json({ message: "Payment gateway is not configured. Please contact support." });
+    const serviceClient = getServiceClient();
+    if (!razorpay || !serviceClient) {
+      return res.status(500).json({ message: "Payment verification service is not configured. Please contact support." });
+    }
 
-    const [gatewayOrder, payment] = await Promise.all([
+    const intentResult = await serviceClient
+      .from("payment_intents")
+      .select("razorpay_order_id,user_id,items,subtotal,amount_paise,currency,status,razorpay_payment_id")
+      .eq("razorpay_order_id", orderId)
+      .maybeSingle();
+
+    if (intentResult.error) throw intentResult.error;
+    const intent = intentResult.data;
+    if (!intent) return res.status(409).json({ message: "Payment intent was not found. Please contact support with your payment ID." });
+    if (String(intent.user_id) !== String(user.id)) {
+      return res.status(403).json({ message: "Payment order does not belong to this account" });
+    }
+    if (intent.razorpay_payment_id && intent.razorpay_payment_id !== paymentId) {
+      return res.status(409).json({ message: "Payment does not match the stored payment intent" });
+    }
+
+    const [gatewayOrder, gatewayPayment] = await Promise.all([
       razorpay.orders.fetch(orderId),
       razorpay.payments.fetch(paymentId),
     ]);
-    if (!gatewayOrder || !payment) return res.status(400).json({ message: "Payment could not be verified with the gateway" });
-    if (String(payment.order_id || "") !== orderId) return res.status(400).json({ message: "Payment does not belong to this order" });
-    if (money(gatewayOrder.amount) !== expectedAmount || money(payment.amount) !== expectedAmount) return res.status(400).json({ message: "Payment amount does not match the order" });
-    if (gatewayOrder.currency !== "INR" || payment.currency !== "INR") return res.status(400).json({ message: "Payment currency does not match the order" });
-    if (String(gatewayOrder.notes?.user_id || "") !== user.id) return res.status(403).json({ message: "Payment order does not belong to this account" });
-    if (String(gatewayOrder.notes?.server_verified_amount_inr || "") !== String(subtotal)) return res.status(400).json({ message: "Payment order amount metadata is invalid" });
-    if (String(gatewayOrder.notes?.cart_hash || "") !== cartHash(user.id, normalizedItems)) return res.status(400).json({ message: "Cart does not match the payment order" });
 
-    let verifiedPayment = payment;
-    if (payment.status === "authorized") {
-      verifiedPayment = await razorpay.payments.capture(paymentId, expectedAmount, "INR");
+    const intentAmount = Number(intent.amount_paise);
+    const paymentAmount = Number(gatewayPayment?.amount);
+    const orderAmount = Number(gatewayOrder?.amount);
+    const expectedSubtotal = String(Number(intent.subtotal));
+    const expectedHash = cartHash(intent.user_id, intent.items);
+
+    const metadataVerified =
+      gatewayOrder?.id === orderId &&
+      gatewayPayment?.id === paymentId &&
+      gatewayPayment?.order_id === orderId &&
+      Number.isSafeInteger(intentAmount) &&
+      intentAmount > 0 &&
+      paymentAmount === intentAmount &&
+      orderAmount === intentAmount &&
+      gatewayPayment?.currency === "INR" &&
+      gatewayOrder?.currency === "INR" &&
+      intent.currency === "INR" &&
+      note(gatewayOrder.notes, "user_id") === String(intent.user_id) &&
+      note(gatewayOrder.notes, "server_verified_amount_inr") === expectedSubtotal &&
+      note(gatewayOrder.notes, "cart_hash") === expectedHash;
+
+    if (!metadataVerified) {
+      return res.status(409).json({ message: "Payment could not be matched to the stored order. Please contact support with your payment ID." });
+    }
+
+    let verifiedPayment = gatewayPayment;
+    if (gatewayPayment.status === "authorized") {
+      verifiedPayment = await razorpay.payments.capture(paymentId, intentAmount, "INR");
     }
     if (!verifiedPayment || verifiedPayment.status !== "captured" || verifiedPayment.captured !== true) {
       return res.status(409).json({ message: "Payment is not captured yet. Please do not pay again; contact support with your payment ID." });
     }
 
-    const address = body.address || {};
-    const safeAddress = {
-      name: safeText(address.name, 120), phone: safeText(address.phone, 30), email: safeText(address.email || user.email, 200),
-      address: safeText(address.address, 300), city: safeText(address.city, 100), state: safeText(address.state, 100), pin: safeText(address.pin, 20),
-    };
-    if (!safeAddress.name || !safeAddress.phone || !safeAddress.address || !safeAddress.city || !safeAddress.state || !safeAddress.pin) return res.status(400).json({ message: "Shipping address is incomplete" });
+    const finalized = await serviceClient.rpc("finalize_razorpay_payment_intent", {
+      p_razorpay_order_id: orderId,
+      p_razorpay_payment_id: paymentId,
+      p_amount_paise: intentAmount,
+      p_currency: "INR",
+      p_event_id: null,
+    });
+    if (finalized.error) throw finalized.error;
 
-    const now = new Date().toISOString();
-    const row = {
-      id: orderId, user_id: user.id, items: normalizedItems, subtotal,
-      address: safeAddress,
-      payment: {
-        id: paymentId,
-        order_id: orderId,
-        method: "Razorpay",
-        verified: true,
-        status: verifiedPayment.status,
-        captured: true,
-        amount: expectedAmount,
-        currency: "INR",
-      },
-      status: "Pending", created_at: now, updated_at: now,
-    };
-    const inserted = await serverClient.from("orders").insert(row).select("*").single();
-    if (inserted.error) {
-      const retry = await serverClient.from("orders").select("*").eq("id", orderId).eq("user_id", user.id).maybeSingle();
-      if (retry.data && retry.data.payment?.id === paymentId) return res.status(200).json({ order: retry.data, replay: true });
-      throw inserted.error;
+    const result = finalized.data && typeof finalized.data === "object" ? finalized.data : {};
+    const order = result.order;
+    if (!order?.id) throw new Error("Order finalization returned no order");
+
+    if (result.created === true) {
+      try {
+        await sendOrderReceived(order);
+      } catch (emailError) {
+        console.error("[orders/complete] receipt email failed", emailError.message);
+      }
     }
 
-    try { await sendOrderReceived(inserted.data); } catch (emailError) { console.error("[orders/complete] receipt email failed", emailError.message); }
-    return res.status(200).json({ order: inserted.data });
+    return res.status(200).json({ order, replay: result.created !== true });
   } catch (err) {
-    console.error("[orders/complete]", err.message);
-    return res.status(err.statusCode || 500).json({ message: err.statusCode ? err.message : "Unable to complete order" });
+    console.error("[orders/complete]", err?.message);
+    return res.status(err.statusCode || 500).json({
+      message: err.statusCode ? err.message : "Unable to complete order. Please contact support if payment was taken.",
+    });
   }
 };
