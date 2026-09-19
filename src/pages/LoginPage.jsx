@@ -89,11 +89,12 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
               )}
             </div>
             <div className="mt-1 relative">
-              <input id="auth-password" type={showPassword ? "text" : "password"} autoComplete={isLogin ? "current-password" : "new-password"} minLength={6} className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2.5 pr-11 focus:outline-none focus:ring-2 focus:ring-amber-600" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
+              <input id="auth-password" type={showPassword ? "text" : "password"} autoComplete={isLogin ? "current-password" : "new-password"} minLength={isLogin ? 6 : 8} className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2.5 pr-11 focus:outline-none focus:ring-2 focus:ring-amber-600" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
               <button type="button" onClick={() => setShowPassword((s) => !s)} className="absolute inset-y-0 right-2 flex min-h-11 items-center px-1 text-[var(--color-muted)] hover:text-amber-500" aria-label={showPassword ? "Hide password" : "Show password"}>
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+            {isSignup && <p className="mt-1 text-xs text-[var(--color-muted)]">Use at least 8 characters.</p>}
           </div>
         )}
 
