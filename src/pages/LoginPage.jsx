@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home" }) {
+export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home", initialMessage = null }) {
   const { login, signup, requestPasswordReset } = useAuth();
   const [mode, setMode] = useState("login");
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState(initialMessage);
 
   const isLogin = mode === "login";
   const isSignup = mode === "signup";
