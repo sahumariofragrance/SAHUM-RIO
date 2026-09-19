@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -9,6 +9,14 @@ export default function ResetPasswordPage({ setCurrentPage }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const linkError = useMemo(() => {
+    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const code = params.get("error_code");
+    const description = params.get("error_description");
+    if (!code && !description) return "";
+    if (code === "otp_expired") return "This password reset link is invalid or has expired. Please request a new reset link.";
+    return description ? decodeURIComponent(description.replace(/\+/g, " ")) : "This password reset link is invalid. Please request a new reset link.";
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -44,8 +52,8 @@ export default function ResetPasswordPage({ setCurrentPage }) {
       <h1 className="text-2xl md:text-3xl font-semibold text-center">Choose a New Password</h1>
       <p className="mt-3 text-center text-sm text-[var(--color-muted)]">Use a password you don’t use on another website.</p>
 
-      {error && <div role="alert" className="mt-6 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700"><AlertCircle className="h-5 w-5 shrink-0" /><p className="text-sm">{error}</p></div>}
-      <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+      {(linkError || error) && <div role="alert" className="mt-6 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700"><AlertCircle className="h-5 w-5 shrink-0" /><p className="text-sm">{linkError || error}</p></div>}
+      {linkError ? <button type="button" onClick={() => setCurrentPage?.("login")} className="mt-6 w-full rounded-lg bg-amber-600 py-2.5 text-white hover:bg-amber-700">Request a New Reset Link</button> : <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>
           <label htmlFor="new-password" className="text-sm">New Password</label>
           <div className="relative mt-1">
@@ -58,7 +66,7 @@ export default function ResetPasswordPage({ setCurrentPage }) {
           <input id="confirm-password" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-600" />
         </div>
         <button type="submit" disabled={loading} className="w-full rounded-lg bg-amber-600 py-2.5 text-white hover:bg-amber-700 disabled:opacity-60">{loading ? "Updating…" : "Update Password"}</button>
-      </form>
+      </form>}
     </section>
   );
 }
