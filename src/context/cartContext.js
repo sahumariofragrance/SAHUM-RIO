@@ -15,7 +15,9 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState(() => {
     try {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
+      if (!stored) return [];
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed.filter((item) => [1, 2, 3, 4, 5].includes(Number(item?.product_id))) : [];
     } catch {
       return [];
     }
