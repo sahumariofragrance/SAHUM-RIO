@@ -10,8 +10,6 @@ const PRODUCT_CATALOGUE = new Map([
   [3, { name: "Lemon Breeze", price: 749 }],
   [4, { name: "Morning Dew", price: 749 }],
   [5, { name: "Night Queen", price: 749 }],
-  // Temporary rebuild-preview item. Remove after end-to-end Razorpay verification.
-  [99, { name: "PAYMENT TEST — ₹10", price: 10 }],
 ]);
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
