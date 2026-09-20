@@ -111,7 +111,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     <section className="mx-auto max-w-3xl px-4 py-16 text-center">
       <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100"><CheckCircle2 className="h-10 w-10 text-green-600" /></div>
       <h1 ref={successRef} tabIndex={-1} className="mt-6 text-3xl font-semibold outline-none">Payment successful</h1>
-      <p className="mt-3 text-[var(--color-muted)]">Your payment was verified and your order is now waiting for SAHUMäRIO review.</p>
+      <p className="mt-3 text-[var(--color-muted)]">Your payment was verified and your order is now waiting for SAHUMäRIO to process your order.</p>
       {guestCheckout && <p className="mt-2 text-sm text-[var(--color-muted)]">We’ll send order updates to the email you provided. Keep your order number for reference.</p>}
       {confirmedOrderId && <p className="mt-2 font-mono text-xs text-[var(--color-muted)]">Order ID: {confirmedOrderId}</p>}
       <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
