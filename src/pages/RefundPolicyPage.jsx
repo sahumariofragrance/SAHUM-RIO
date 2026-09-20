@@ -29,11 +29,8 @@ export default function RefundPolicyPage() {
           returned to the seller once delivered.
         </P>
         <P>
-          Our products contain active natural extracts and ingredients. Damages due to
-          neglect, improper usage or wrong application will not be covered under this
-          Policy. This also does not cover repercussions arising out of specific
-          sensitivities towards a product or ingredient — you are advised to do patch tests
-          as cautioned in every product.
+          Damage caused after delivery by improper storage, handling, or use is not covered
+          by this Policy. Individual fragrance sensitivities can vary from person to person.
         </P>
       </Section>
 
@@ -67,10 +64,6 @@ export default function RefundPolicyPage() {
           after this period.
         </P>
         <P>The refund amount does not include delivery charges as they are non-refundable.</P>
-        <P>
-          Cash on delivery refunds shall be initiated to the bank account provided by the
-          customer within 4–7 working days.
-        </P>
         <P>A claim of refund should be made within 24 hours of order delivery.</P>
         <P>
           If accepted, your refund may take up to 15 days to be credited from the day of
@@ -116,9 +109,8 @@ export default function RefundPolicyPage() {
           </strong>
         </P>
         <P>
-          Refunds for paid orders shall be credited to the original payment account within
-          15 days of cancellation acceptance. For COD orders, refund shall be issued to the
-          bank account provided to the customer support team within 4–7 working days.
+          Refunds for paid orders shall be credited to the original payment method within
+          15 days of cancellation acceptance.
         </P>
 
         <P>
@@ -132,8 +124,7 @@ export default function RefundPolicyPage() {
           <strong>Q3. How can I cancel my order if I placed it by mistake?</strong>
         </P>
         <P>
-          You can cancel on the checkout order confirmation page within the first few hours,
-          or reach out to customer care at{" "}
+          Please contact customer care as soon as possible and before dispatch at{" "}
           <a href="tel:+919974599910" className="text-amber-600 hover:underline">
             +91-99745 99910
           </a>{" "}
