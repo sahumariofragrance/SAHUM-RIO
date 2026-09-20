@@ -17,7 +17,7 @@ export function CartProvider({ children }) {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
       if (!stored) return [];
       const parsed = JSON.parse(stored);
-      return Array.isArray(parsed) ? parsed.filter((item) => [1, 2, 3, 4, 5].includes(Number(item?.product_id))) : [];
+      return Array.isArray(parsed) ? parsed.filter((item) => Number.isInteger(Number(item?.product_id)) && Number(item.product_id) > 0) : [];
     } catch {
       return [];
     }
