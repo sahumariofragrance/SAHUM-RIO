@@ -25,7 +25,7 @@ function ErrorBanner({ message, onDismiss }) {
 export default function CheckoutPage({ setCurrentPage }) {
   const { items, subtotal, clearCart } = useCart();
   const { refreshOrders, fetchAddress, saveAddress } = useOrders();
-  const { user } = useAuth();
+  const { user, startGuestSession, isGuest } = useAuth();
   const [formData, setFormData] = useState({});
   const [formValid, setFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -34,6 +34,7 @@ export default function CheckoutPage({ setCurrentPage }) {
   const [confirmedOrderId, setConfirmedOrderId] = useState(null);
   const [success, setSuccess] = useState(false);
   const [saveToProfile, setSaveToProfile] = useState(true);
+  const [guestCheckout, setGuestCheckout] = useState(false);
   const [addressLoaded, setAddressLoaded] = useState(false);
   const processingRef = useRef(false);
   const successRef = useRef(null);
@@ -55,16 +56,21 @@ export default function CheckoutPage({ setCurrentPage }) {
 
   const initiatePayment = useCallback(async () => {
     if (processingRef.current) return;
-    if (!user) { setError("Please sign in before checkout."); return; }
+    const usingGuestCheckout = !user || isGuest || guestCheckout;
     if (!formValid) { setError("Please complete all required shipping fields before proceeding."); return; }
     const razorpayKey = process.env.REACT_APP_RAZORPAY_KEY_ID;
     if (!razorpayKey) { setError("Payment gateway is not configured. Please contact support."); return; }
 
     processingRef.current = true; setLoading(true); setError(""); setCorrectedAmount(null);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("Your session expired. Please log in again before paying.");
-      const shippingAddress = { ...formData, email: formData.email || user.email || "" };
+      let { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token && usingGuestCheckout) {
+        session = await startGuestSession();
+      }
+      if (!session?.access_token) throw new Error("Unable to start checkout. Please try again.");
+      const checkoutUser = session.user;
+      const shippingAddress = { ...formData, email: formData.email || checkoutUser?.email || "" };
+      if (!shippingAddress.email) throw new Error("Please enter your email so we can send order updates.");
       paymentLog("info", "INITIATED", { itemCount: items.length });
       const frontendAmount = Math.round(subtotal * 100);
       const orderRes = await fetch("/api/payments/razorpay/order", {
@@ -92,27 +98,29 @@ export default function CheckoutPage({ setCurrentPage }) {
       paymentLog("info", "PAYMENT_CAPTURED", { payment_id: paymentResponse.razorpay_payment_id });
       const completed = await completeVerifiedOrder({ paymentResponse, items, address: shippingAddress });
       paymentLog("info", "ORDER_SAVED", { order_id: completed.id });
-      if (saveToProfile) await saveAddress(shippingAddress);
-      await refreshOrders(user.id); clearCart(); setConfirmedOrderId(completed.id); setSuccess(true);
+      if (!usingGuestCheckout && saveToProfile) await saveAddress(shippingAddress);
+      if (!usingGuestCheckout && checkoutUser?.id) await refreshOrders(checkoutUser.id);
+      clearCart(); setConfirmedOrderId(completed.id); setGuestCheckout(usingGuestCheckout); setSuccess(true);
     } catch (err) {
       const msg = friendlyPaymentError(err) || err?.message || "Checkout failed. Please try again.";
       setError(msg); paymentLog("error", "FAILED", { message: err?.message });
     } finally { processingRef.current = false; setLoading(false); }
-  }, [user, formValid, formData, items, subtotal, saveToProfile, saveAddress, refreshOrders, clearCart]);
+  }, [user, isGuest, guestCheckout, startGuestSession, formValid, formData, items, subtotal, saveToProfile, saveAddress, refreshOrders, clearCart]);
 
   if (success) return (
     <section className="mx-auto max-w-3xl px-4 py-16 text-center">
       <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100"><CheckCircle2 className="h-10 w-10 text-green-600" /></div>
       <h1 ref={successRef} tabIndex={-1} className="mt-6 text-3xl font-semibold outline-none">Payment successful</h1>
       <p className="mt-3 text-[var(--color-muted)]">Your payment was verified and your order is now waiting for SAHUMäRIO review.</p>
+      {guestCheckout && <p className="mt-2 text-sm text-[var(--color-muted)]">We’ll send order updates to the email you provided. Keep your order number for reference.</p>}
       {confirmedOrderId && <p className="mt-2 font-mono text-xs text-[var(--color-muted)]">Order ID: {confirmedOrderId}</p>}
       <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-        <button onClick={() => setCurrentPage?.("orders")} className="rounded-xl bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700">View My Orders</button>
+        {!guestCheckout && <button onClick={() => setCurrentPage?.("orders")} className="rounded-xl bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700">View My Orders</button>}
         <button onClick={() => setCurrentPage?.("perfumes")} className="rounded-xl border border-[var(--color-border)] px-6 py-3 font-medium hover:bg-[var(--color-surface-muted)]">Continue Shopping</button>
       </div>
     </section>
   );
-  if (!user) return <section className="mx-auto max-w-md px-4 py-16 text-center"><h1 className="text-2xl font-semibold">Sign in to checkout</h1><p className="mt-2 text-[var(--color-muted)]">An account is required so your paid order and tracking stay linked to you.</p><button onClick={() => setCurrentPage?.("login")} className="mt-6 w-full rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white hover:bg-amber-700">Log In or Sign Up</button></section>;
+  if (!user && !guestCheckout) return <section className="mx-auto max-w-md px-4 py-16 text-center"><h1 className="text-2xl font-semibold">Checkout</h1><p className="mt-2 text-[var(--color-muted)]">Continue as a guest or sign in to keep your orders linked to your account.</p><div className="mt-6 space-y-3"><button onClick={() => { setGuestCheckout(true); setSaveToProfile(false); setAddressLoaded(true); }} className="w-full rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white hover:bg-amber-700">Checkout as Guest</button><button onClick={() => setCurrentPage?.("login", { redirectAfterLogin: "checkout" })} className="w-full rounded-lg border border-[var(--color-border)] px-4 py-2.5 font-medium hover:bg-[var(--color-surface-muted)]">Log In or Sign Up</button></div></section>;
   if (!items.length) return <section className="mx-auto max-w-3xl px-4 py-16 text-center"><Package className="mx-auto h-14 w-14 text-[var(--color-muted)]" /><h1 className="mt-4 text-2xl font-semibold">Your cart is empty</h1><button onClick={() => setCurrentPage?.("perfumes")} className="mt-6 rounded-xl bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700">Browse Collection</button></section>;
 
   return (
@@ -124,7 +132,7 @@ export default function CheckoutPage({ setCurrentPage }) {
         <div className="order-2 lg:col-span-2 lg:order-1">
           <ErrorBanner message={error} onDismiss={() => setError("")} />
           {correctedAmount != null && <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">Server-verified total: <strong>₹{Number(correctedAmount).toLocaleString("en-IN")}</strong>. This is the amount presented to Razorpay.</div>}
-          <Card className="p-6"><h2 className="mb-6 text-lg font-semibold">Shipping Address</h2>{addressLoaded ? <><ShippingForm key={user.id} onFormChange={handleFormChange} initialValues={formData} /><label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" checked={saveToProfile} onChange={(e) => setSaveToProfile(e.target.checked)} className="rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600" />Save this address to my profile</label></> : <div className="h-64 animate-pulse rounded-lg bg-[var(--color-surface-muted)]" />}</Card>
+          <Card className="p-6"><h2 className="mb-6 text-lg font-semibold">Shipping Address</h2>{addressLoaded ? <><ShippingForm key={user?.id || "guest"} onFormChange={handleFormChange} initialValues={formData} requireEmail={guestCheckout || isGuest} />{!guestCheckout && !isGuest && <label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" checked={saveToProfile} onChange={(e) => setSaveToProfile(e.target.checked)} className="rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600" />Save this address to my profile</label>}</> : <div className="h-64 animate-pulse rounded-lg bg-[var(--color-surface-muted)]" />}</Card>
         </div>
         <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={items} subtotal={subtotal} total={subtotal} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading} /></div></div>
       </div>
