@@ -27,7 +27,7 @@ const Footer = React.memo(({ setCurrentPage }) => {
               <p className="mt-1 text-[10px] uppercase tracking-[0.3em] text-stone-400">Fragrance</p>
             </button>
             <p className="mt-5 max-w-sm text-sm leading-7 text-stone-300">
-              A focused collection of oil-based perfumes, available with secure online payment and guest checkout.
+              A growing collection of oil-based perfumes with distinct names, visual identities, and a focused point of view.
             </p>
           </div>
 
@@ -63,7 +63,7 @@ const Footer = React.memo(({ setCurrentPage }) => {
 
         <div className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-stone-400 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 SAHUMäRIO. All rights reserved.</p>
-          <p>Secure checkout powered through Razorpay.</p>
+          <p>SAHUMäRIO Fragrance · India</p>
         </div>
       </div>
     </footer>
