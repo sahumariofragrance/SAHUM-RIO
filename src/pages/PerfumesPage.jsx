@@ -13,12 +13,10 @@ export default function PerfumesPage({ onProductNavigate }) {
     return acc;
   }, {}), [items]);
 
-  const products = useMemo(() => localProducts
-    .filter((product) => !product.hidden)
-    .map((product) => ({
-      ...product,
-      qty: itemQtyById[product.id] ?? 0,
-    })), [itemQtyById]);
+  const products = useMemo(() => localProducts.map((product) => ({
+    ...product,
+    qty: itemQtyById[product.id] ?? 0,
+  })), [itemQtyById]);
 
   const handleAddToCart = useCallback((product) => addToCart(product), [addToCart]);
   const handleUpdateQty = useCallback((productId, newQty) => updateQty(productId, newQty), [updateQty]);
