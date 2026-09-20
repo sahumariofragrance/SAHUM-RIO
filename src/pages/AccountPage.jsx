@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { CheckCircle2, Mail, Package, User } from "lucide-react";
+import { CheckCircle2, Mail, Package, Phone, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 
 export default function AccountPage({ setCurrentPage }) {
-  const { user } = useAuth();
+  const { user, requestPhoneVerification, verifyPhoneVerification } = useAuth();
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
   const [newsletterLoading, setNewsletterLoading] = useState(true);
   const [newsletterSaving, setNewsletterSaving] = useState(false);
   const [newsletterMessage, setNewsletterMessage] = useState("");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [phoneCode, setPhoneCode] = useState("");
+  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
+  const [phoneSaving, setPhoneSaving] = useState(false);
+  const [phoneMessage, setPhoneMessage] = useState("");
 
   useEffect(() => {
     let live = true;
@@ -16,17 +21,18 @@ export default function AccountPage({ setCurrentPage }) {
 
     supabase
       .from("profiles")
-      .select("newsletter_subscribed")
+      .select("newsletter_subscribed,phone")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (!live) return;
         setNewsletterSubscribed(Boolean(data?.newsletter_subscribed));
+        setPhone(user?.phone || data?.phone || "");
         setNewsletterLoading(false);
       });
 
     return () => { live = false; };
-  }, [user?.id]);
+  }, [user?.id, user?.phone]);
 
   if (!user) return null;
 
@@ -56,6 +62,37 @@ export default function AccountPage({ setCurrentPage }) {
     setNewsletterSaving(false);
   }
 
+  async function sendPhoneOtp() {
+    setPhoneSaving(true);
+    setPhoneMessage("");
+    try {
+      const normalized = await requestPhoneVerification(phone);
+      setPhone(normalized);
+      setPhoneOtpSent(true);
+      setPhoneMessage("We sent a verification code to your phone.");
+    } catch (err) {
+      setPhoneMessage(err?.message || "Unable to send phone verification code.");
+    } finally {
+      setPhoneSaving(false);
+    }
+  }
+
+  async function verifyPhoneOtp() {
+    setPhoneSaving(true);
+    setPhoneMessage("");
+    try {
+      const normalized = await verifyPhoneVerification({ phone, token: phoneCode });
+      setPhone(normalized);
+      setPhoneOtpSent(false);
+      setPhoneCode("");
+      setPhoneMessage("Phone number verified. You can now use it for OTP login.");
+    } catch (err) {
+      setPhoneMessage(err?.message || "Unable to verify phone number.");
+    } finally {
+      setPhoneSaving(false);
+    }
+  }
+
   return (
     <section className="mx-auto max-w-3xl px-4 py-10">
       <h1 className="text-3xl font-semibold">My Account</h1>
@@ -78,6 +115,72 @@ export default function AccountPage({ setCurrentPage }) {
               <div className="text-xs text-[var(--color-muted)]">Email</div>
               <div className="truncate font-medium">{user.email}</div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+        <div className="flex items-start gap-3">
+          <Phone className="mt-0.5 h-5 w-5 text-amber-600" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold">Phone OTP login</p>
+            <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">
+              Verify a mobile number once, then you can sign in using an SMS OTP.
+            </p>
+
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+              <input
+                type="tel"
+                inputMode="tel"
+                value={phone}
+                onChange={(e) => { setPhone(e.target.value); setPhoneOtpSent(false); setPhoneCode(""); setPhoneMessage(""); }}
+                placeholder="+91 98765 43210"
+                className="flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-600"
+                disabled={phoneSaving || Boolean(user.phone)}
+              />
+              {!user.phone && !phoneOtpSent && (
+                <button
+                  type="button"
+                  onClick={sendPhoneOtp}
+                  disabled={phoneSaving || !phone.trim()}
+                  className="rounded-lg bg-[#24160f] px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-800 disabled:opacity-50"
+                >
+                  {phoneSaving ? "Sending…" : "Send code"}
+                </button>
+              )}
+            </div>
+
+            {user.phone && (
+              <p className="mt-3 flex items-center gap-2 text-sm text-green-700">
+                <CheckCircle2 className="h-4 w-4" /> Verified for OTP login
+              </p>
+            )}
+
+            {!user.phone && phoneOtpSent && (
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  value={phoneCode}
+                  onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="6-digit OTP"
+                  className="flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5 text-center tracking-[0.25em] focus:outline-none focus:ring-2 focus:ring-amber-600"
+                />
+                <button
+                  type="button"
+                  onClick={verifyPhoneOtp}
+                  disabled={phoneSaving || phoneCode.length !== 6}
+                  className="rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+                >
+                  {phoneSaving ? "Verifying…" : "Verify phone"}
+                </button>
+              </div>
+            )}
+
+            {phoneMessage && <p className="mt-3 text-sm text-[var(--color-muted)]" role="status">{phoneMessage}</p>}
           </div>
         </div>
       </div>
