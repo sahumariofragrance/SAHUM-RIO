@@ -114,24 +114,6 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
                 </button>
               </div>
             </div>
-
-            <div className="relative mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/15 pt-6">
-              <span className="text-[9px] font-semibold uppercase tracking-[0.28em] text-stone-500">
-                Current edit
-              </span>
-              {products.slice(0, 5).map((product, index) => (
-                <React.Fragment key={product.id}>
-                  {index > 0 && <span className="text-stone-600" aria-hidden="true">•</span>}
-                  <button
-                    type="button"
-                    onClick={() => onProductNavigate?.(product)}
-                    className="font-serif text-sm font-semibold text-stone-300 transition hover:text-amber-300"
-                  >
-                    {product.name}
-                  </button>
-                </React.Fragment>
-              ))}
-            </div>
           </div>
         </div>
       </section>
