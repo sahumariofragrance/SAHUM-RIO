@@ -1,27 +1,18 @@
 import React, { useMemo } from "react";
 import SafeImage from "../components/SafeImage";
-import localProducts from "../data/products.json";
 import { useCart } from "../context/cartContext";
+import { useProducts } from "../context/ProductsContext";
 import { formatINR } from "../utils/money";
-
-export const PRODUCT_SLUGS = {
-  1: "bloom",
-  2: "dew-drop",
-  3: "lemon-breeze",
-  4: "morning-dew",
-  5: "night-queen",
-};
-
-export function productFromSlug(slug) {
-  const entry = Object.entries(PRODUCT_SLUGS).find(([, value]) => value === slug);
-  if (!entry) return null;
-  return localProducts.find((product) => product.id === Number(entry[0])) || null;
-}
 
 export default function ProductPage({ slug, navigate }) {
   const { items, addToCart, updateQty } = useCart();
-  const product = useMemo(() => productFromSlug(slug), [slug]);
+  const { bySlug, loading } = useProducts();
+  const product = useMemo(() => bySlug.get(slug) || null, [bySlug, slug]);
   const quantity = product ? (items.find((item) => item.product_id === product.id)?.qty || 0) : 0;
+
+  if (loading && !product) {
+    return <section className="mx-auto max-w-6xl px-4 py-20"><div className="h-96 animate-pulse rounded-2xl bg-[var(--color-surface-muted)]" /></section>;
+  }
 
   if (!product) {
     return (
@@ -42,18 +33,19 @@ export default function ProductPage({ slug, navigate }) {
         </div>
         <div className="md:pt-6">
           <p className="text-sm uppercase tracking-[0.2em] text-amber-600">SAHUMäRIO Eau de Parfum</p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">{product.name}</h1>
+          <h1 className="mt-3 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">{product.name}</h1>
           <p className="mt-5 text-2xl font-medium">{formatINR(product.price)}</p>
           <p className="mt-6 max-w-xl leading-7 text-[var(--color-muted)]">{product.description}</p>
+          {product.notes && <p className="mt-4 max-w-xl text-sm leading-6 text-[var(--color-muted)]">{product.notes}</p>}
           <div className="mt-8 border-t border-[var(--color-border)] pt-8">
             {quantity === 0 ? (
               <button onClick={() => addToCart(product)} className="w-full rounded-lg bg-amber-600 px-6 py-3.5 font-semibold text-white hover:bg-amber-700 sm:w-auto">Add to Cart</button>
             ) : (
               <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center overflow-hidden rounded-lg border border-[var(--color-border)]" aria-label={`${product.name} quantity`}>
-                  <button onClick={() => updateQty(product.id, quantity - 1)} className="px-4 py-3 hover:bg-[var(--color-surface-muted)]" aria-label={`Decrease ${product.name}`}>−</button>
+                <div className="flex items-center overflow-hidden rounded-lg border border-[var(--color-border)]" aria-label={product.name + " quantity"}>
+                  <button onClick={() => updateQty(product.id, quantity - 1)} className="px-4 py-3 hover:bg-[var(--color-surface-muted)]" aria-label={"Decrease " + product.name}>−</button>
                   <span className="min-w-10 text-center font-medium">{quantity}</span>
-                  <button onClick={() => updateQty(product.id, quantity + 1)} className="px-4 py-3 hover:bg-[var(--color-surface-muted)]" aria-label={`Increase ${product.name}`}>+</button>
+                  <button onClick={() => updateQty(product.id, quantity + 1)} className="px-4 py-3 hover:bg-[var(--color-surface-muted)]" aria-label={"Increase " + product.name}>+</button>
                 </div>
                 <span className="text-sm text-[var(--color-muted)]">In your cart</span>
               </div>
