@@ -1,7 +1,168 @@
-import React,{useCallback,useState,useRef,useEffect}from'react';
-import{Menu,X,ShoppingCart,User,LogOut,Package,ShieldCheck}from'lucide-react';
-import{useCart}from'../context/cartContext';import{useTheme}from'../context/ThemeContext';import{useAuth}from'../context/AuthContext';import{supabase}from'../lib/supabase';
-const NavLink=React.memo(({id,isActive,onClick,children})=><button onClick={()=>onClick(id)} className={`${isActive?'text-amber-400':'text-stone-300'} hover:text-amber-400 transition-colors px-3 py-2 text-sm font-medium`} aria-current={isActive?'page':undefined}>{children}</button>);NavLink.displayName='NavLink';
-const NavbarOptimized=React.memo(({currentPage,setCurrentPage,isMenuOpen,setIsMenuOpen})=>{const{count}=useCart();const{theme,toggleTheme}=useTheme();const{user,logout,isGuest}=useAuth();const[dropdownOpen,setDropdownOpen]=useState(false);const[isAdmin,setIsAdmin]=useState(false);const dropdownRef=useRef(null);
-const nav=useCallback(page=>{setCurrentPage?.(page);setIsMenuOpen?.(false);setDropdownOpen(false);},[setCurrentPage,setIsMenuOpen]);const handleLogout=useCallback(async()=>{setDropdownOpen(false);setIsMenuOpen?.(false);await logout();setCurrentPage?.('home');},[logout,setCurrentPage,setIsMenuOpen]);useEffect(()=>{let live=true;if(!user){setIsAdmin(false);return()=>{live=false;};}supabase.rpc('is_admin').then(({data,error})=>{if(live)setIsAdmin(!error&&data===true);});return()=>{live=false;};},[user]);useEffect(()=>{function outside(e){if(dropdownRef.current&&!dropdownRef.current.contains(e.target))setDropdownOpen(false);}document.addEventListener('mousedown',outside);return()=>document.removeEventListener('mousedown',outside);},[]);
-return <header className="sticky top-0 z-40 transition-colors duration-200" style={{backgroundColor:'#3b1708',borderBottom:'1px solid #7c2d12'}}><div className="mx-auto max-w-6xl px-4"><div className="flex h-16 items-center justify-between"><button onClick={()=>nav('home')} className="flex items-center text-xl font-bold tracking-wide hover:opacity-80 transition"><img src="/logo.png" alt="Sahumario Logo" width={70} height={70} loading="eager" fetchpriority="high" decoding="sync" className="drop-shadow-sm"/><span className="text-amber-400">SAHUMä</span><span className="text-white">RIO</span></button><nav className="hidden md:flex items-center gap-1"><NavLink id="home" isActive={currentPage==='home'} onClick={nav}>Home</NavLink><NavLink id="perfumes" isActive={currentPage==='perfumes'||currentPage==='product'} onClick={nav}>Perfumes</NavLink><NavLink id="about" isActive={currentPage==='about'} onClick={nav}>About</NavLink></nav><div className="flex items-center gap-2"><button onClick={toggleTheme} className="p-2 rounded-full text-stone-300 hover:text-white hover:bg-[#7c2d12]" title={`Switch to ${theme==='light'?'dark':'light'} mode`} aria-label={`Switch to ${theme==='light'?'dark':'light'} mode`}>{theme==='light'?'🌙':'🌞'}</button><div className="relative" ref={dropdownRef}><button className={`p-2 rounded-full ${dropdownOpen||currentPage==='login'||currentPage==='account'||currentPage==='orders'||currentPage==='admin'?'text-amber-400 bg-[#7c2d12]':'text-stone-300 hover:text-white hover:bg-[#7c2d12]'}`} title={user&&!isGuest?user.email:"Login / Sign Up"} onClick={()=>user&&!isGuest?setDropdownOpen(v=>!v):nav('login')} aria-label={user&&!isGuest?"My Account":"Login or Sign Up"} aria-expanded={dropdownOpen}><User className="h-5 w-5"/></button>{user&&!isGuest&&dropdownOpen&&<div className="absolute right-0 mt-2 w-56 rounded-xl border border-[#7c2d12] bg-[#3b1708] shadow-xl py-1 z-50"><div className="px-4 py-2 border-b border-[#7c2d12]"><p className="text-xs text-stone-400">My Account</p><p className="text-sm text-amber-300 font-medium truncate">{user.user_metadata?.name||user.email}</p></div><button onClick={()=>nav('account')} className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-stone-300 hover:text-white hover:bg-[#7c2d12]"><User className="h-4 w-4"/>My Account</button><button onClick={()=>nav('orders')} className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-stone-300 hover:text-white hover:bg-[#7c2d12]"><Package className="h-4 w-4"/>My Orders</button>{isAdmin&&<button onClick={()=>nav('admin')} className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-amber-300 hover:text-white hover:bg-[#7c2d12]"><ShieldCheck className="h-4 w-4"/>Admin Dashboard</button>}<button onClick={handleLogout} className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-[#7c2d12]"><LogOut className="h-4 w-4"/>Log Out</button></div>}</div><button className={`relative p-2 rounded-full ${currentPage==='cart'?'text-amber-400 bg-[#7c2d12]':'text-stone-300 hover:text-white hover:bg-[#7c2d12]'}`} title="Cart" onClick={()=>nav('cart')} aria-label={`Shopping cart with ${count} items`}><ShoppingCart className="h-5 w-5"/>{count>0&&<span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center font-semibold">{count>99?'99+':count}</span>}</button></div><button className="md:hidden p-2 rounded-lg text-stone-300 hover:text-white hover:bg-[#7c2d12]" onClick={()=>setIsMenuOpen?.(!isMenuOpen)} aria-label="Toggle Menu" aria-expanded={isMenuOpen} aria-controls="mobile-nav">{isMenuOpen?<X className="h-6 w-6"/>:<Menu className="h-6 w-6"/>}</button></div>{isMenuOpen&&<nav id="mobile-nav" className="md:hidden pb-3"><div className="flex flex-col gap-1 pt-3" style={{borderTop:'1px solid #7c2d12'}}><button onClick={()=>nav('home')} className="block w-full text-left px-3 py-2 text-stone-300">Home</button><button onClick={()=>nav('perfumes')} className="block w-full text-left px-3 py-2 text-stone-300">Perfumes</button><button onClick={()=>nav('about')} className="block w-full text-left px-3 py-2 text-stone-300">About</button><button onClick={()=>nav('cart')} className="block w-full text-left px-3 py-2 text-stone-300">Cart ({count})</button>{user&&!isGuest?<><div className="px-3 py-1 text-xs text-stone-400">{user.user_metadata?.name||user.email}</div><button onClick={()=>nav('account')} className="flex items-center gap-2 px-3 py-2 text-stone-300"><User className="h-4 w-4"/>My Account</button><button onClick={()=>nav('orders')} className="flex items-center gap-2 px-3 py-2 text-stone-300"><Package className="h-4 w-4"/>My Orders</button>{isAdmin&&<button onClick={()=>nav('admin')} className="flex items-center gap-2 px-3 py-2 text-amber-300"><ShieldCheck className="h-4 w-4"/>Admin Dashboard</button>}<button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 text-red-400"><LogOut className="h-4 w-4"/>Log Out</button></>:<button onClick={()=>nav('login')} className="block w-full text-left px-3 py-2 text-stone-300">Login / Sign Up</button>}</div></nav>}</div></header>;});NavbarOptimized.displayName='NavbarOptimized';export default NavbarOptimized;
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Menu, X, ShoppingBag, User, LogOut, Package, ShieldCheck } from "lucide-react";
+import { useCart } from "../context/cartContext";
+import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabase";
+
+const NavButton = ({ id, active, onClick, children }) => (
+  <button
+    onClick={() => onClick(id)}
+    className={`relative px-3 py-2 text-sm font-medium transition ${active ? "text-amber-700" : "text-[var(--color-text)] hover:text-amber-700"}`}
+  >
+    {children}
+    {active && <span className="absolute inset-x-3 -bottom-0.5 h-px bg-amber-700" />}
+  </button>
+);
+
+const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, setIsMenuOpen }) => {
+  const { count } = useCart();
+  const { theme, toggleTheme } = useTheme();
+  const { user, logout, isGuest } = useAuth();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const nav = useCallback((page) => {
+    setCurrentPage?.(page);
+    setIsMenuOpen?.(false);
+    setDropdownOpen(false);
+  }, [setCurrentPage, setIsMenuOpen]);
+
+  const handleLogout = useCallback(async () => {
+    setDropdownOpen(false);
+    setIsMenuOpen?.(false);
+    await logout();
+    setCurrentPage?.("home");
+  }, [logout, setCurrentPage, setIsMenuOpen]);
+
+  useEffect(() => {
+    let live = true;
+    if (!user || isGuest) {
+      setIsAdmin(false);
+      return () => { live = false; };
+    }
+    supabase.rpc("is_admin").then(({ data, error }) => {
+      if (live) setIsAdmin(!error && data === true);
+    });
+    return () => { live = false; };
+  }, [user, isGuest]);
+
+  useEffect(() => {
+    const outside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", outside);
+    return () => document.removeEventListener("mousedown", outside);
+  }, []);
+
+  const permanentUser = user && !isGuest;
+
+  return (
+    <>
+      <div className="bg-[#24160f] px-4 py-2 text-center text-[11px] font-medium uppercase tracking-[0.16em] text-[#fff8ed]">
+        Free shipping across India · Guest checkout available
+      </div>
+      <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[color:var(--color-bg)]/95 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
+          <div className="grid h-20 grid-cols-[auto_1fr_auto] items-center">
+            <button
+              className="md:hidden"
+              onClick={() => setIsMenuOpen?.(!isMenuOpen)}
+              aria-label="Toggle menu"
+              aria-expanded={isMenuOpen}
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+
+            <nav className="hidden items-center gap-1 md:flex">
+              <NavButton id="home" active={currentPage === "home"} onClick={nav}>Home</NavButton>
+              <NavButton id="perfumes" active={currentPage === "perfumes" || currentPage === "product"} onClick={nav}>Perfumes</NavButton>
+              <NavButton id="about" active={currentPage === "about"} onClick={nav}>About</NavButton>
+            </nav>
+
+            <button
+              onClick={() => nav("home")}
+              className="justify-self-center text-center"
+              aria-label="SAHUMäRIO home"
+            >
+              <span className="block font-serif text-2xl font-semibold tracking-[0.08em]">SAHUMäRIO</span>
+              <span className="mt-0.5 block text-[9px] font-semibold uppercase tracking-[0.32em] text-[var(--color-muted)]">Fragrance</span>
+            </button>
+
+            <div className="flex items-center justify-end gap-1">
+              <button
+                onClick={toggleTheme}
+                className="hidden rounded-full p-2.5 text-sm hover:bg-[var(--color-surface)] sm:block"
+                aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+                title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+              >
+                {theme === "light" ? "☾" : "☀"}
+              </button>
+
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  className="rounded-full p-2.5 hover:bg-[var(--color-surface)]"
+                  title={permanentUser ? user.email : "Login / Sign Up"}
+                  onClick={() => permanentUser ? setDropdownOpen((v) => !v) : nav("login")}
+                  aria-label={permanentUser ? "My Account" : "Login or Sign Up"}
+                >
+                  <User className="h-5 w-5" />
+                </button>
+
+                {permanentUser && dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-60 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] shadow-2xl">
+                    <div className="border-b border-[var(--color-border)] px-4 py-3">
+                      <p className="text-xs text-[var(--color-muted)]">Signed in as</p>
+                      <p className="mt-0.5 truncate text-sm font-semibold">{user.user_metadata?.name || user.email}</p>
+                    </div>
+                    <button onClick={() => nav("account")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface)]"><User className="h-4 w-4" />My Account</button>
+                    <button onClick={() => nav("orders")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface)]"><Package className="h-4 w-4" />My Orders</button>
+                    {isAdmin && <button onClick={() => nav("admin")} className="flex w-full items-center gap-2 px-4 py-3 text-sm text-amber-700 hover:bg-[var(--color-surface)]"><ShieldCheck className="h-4 w-4" />Admin Dashboard</button>}
+                    <button onClick={handleLogout} className="flex w-full items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-[var(--color-surface)]"><LogOut className="h-4 w-4" />Log Out</button>
+                  </div>
+                )}
+              </div>
+
+              <button
+                className="relative rounded-full p-2.5 hover:bg-[var(--color-surface)]"
+                title="Cart"
+                onClick={() => nav("cart")}
+                aria-label={`Shopping cart with ${count} items`}
+              >
+                <ShoppingBag className="h-5 w-5" />
+                {count > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-700 px-1 text-[10px] font-semibold text-white">
+                    {count > 99 ? "99+" : count}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {isMenuOpen && (
+            <nav className="border-t border-[var(--color-border)] py-3 md:hidden">
+              <button onClick={() => nav("home")} className="block w-full px-2 py-3 text-left text-sm">Home</button>
+              <button onClick={() => nav("perfumes")} className="block w-full px-2 py-3 text-left text-sm">Perfumes</button>
+              <button onClick={() => nav("about")} className="block w-full px-2 py-3 text-left text-sm">About</button>
+              <button onClick={() => nav("cart")} className="block w-full px-2 py-3 text-left text-sm">Cart ({count})</button>
+              {permanentUser ? (
+                <>
+                  <button onClick={() => nav("account")} className="block w-full px-2 py-3 text-left text-sm">My Account</button>
+                  <button onClick={() => nav("orders")} className="block w-full px-2 py-3 text-left text-sm">My Orders</button>
+                  {isAdmin && <button onClick={() => nav("admin")} className="block w-full px-2 py-3 text-left text-sm text-amber-700">Admin Dashboard</button>}
+                  <button onClick={handleLogout} className="block w-full px-2 py-3 text-left text-sm text-red-600">Log Out</button>
+                </>
+              ) : (
+                <button onClick={() => nav("login")} className="block w-full px-2 py-3 text-left text-sm">Login / Sign Up</button>
+              )}
+            </nav>
+          )}
+        </div>
+      </header>
+    </>
+  );
+});
+
+NavbarOptimized.displayName = "NavbarOptimized";
+export default NavbarOptimized;
