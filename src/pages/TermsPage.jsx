@@ -66,8 +66,8 @@ export default function TermsPage() {
 
       <Section heading="Membership Eligibility">
         <P>
-          In order to use the services of SAHUMÄRIO through the website, you may use guest
-          login or create your own SAHUMÄRIO account. To create your account, you must be
+          Browsing the website does not require an account, but checkout currently requires
+          you to sign in to a SAHUMÄRIO account. To create your account, you must be
           eligible to enter into a contract under the Indian Contract Act, 1872. Any minor
           (a person below the age of 18 years) can use the website and transact only
           through their legal guardians or parents.
@@ -185,14 +185,11 @@ export default function TermsPage() {
 
       <Section heading="Disclaimer">
         <P>
-          SAHUMÄRIO personal care products are based on natural and Ayurvedic formulations.
-          Despite tremendous safeguards taken to deliver items safe for human use, certain
-          ingredients may cause allergic reactions for certain individuals or unfavourably
-          affect people with prior conditions. Please make yourself aware of the ingredients
-          and usage instructions accompanying each of our products. It will be your sole
-          responsibility to take proper precautions or seek professional medical or
-          dermatological advice before using any of our products that you may be allergic
-          to.
+          Fragrance products may cause sensitivity or allergic reactions in some
+          individuals. Please follow the product information and usage instructions supplied
+          with your purchase and discontinue use if irritation occurs. If you have known
+          sensitivities or allergies, consider seeking appropriate professional advice
+          before use.
         </P>
       </Section>
     </section>
