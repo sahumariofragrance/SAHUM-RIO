@@ -34,12 +34,12 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-700">The collection</p>
             <h2 className="mt-3 max-w-xl font-serif text-4xl font-semibold leading-[1.02] tracking-tight md:text-5xl">
-              Five names. One fragrance wardrobe.
+              A fragrance wardrobe made to evolve.
             </h2>
           </div>
           <div className="md:justify-self-end">
             <p className="max-w-lg text-sm leading-7 text-[var(--color-muted)]">
-              Built to be explored one bottle at a time. Open a fragrance, read its details, and add it when it feels like yours.
+              Explore one bottle at a time. Discover what fits today, then return as the collection grows.
             </p>
           </div>
         </div>
