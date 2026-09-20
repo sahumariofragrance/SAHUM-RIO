@@ -1,21 +1,22 @@
 // src/pages/PerfumesPage.jsx
 import React, { useCallback, useMemo } from "react";
 import ProductGrid from "../components/ProductGrid";
-import localProducts from "../data/products.json";
+import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
 export default function PerfumesPage({ onProductNavigate }) {
   const { items, addToCart, updateQty } = useCart();
+  const { products: catalogueProducts } = useProducts();
 
   const itemQtyById = useMemo(() => items.reduce((acc, item) => {
     acc[item.product_id] = item.qty;
     return acc;
   }, {}), [items]);
 
-  const products = useMemo(() => localProducts.map((product) => ({
+  const products = useMemo(() => catalogueProducts.map((product) => ({
     ...product,
     qty: itemQtyById[product.id] ?? 0,
-  })), [itemQtyById]);
+  })), [catalogueProducts, itemQtyById]);
 
   const handleAddToCart = useCallback((product) => addToCart(product), [addToCart]);
   const handleUpdateQty = useCallback((productId, newQty) => updateQty(productId, newQty), [updateQty]);
@@ -32,7 +33,7 @@ export default function PerfumesPage({ onProductNavigate }) {
         </div>
         <div className="text-sm text-[var(--color-muted)] md:text-right">
           <p>{products.length} fragrance{products.length === 1 ? "" : "s"}</p>
-          <p className="mt-1">From ₹749</p>
+          {products.length > 0 && <p className="mt-1">From ₹{Math.min(...products.map((product) => Number(product.price))).toLocaleString("en-IN")}</p>}
         </div>
       </div>
       <div className="mt-10">
