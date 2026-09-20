@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 const TERMS = [
   {
     title: "Minimum Order Value",
-    text: "The minimum order value for bulk orders is ₹25,000. Enquiries below this amount will not be considered as bulk orders.",
+    text: "The minimum order value for bulk orders is ₹10,000. Enquiries below this amount will not be considered as bulk orders.",
   },
   {
     title: "Pricing & Discounts",
@@ -108,7 +108,7 @@ export default function BulkOrdersPage() {
           <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-700">Enquiry form</p>
           <h2 className="mt-3 font-serif text-3xl font-semibold md:text-4xl">Tell us about your requirement.</h2>
           <p className="mt-4 max-w-xl text-sm leading-7 text-[var(--color-muted)]">
-            Bulk enquiries start at ₹25,000. Share an estimated order value so we can route your request correctly.
+            Bulk enquiries start at ₹10,000. Share an estimated order value so we can route your request correctly.
           </p>
 
           {success ? (
@@ -152,7 +152,7 @@ export default function BulkOrdersPage() {
                   <input required type="number" min="1" max="100000" value={form.quantity} onChange={(e) => update("quantity", e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500" placeholder="No. of items" />
                 </label>
                 <label className="text-sm font-medium">Estimated order value (₹) *
-                  <input required type="number" min="25000" step="1" value={form.estimated_order_value} onChange={(e) => update("estimated_order_value", e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500" placeholder="Minimum 25000" />
+                  <input required type="number" min="10000" step="1" value={form.estimated_order_value} onChange={(e) => update("estimated_order_value", e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500" placeholder="Minimum 10000" />
                 </label>
               </div>
 
