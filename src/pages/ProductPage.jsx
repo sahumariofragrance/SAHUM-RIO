@@ -10,12 +10,15 @@ export const PRODUCT_SLUGS = {
   3: "lemon-breeze",
   4: "morning-dew",
   5: "night-queen",
+  99: "payment-test",
 };
 
 export function productFromSlug(slug) {
   const entry = Object.entries(PRODUCT_SLUGS).find(([, value]) => value === slug);
   if (!entry) return null;
-  return localProducts.find((product) => product.id === Number(entry[0])) || null;
+  const product = localProducts.find((item) => item.id === Number(entry[0])) || null;
+  if (product?.hidden && !window.location.hostname.endsWith(".vercel.app")) return null;
+  return product;
 }
 
 export default function ProductPage({ slug, navigate }) {
@@ -41,7 +44,7 @@ export default function ProductPage({ slug, navigate }) {
           <div className="aspect-[4/5]"><SafeImage src={product.image} alt={product.alt || product.name} className="h-full w-full object-cover" priority /></div>
         </div>
         <div className="md:pt-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-amber-600">SAHUMäRIO Eau de Parfum</p>
+          <p className="text-sm uppercase tracking-[0.2em] text-amber-600">{product.hidden ? "Internal Preview Verification" : "SAHUMäRIO Eau de Parfum"}</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">{product.name}</h1>
           <p className="mt-5 text-2xl font-medium">{formatINR(product.price)}</p>
           <p className="mt-6 max-w-xl leading-7 text-[var(--color-muted)]">{product.description}</p>
@@ -61,7 +64,7 @@ export default function ProductPage({ slug, navigate }) {
           </div>
           <dl className="mt-10 grid grid-cols-2 gap-4 border-t border-[var(--color-border)] pt-6 text-sm">
             <div><dt className="text-[var(--color-muted)]">Brand</dt><dd className="mt-1 font-medium">SAHUMäRIO</dd></div>
-            <div><dt className="text-[var(--color-muted)]">Product</dt><dd className="mt-1 font-medium">Eau de Parfum</dd></div>
+            <div><dt className="text-[var(--color-muted)]">Product</dt><dd className="mt-1 font-medium">{product.hidden ? "Payment Test" : "Eau de Parfum"}</dd></div>
           </dl>
         </div>
       </div>
