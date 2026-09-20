@@ -1,34 +1,33 @@
 /* ── Google Fonts — Inter (modern, premium sans-serif) ──────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 
 /* ── Light mode — colorhunt.co/palette/ffeed6a5af79827148e8a07c ───────────── */
 :root {
-  --color-bg:           #FFEED6;     /* warm cream — palette primary bg               */
-  --color-text:         #2d1a06;     /* deep espresso — max contrast on cream          */
-  --color-surface:      #FFF8EC;     /* slightly lighter cream — cards & panels         */
-  --color-surface-muted:#F5DDB8;     /* mid-cream — inputs, hover states               */
-  --color-border:       #E8A07C;     /* peachy amber — palette accent                  */
-  --color-muted:        #827148;     /* warm brown — palette secondary                 */
-  --color-sage:         #A5AF79;     /* sage olive — palette accent (badges, tags)     */
-  --color-hero-overlay: rgba(45, 26, 6, 0.42); /* dark warm veil for hero text contrast */
+  --color-bg:           #F8F4EC;
+  --color-text:         #241A14;
+  --color-surface:      #FFFDF9;
+  --color-surface-muted:#EDE4D7;
+  --color-border:       #D8CDBF;
+  --color-muted:        #74685F;
+  --color-sage:         #9FA985;
+  --color-hero-overlay: rgba(36, 26, 20, 0.18);
 }
 
 /* ── Dark mode ───────────────────────────────────────────────────────────── */
 :root[data-theme="dark"] {
-  --color-bg:           #2a1206;
-  --color-text:         #fff7ed;
-  --color-surface:      #3b1708;
-  --color-surface-muted:#4a1d0a;
-  --color-border:       #7c2d12;
-  --color-muted:        #fed7aa;
+  --color-bg:           #17120f;
+  --color-text:         #fff8ed;
+  --color-surface:      #211a16;
+  --color-surface-muted:#302720;
+  --color-border:       #4a3e35;
+  --color-muted:        #c8bbb0;
   --color-sage:         #A5AF79;
   --color-hero-overlay: rgba(124, 45, 18, 0.55);
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
-    'Helvetica Neue', Arial, sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-bg);
@@ -70,3 +69,12 @@ footer {
   contain-intrinsic-size: 0 200px;
 }
 
+
+.font-serif {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+}
+
+::selection {
+  background: #d97706;
+  color: white;
+}
