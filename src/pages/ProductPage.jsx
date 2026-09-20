@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import SafeImage from "../components/SafeImage";
+import ProductReviews from "../components/ProductReviews";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
 import { formatINR } from "../utils/money";
@@ -57,6 +58,8 @@ export default function ProductPage({ slug, navigate }) {
           </dl>
         </div>
       </div>
+
+      <ProductReviews product={product} navigate={navigate} />
     </section>
   );
 }
