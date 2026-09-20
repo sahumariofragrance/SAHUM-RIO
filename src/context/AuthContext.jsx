@@ -32,11 +32,16 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
-  const signup = async ({ name, email, password }) => {
+  const signup = async ({ name, email, password, newsletterSubscribed = false }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: {
+        data: {
+          name,
+          newsletter_subscribed: Boolean(newsletterSubscribed),
+        },
+      },
     });
     if (error) throw new Error(error.message);
 
