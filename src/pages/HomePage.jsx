@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import { ArrowRight, CreditCard, Mail, UserRound } from "lucide-react";
+import { ArrowRight, CircleDot, Layers3, Sparkles } from "lucide-react";
 import Hero from "../components/Hero";
 import ProductGrid from "../components/ProductGrid";
 import localProducts from "../data/products.json";
@@ -65,15 +65,15 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
               </h2>
             </div>
             <p className="max-w-md text-sm leading-7 text-stone-300 md:justify-self-end">
-              A smaller collection means every fragrance has room to stand on its own. Shop directly, check out securely, and keep the experience simple.
+              Every fragrance gets its own space, its own name, and its own visual world. The collection can grow without losing that sense of focus.
             </p>
           </div>
 
           <div className="mt-14 grid border-y border-white/15 sm:grid-cols-3">
             {[
-              [UserRound, "Account or guest", "Choose the checkout path that suits you."],
-              [CreditCard, "Verified payment", "Your payment is verified before an order is created."],
-              [Mail, "Order updates", "Confirmation and status updates go to your email."],
+              [CircleDot, "A distinct identity", "Each fragrance is presented as its own character, not just another bottle in a list."],
+              [Layers3, "A collection with room", "New perfumes can join the range while the overall experience stays considered and easy to explore."],
+              [Sparkles, "Discovery first", "The homepage is built around browsing, comparing, and finding what feels right to you."],
             ].map(([Icon, title, copy], index) => (
               <div key={title} className={`py-7 sm:px-7 ${index > 0 ? "border-t border-white/15 sm:border-l sm:border-t-0" : ""}`}>
                 <Icon className="h-5 w-5 text-amber-300" />
