@@ -17,7 +17,7 @@ const Hero = React.memo(({ onExplore, onProductNavigate, products = [] }) => {
               <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">
                 <span>The fragrance edit</span>
                 <span className="h-px w-10 bg-[var(--color-border)]" />
-                <span>01—05</span>
+                <span>01—{String(available.length).padStart(2, "0")}</span>
               </div>
 
               <h1 className="mt-8 max-w-3xl font-serif text-[clamp(4rem,9vw,8.4rem)] font-semibold leading-[0.78] tracking-[-0.055em]">
@@ -28,7 +28,7 @@ const Hero = React.memo(({ onExplore, onProductNavigate, products = [] }) => {
 
               <div className="mt-9 flex max-w-xl flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                 <p className="max-w-sm text-sm leading-7 text-[var(--color-muted)] md:text-base">
-                  Five oil-based perfumes. Five distinct names. Choose the one that feels right today.
+                  A growing collection of oil-based perfumes, each with its own identity. Choose the one that feels right today.
                 </p>
                 <button
                   onClick={onExplore}
@@ -102,8 +102,8 @@ const Hero = React.memo(({ onExplore, onProductNavigate, products = [] }) => {
             </button>
 
             <div className="absolute -bottom-2 -right-2 hidden text-right md:block">
-              <p className="font-serif text-5xl font-semibold text-[var(--color-border)]">05</p>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">fragrances</p>
+              <p className="font-serif text-5xl font-semibold text-[var(--color-border)]">{String(available.length).padStart(2, "0")}</p>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">fragrances today</p>
             </div>
           </div>
         </div>
