@@ -62,6 +62,15 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
+  const startGuestSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) return session;
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) throw new Error(error.message);
+    if (data?.user) setUser(data.user);
+    return data.session;
+  };
+
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw new Error(error.message);
@@ -77,6 +86,8 @@ export function AuthProvider({ children }) {
         logout,
         requestPasswordReset,
         updatePassword,
+        startGuestSession,
+        isGuest: Boolean(user?.is_anonymous),
       }}
     >
       {children}
