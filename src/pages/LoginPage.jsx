@@ -47,7 +47,7 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
           });
           setFormData((current) => ({ ...current, email }));
           setOtpSent(true);
-          setMessage("We sent a 6-digit verification code to your email.");
+          setMessage("We sent an 8-digit verification code to your email.");
         } else {
           await verifyEmailOtp({ email: formData.email, token: otpCode });
           setCurrentPage?.(redirectAfterLogin);
@@ -60,7 +60,7 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
           const email = await requestEmailOtp({ email: formData.email, createUser: false });
           setFormData((current) => ({ ...current, email }));
           setOtpSent(true);
-          setMessage("We sent a 6-digit login code to your email.");
+          setMessage("We sent an 8-digit login code to your email.");
         } else {
           await verifyEmailOtp({ email: formData.email, token: otpCode });
           setCurrentPage?.(redirectAfterLogin);
@@ -213,17 +213,17 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
         {otpSent && (
           <>
             <div>
-              <label htmlFor="otp-code" className="text-sm text-[var(--color-text)]">6-digit OTP</label>
+              <label htmlFor="otp-code" className="text-sm text-[var(--color-text)]">8-digit OTP</label>
               <input
                 id="otp-code"
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
-                pattern="[0-9]{6}"
-                maxLength={6}
+                pattern="[0-9]{8}"
+                maxLength={8}
                 value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-center text-xl tracking-[0.35em] focus:outline-none focus:ring-2 focus:ring-amber-600"
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-center text-xl tracking-[0.24em] focus:outline-none focus:ring-2 focus:ring-amber-600"
                 required
               />
             </div>
