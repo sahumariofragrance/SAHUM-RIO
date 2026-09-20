@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, ImagePlus, Loader2, Pencil, RefreshCw } from "lucide-react";
+import { AlertCircle, CheckCircle2, ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
 
-const emptyForm = { id: null, name: "", slug: "", description: "", price: "", alt: "", notes: "", image_url: "", active: true, display_order: 0 };
+const emptyForm = { id: null, name: "", slug: "", description: "", price: "", alt: "", notes: "", image_url: "", active: false, display_order: 0 };
 
 function slugify(value) {
   return String(value || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -28,6 +28,12 @@ export default function AdminProductsPanel() {
   useEffect(() => { load(); }, []);
 
   const nextOrder = useMemo(() => products.reduce((max, product) => Math.max(max, Number(product.display_order || 0)), 0) + 10, [products]);
+
+  useEffect(() => {
+    if (!loading && !form.id && !form.name && Number(form.display_order || 0) === 0) {
+      setForm((current) => ({ ...current, display_order: nextOrder }));
+    }
+  }, [loading, nextOrder, form.id, form.name, form.display_order]);
 
   function reset() {
     setForm({ ...emptyForm, display_order: nextOrder }); setFile(null); setMessage(""); setError("");
@@ -85,6 +91,31 @@ export default function AdminProductsPanel() {
     if (updateError) setError(updateError.message); else await load();
   }
 
+  async function removeProduct(product) {
+    if (!window.confirm("Delete " + product.name + "? This cannot be undone.")) return;
+    setError("");
+    try {
+      const { error: deleteError } = await supabase.from("products").delete().eq("id", product.id);
+      if (deleteError) throw deleteError;
+
+      const marker = "/storage/v1/object/public/product-images/";
+      const imageUrl = String(product.image_url || "");
+      if (imageUrl.includes(marker)) {
+        const objectName = decodeURIComponent(imageUrl.split(marker)[1] || "");
+        if (objectName) {
+          const { error: storageError } = await supabase.storage.from("product-images").remove([objectName]);
+          if (storageError) console.warn("Product image cleanup failed", storageError.message);
+        }
+      }
+
+      if (form.id === product.id) reset();
+      await load();
+      setMessage("Product deleted.");
+    } catch (err) {
+      setError(err?.message || "Unable to delete product.");
+    }
+  }
+
   return (
     <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
       <form onSubmit={save} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
@@ -106,6 +137,7 @@ export default function AdminProductsPanel() {
           <label className="block text-sm">Fragrance notes / internal notes<textarea value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} rows={3} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
           <label className="block text-sm">Product image<div className="mt-1 rounded-xl border border-dashed border-[var(--color-border)] p-4"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setFile(e.target.files?.[0] || null)} className="block w-full text-sm" />{form.image_url && !file && <img src={form.image_url} alt="" className="mt-3 h-28 w-24 rounded-lg object-cover" />}{file && <p className="mt-2 text-xs text-[var(--color-muted)]">{file.name}</p>}</div></label>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.active} onChange={(e) => setForm((p) => ({ ...p, active: e.target.checked }))} />Visible in store</label>
+          {!form.id && <p className="text-xs leading-5 text-[var(--color-muted)]">New products start hidden by default. Turn on “Visible in store” only when the listing is ready.</p>}
         </div>
         <button disabled={saving} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#24160f] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : form.id ? <Pencil className="h-4 w-4" /> : <ImagePlus className="h-4 w-4" />}{form.id ? "Save product" : "Add product"}</button>
       </form>
@@ -120,7 +152,7 @@ export default function AdminProductsPanel() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="font-semibold">{product.name}</h3><p className="text-xs text-[var(--color-muted)]">/product/{product.slug}</p></div><span className="font-semibold">{formatINR(product.price)}</span></div>
                   <p className="mt-2 line-clamp-2 text-sm text-[var(--color-muted)]">{product.description}</p>
-                  <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => edit(product)} className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold"><Pencil className="h-3.5 w-3.5" />Edit</button><button onClick={() => toggleActive(product)} className={product.active ? "rounded-full bg-green-100 px-3 py-1.5 text-xs font-semibold text-green-700" : "rounded-full bg-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-700"}>{product.active ? "Visible" : "Hidden"}</button></div>
+                  <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => edit(product)} className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold"><Pencil className="h-3.5 w-3.5" />Edit</button><button onClick={() => toggleActive(product)} className={product.active ? "rounded-full bg-green-100 px-3 py-1.5 text-xs font-semibold text-green-700" : "rounded-full bg-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-700"}>{product.active ? "Visible" : "Hidden"}</button><button onClick={() => removeProduct(product)} className="inline-flex items-center gap-1 rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600"><Trash2 className="h-3.5 w-3.5" />Delete</button></div>
                 </div>
               </article>
             ))}
