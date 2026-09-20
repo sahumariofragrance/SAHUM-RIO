@@ -55,9 +55,9 @@ export default function ShippingPolicyPage() {
 
       <Section heading="Shipping Charges">
         <P>
-          Shipping and handling rates may vary based on product, packaging, size, volume,
-          type and other considerations. The shipping and handling charges are displayed at
-          the time of checkout so consumers will know the cost before making payment.
+          Shipping is currently free for orders placed through our website across India.
+          If shipping charges are introduced or apply to a particular order in the future,
+          they will be shown at checkout before payment.
         </P>
       </Section>
 
