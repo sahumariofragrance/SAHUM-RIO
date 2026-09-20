@@ -4,6 +4,39 @@ const { sendStatusEmail, sendShipped } = require("../../_lib/email");
 const ALLOWED = new Set(["Pending", "Accepted", "Processing", "Shipped", "Delivered", "Rejected", "Cancelled"]);
 function cleanText(value, max) { if (value == null) return null; if (typeof value !== "string") return undefined; const text = value.trim(); return text ? text.slice(0, max) : null; }
 
+async function claimEmailEvent(adminClient, orderId, eventKey) {
+  const { data, error } = await adminClient
+    .from("order_email_events")
+    .insert({ order_id: orderId, event_key: eventKey })
+    .select("id")
+    .maybeSingle();
+
+  if (!error) return data?.id || null;
+
+  // Postgres unique_violation: another request (or an earlier transition)
+  // already claimed/sent this same customer notification.
+  if (error.code === "23505") return null;
+  throw error;
+}
+
+async function markEmailSent(adminClient, eventId) {
+  if (!eventId) return;
+  const { error } = await adminClient
+    .from("order_email_events")
+    .update({ sent_at: new Date().toISOString() })
+    .eq("id", eventId);
+  if (error) throw error;
+}
+
+async function releaseEmailClaim(adminClient, eventId) {
+  if (!eventId) return;
+  const { error } = await adminClient
+    .from("order_email_events")
+    .delete()
+    .eq("id", eventId);
+  if (error) console.error("[admin/orders/update] unable to release email claim", error.message);
+}
+
 module.exports = async (req, res) => {
   setApiHeaders(res);
   if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
@@ -30,8 +63,25 @@ module.exports = async (req, res) => {
 
     let email = { sent: false, reason: "status_unchanged" };
     if (previous.status !== status) {
-      try { email = status === "Shipped" ? await sendShipped(data) : await sendStatusEmail(data); }
-      catch (emailError) { console.error("[admin/orders/update] email failed", emailError.message); email = { sent: false, reason: "provider_error" }; }
+      const eventKey = `status:${status.toLowerCase()}`;
+      const claimId = await claimEmailEvent(adminClient, orderId, eventKey);
+
+      if (!claimId) {
+        email = { sent: false, reason: "already_notified" };
+      } else {
+        try {
+          email = status === "Shipped" ? await sendShipped(data) : await sendStatusEmail(data);
+          if (email.sent) {
+            await markEmailSent(adminClient, claimId);
+          } else {
+            await releaseEmailClaim(adminClient, claimId);
+          }
+        } catch (emailError) {
+          await releaseEmailClaim(adminClient, claimId);
+          console.error("[admin/orders/update] email failed", emailError.message);
+          email = { sent: false, reason: "provider_error" };
+        }
+      }
     }
     return res.status(200).json({ order: data, email });
   } catch (err) {
