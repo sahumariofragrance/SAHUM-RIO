@@ -18,7 +18,7 @@ const ProductGrid = React.memo(({
 
   // Static classes so Tailwind can detect and include them in the production build
   return (
-    <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 lg:grid-cols-5 lg:gap-x-5">
       {products.map((product, index) => (
         <PerfumeCardOptimized
           key={product.id}
