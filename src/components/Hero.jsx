@@ -1,76 +1,110 @@
-import React, { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { ArrowDownRight, ArrowRight } from "lucide-react";
 
 const Hero = React.memo(({ onExplore, onProductNavigate, products = [] }) => {
-  const [animate, setAnimate] = useState(false);
-  const heroProducts = products.slice(0, 3);
+  const available = useMemo(() => products.slice(0, 5), [products]);
+  const [activeId, setActiveId] = useState(available[0]?.id ?? null);
+  const active = available.find((product) => product.id === activeId) || available[0];
 
-  useEffect(() => {
-    const timer = setTimeout(() => setAnimate(true), 80);
-    return () => clearTimeout(timer);
-  }, []);
+  if (!active) return null;
 
   return (
-    <section className="relative overflow-hidden bg-[var(--color-bg)]" aria-label="Hero banner">
-      <div className="mx-auto grid min-h-[560px] max-w-7xl items-center gap-10 px-4 py-10 md:grid-cols-[0.92fr_1.08fr] md:px-6 md:py-16 lg:min-h-[650px]">
-        <div className={`transition duration-700 ${animate ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-700">SAHUMäRIO fragrance</p>
-          <h1 className="mt-4 max-w-xl font-serif text-5xl font-semibold leading-[0.98] tracking-tight md:text-6xl lg:text-7xl">
-            Find a fragrance that stays with you.
-          </h1>
-          <p className="mt-5 max-w-lg text-base leading-7 text-[var(--color-muted)] md:text-lg">
-            A focused collection of oil-based perfumes with a warm, modern point of view.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <button
-              onClick={onExplore}
-              className="inline-flex items-center gap-2 rounded-full bg-[#24160f] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-amber-800"
-            >
-              Shop perfumes <ArrowRight className="h-4 w-4" />
-            </button>
-            {heroProducts[0] && (
-              <button
-                onClick={() => onProductNavigate?.(heroProducts[0])}
-                className="rounded-full border border-[var(--color-text)] px-6 py-3.5 text-sm font-semibold transition hover:bg-[var(--color-surface)]"
-              >
-                Explore {heroProducts[0].name}
-              </button>
-            )}
-          </div>
-          <div className="mt-9 flex flex-wrap gap-x-7 gap-y-3 text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-muted)]">
-            <span>5 fragrances</span>
-            <span>From ₹749</span>
-            <span>Guest checkout</span>
-          </div>
-        </div>
+    <section className="overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-bg)]" aria-label="Hero banner">
+      <div className="mx-auto max-w-7xl px-4 md:px-6">
+        <div className="grid min-h-[620px] items-stretch gap-10 py-10 md:grid-cols-[1.05fr_0.95fr] md:gap-12 md:py-14 lg:min-h-[690px]">
+          <div className="flex flex-col justify-between py-2 md:py-6">
+            <div>
+              <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">
+                <span>The fragrance edit</span>
+                <span className="h-px w-10 bg-[var(--color-border)]" />
+                <span>01—05</span>
+              </div>
 
-        <div className="relative mx-auto w-full max-w-2xl">
-          <div className="absolute -left-6 top-12 h-40 w-40 rounded-full bg-amber-300/30 blur-3xl" aria-hidden="true" />
-          <div className="absolute -right-2 bottom-8 h-48 w-48 rounded-full bg-orange-200/40 blur-3xl" aria-hidden="true" />
-          <div className="relative grid grid-cols-2 gap-3 sm:gap-4">
-            {heroProducts.map((product, index) => (
-              <button
-                type="button"
-                key={product.id}
-                onClick={() => onProductNavigate?.(product)}
-                className={`group relative overflow-hidden rounded-[1.75rem] border border-white/60 bg-[var(--color-surface)] shadow-xl shadow-black/5 ${index === 0 ? "col-span-2 aspect-[16/9]" : "aspect-[4/5]"}`}
-                aria-label={`View ${product.name}`}
-              >
+              <h1 className="mt-8 max-w-3xl font-serif text-[clamp(4rem,9vw,8.4rem)] font-semibold leading-[0.78] tracking-[-0.055em]">
+                WEAR
+                <span className="block pl-[0.16em] italic font-medium">the</span>
+                <span className="block">MOMENT.</span>
+              </h1>
+
+              <div className="mt-9 flex max-w-xl flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                <p className="max-w-sm text-sm leading-7 text-[var(--color-muted)] md:text-base">
+                  Five oil-based perfumes. Five distinct names. Choose the one that feels right today.
+                </p>
+                <button
+                  onClick={onExplore}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[var(--color-text)] px-5 py-3 text-sm font-semibold transition hover:bg-[var(--color-text)] hover:text-[var(--color-bg)]"
+                >
+                  View collection <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-12 border-t border-[var(--color-border)] pt-5">
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">
+                Fragrance index
+              </p>
+              <div className="grid grid-cols-1 gap-0 sm:grid-cols-5">
+                {available.map((product, index) => {
+                  const selected = product.id === active.id;
+                  return (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onMouseEnter={() => setActiveId(product.id)}
+                      onFocus={() => setActiveId(product.id)}
+                      onClick={() => setActiveId(product.id)}
+                      className={`group border-t border-[var(--color-border)] py-3 text-left sm:border-l sm:border-t-0 sm:px-3 sm:first:border-l-0 ${selected ? "text-amber-700" : "text-[var(--color-text)]"}`}
+                      aria-pressed={selected}
+                    >
+                      <span className="block text-[9px] font-semibold tracking-[0.18em] text-[var(--color-muted)]">
+                        0{index + 1}
+                      </span>
+                      <span className="mt-1 block truncate font-serif text-sm font-semibold md:text-base">
+                        {product.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="relative flex items-center justify-center md:justify-end">
+            <div className="pointer-events-none absolute left-0 top-1/4 hidden -rotate-90 text-[10px] font-semibold uppercase tracking-[0.28em] text-[var(--color-muted)] md:block">
+              SAHUMäRIO / Eau de Parfum
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onProductNavigate?.(active)}
+              className="group relative block w-full max-w-[560px] overflow-hidden rounded-t-[16rem] rounded-b-[2.4rem] bg-[var(--color-surface-muted)] shadow-[0_30px_80px_rgba(54,37,23,0.14)]"
+              aria-label={`View ${active.name}`}
+            >
+              <div className="aspect-[4/5] overflow-hidden">
                 <img
-                  src={product.image}
-                  alt={product.alt || product.name}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
-                  loading={index === 0 ? "eager" : "lazy"}
+                  key={active.image}
+                  src={active.image}
+                  alt={active.alt || active.name}
+                  className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.025]"
                 />
-                <div className="absolute inset-x-3 bottom-3 flex items-center justify-between rounded-2xl bg-black/55 px-4 py-3 text-left text-white backdrop-blur-sm">
-                  <div>
-                    <p className="font-serif text-lg font-semibold">{product.name}</p>
-                    <p className="text-xs text-white/75">₹{Number(product.price).toLocaleString("en-IN")}</p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </div>
+
+              <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-5 rounded-[1.5rem] border border-white/20 bg-black/45 px-5 py-4 text-left text-white backdrop-blur-md">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/65">Selected fragrance</p>
+                  <p className="mt-1 font-serif text-2xl font-semibold">{active.name}</p>
+                  <p className="mt-1 text-sm text-white/75">₹{Number(active.price).toLocaleString("en-IN")}</p>
                 </div>
-              </button>
-            ))}
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/35 transition group-hover:bg-white group-hover:text-black">
+                  <ArrowDownRight className="h-5 w-5" />
+                </span>
+              </div>
+            </button>
+
+            <div className="absolute -bottom-2 -right-2 hidden text-right md:block">
+              <p className="font-serif text-5xl font-semibold text-[var(--color-border)]">05</p>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">fragrances</p>
+            </div>
           </div>
         </div>
       </div>
