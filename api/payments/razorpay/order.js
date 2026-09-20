@@ -79,8 +79,17 @@ module.exports = async (req, res) => {
     if (amount < MIN_AMOUNT_PAISE || amount > MAX_AMOUNT_PAISE) return res.status(400).json({ message: "Order amount is outside the allowed range" });
 
     const shipping = safeAddress(address, user);
-    if (!shipping.name || !shipping.phone || !shipping.address || !shipping.city || !shipping.state || !shipping.pin) {
-      return res.status(400).json({ message: "Shipping address is incomplete" });
+    if (!shipping.name || !shipping.phone || !shipping.email || !shipping.address || !shipping.city || !shipping.state || !shipping.pin) {
+      return res.status(400).json({ message: "Shipping address and email are required" });
+    }
+    if (!/^\d{10}$/.test(shipping.phone.replace(/\D/g, ""))) {
+      return res.status(400).json({ message: "A valid 10-digit phone number is required" });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shipping.email)) {
+      return res.status(400).json({ message: "A valid email address is required" });
+    }
+    if (!/^\d{6}$/.test(shipping.pin)) {
+      return res.status(400).json({ message: "A valid 6-digit PIN code is required" });
     }
 
     const frontend = Number(frontendAmount);
