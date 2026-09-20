@@ -6,7 +6,7 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
   const { login, signup, requestPasswordReset } = useAuth();
   const [mode, setMode] = useState("login");
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", newsletterSubscribed: false });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(initialMessage);
@@ -31,7 +31,12 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
       if (isLogin) {
         await login({ email, password: formData.password });
       } else {
-        await signup({ name: formData.name.trim(), email, password: formData.password });
+        await signup({
+          name: formData.name.trim(),
+          email,
+          password: formData.password,
+          newsletterSubscribed: formData.newsletterSubscribed,
+        });
       }
       setCurrentPage?.(redirectAfterLogin);
     } catch (err) {
@@ -96,6 +101,23 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
             </div>
             {isSignup && <p className="mt-1 text-xs text-[var(--color-muted)]">Use at least 8 characters.</p>}
           </div>
+        )}
+
+        {isSignup && (
+          <label className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4">
+            <input
+              type="checkbox"
+              checked={formData.newsletterSubscribed}
+              onChange={(e) => setFormData({ ...formData, newsletterSubscribed: e.target.checked })}
+              className="mt-1 h-4 w-4 rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600"
+            />
+            <span>
+              <span className="block text-sm font-medium text-[var(--color-text)]">Keep me in the SAHUMäRIO loop</span>
+              <span className="mt-1 block text-xs leading-5 text-[var(--color-muted)]">
+                Send me occasional fragrance launches, offers, and SAHUMäRIO news. Optional — you can change this later.
+              </span>
+            </span>
+          </label>
         )}
 
         <button type="submit" disabled={loading} className="w-full rounded-lg bg-amber-600 text-white py-2.5 hover:bg-amber-700 transition-colors disabled:opacity-60">
