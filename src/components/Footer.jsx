@@ -63,7 +63,7 @@ const Footer = React.memo(({ setCurrentPage }) => {
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-stone-400 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 SAHUMäRIO. All rights reserved.</p>
+          <p>© 2026 SAHUMäRIO®. All rights reserved.</p>
           <p>SAHUMäRIO Fragrance · India</p>
         </div>
       </div>
