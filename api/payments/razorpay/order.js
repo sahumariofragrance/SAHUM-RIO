@@ -11,6 +11,14 @@ const PRODUCT_CATALOGUE = new Map([
   [4, { name: "Morning Dew", price: 749 }],
   [5, { name: "Night Queen", price: 749 }],
 ]);
+
+const previewPaymentTestEnabled =
+  process.env.VERCEL_ENV === "preview" &&
+  process.env.VERCEL_GIT_COMMIT_REF === "rebuild/complete-backend-v2";
+
+if (previewPaymentTestEnabled) {
+  PRODUCT_CATALOGUE.set(99, { name: "PAYMENT TEST — ₹10", price: 10 });
+}
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
 const MAX_AMOUNT_PAISE = 50_000_000;
