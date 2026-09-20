@@ -14,13 +14,7 @@ const Hero = React.memo(({ onExplore, onProductNavigate, products = [] }) => {
         <div className="grid min-h-[620px] items-stretch gap-10 py-10 md:grid-cols-[1.05fr_0.95fr] md:gap-12 md:py-14 lg:min-h-[690px]">
           <div className="flex flex-col justify-between py-2 md:py-6">
             <div>
-              <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">
-                <span>The fragrance edit</span>
-                <span className="h-px w-10 bg-[var(--color-border)]" />
-                <span>01—{String(available.length).padStart(2, "0")}</span>
-              </div>
-
-              <h1 className="mt-8 max-w-3xl font-serif text-[clamp(4rem,9vw,8.4rem)] font-semibold leading-[0.78] tracking-[-0.055em]">
+              <h1 className="max-w-3xl font-serif text-[clamp(4rem,9vw,8.4rem)] font-semibold leading-[0.78] tracking-[-0.055em]">
                 WEAR
                 <span className="block pl-[0.16em] italic font-medium">the</span>
                 <span className="block">MOMENT.</span>
