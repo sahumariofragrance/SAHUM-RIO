@@ -2,21 +2,22 @@ import React, { useCallback, useMemo } from "react";
 import { ArrowRight, CircleDot, Layers3, Sparkles } from "lucide-react";
 import Hero from "../components/Hero";
 import ProductGrid from "../components/ProductGrid";
-import localProducts from "../data/products.json";
+import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
 export default function HomePage({ onProductNavigate, setCurrentPage }) {
   const { items, addToCart, updateQty } = useCart();
+  const { products: catalogueProducts } = useProducts();
 
   const itemQtyById = useMemo(() => items.reduce((acc, item) => {
     acc[item.product_id] = item.qty;
     return acc;
   }, {}), [items]);
 
-  const products = useMemo(() => localProducts.map((product) => ({
+  const products = useMemo(() => catalogueProducts.map((product) => ({
     ...product,
     qty: itemQtyById[product.id] ?? 0,
-  })), [itemQtyById]);
+  })), [catalogueProducts, itemQtyById]);
 
   const handleAdd = useCallback((product) => addToCart(product), [addToCart]);
   const handleQty = useCallback((productId, qty) => updateQty(productId, qty), [updateQty]);
