@@ -1,0 +1,1 @@
+Production redeploy trigger after rotating the Supabase service-role environment variable.
