@@ -3,20 +3,12 @@ import { supabase } from "../lib/supabase";
 
 const AuthCtx = createContext(null);
 
-function normalizePhone(value) {
-  const raw = String(value || "").trim();
-  if (!raw) throw new Error("Please enter your phone number.");
-
-  if (raw.startsWith("+")) {
-    const digits = raw.slice(1).replace(/\D/g, "");
-    if (digits.length < 10 || digits.length > 15) throw new Error("Please enter a valid phone number.");
-    return `+${digits}`;
+function normalizeEmail(value) {
+  const email = String(value || "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error("Please enter a valid email address.");
   }
-
-  const digits = raw.replace(/\D/g, "");
-  if (digits.length === 10) return `+91${digits}`;
-  if (digits.length === 12 && digits.startsWith("91")) return `+${digits}`;
-  throw new Error("Use a 10-digit Indian number or include the country code, for example +91…");
+  return email;
 }
 
 export function AuthProvider({ children }) {
@@ -40,7 +32,7 @@ export function AuthProvider({ children }) {
 
   const login = async ({ email, password }) => {
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: normalizeEmail(email),
       password,
     });
     if (error) throw new Error(error.message);
@@ -48,107 +40,48 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
-  const requestLoginOtp = async ({ channel, value }) => {
-    if (channel === "phone") {
-      const phone = normalizePhone(value);
-      const { error } = await supabase.auth.signInWithOtp({
-        phone,
-        options: { shouldCreateUser: false },
-      });
-      if (error) {
-        if (/provider|phone|sms/i.test(error.message || "")) {
-          throw new Error("Phone OTP is not available for this number yet. Make sure the phone is verified on your account and SMS authentication is enabled.");
-        }
-        throw new Error(error.message);
-      }
-      return { channel: "phone", value: phone };
-    }
-
-    const email = String(value || "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      throw new Error("Please enter a valid email address.");
-    }
-
+  const requestEmailOtp = async ({
+    email,
+    createUser = false,
+    name = "",
+    newsletterSubscribed = false,
+  }) => {
+    const normalizedEmail = normalizeEmail(email);
     const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false },
-    });
-    if (error) throw new Error(error.message);
-    return { channel: "email", value: email };
-  };
-
-  const verifyLoginOtp = async ({ channel, value, token }) => {
-    const code = String(token || "").replace(/\s/g, "");
-    if (!/^\d{6}$/.test(code)) throw new Error("Enter the 6-digit OTP.");
-
-    const credentials = channel === "phone"
-      ? { phone: normalizePhone(value), token: code, type: "sms" }
-      : { email: String(value || "").trim().toLowerCase(), token: code, type: "email" };
-
-    const { data, error } = await supabase.auth.verifyOtp(credentials);
-    if (error) throw new Error(error.message);
-    if (!data?.session || !data?.user) throw new Error("OTP verification did not create a login session. Please try again.");
-
-    setUser(data.user);
-    return data.user;
-  };
-
-  const signup = async ({ name, email, password, newsletterSubscribed = false }) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
+      email: normalizedEmail,
       options: {
-        data: {
-          name,
-          newsletter_subscribed: Boolean(newsletterSubscribed),
-        },
+        shouldCreateUser: Boolean(createUser),
+        data: createUser
+          ? {
+              name: String(name || "").trim(),
+              newsletter_subscribed: Boolean(newsletterSubscribed),
+            }
+          : undefined,
       },
     });
+
     if (error) throw new Error(error.message);
-
-    if (data.user && !data.session) {
-      throw new Error("Account created! Please check your email for a confirmation link before logging in.");
-    }
-    if (data?.user) setUser(data.user);
-    return data.user;
+    return normalizedEmail;
   };
 
-  const requestPhoneVerification = async (phoneInput) => {
-    const phone = normalizePhone(phoneInput);
-    const { data, error } = await supabase.auth.updateUser({ phone });
-    if (error) {
-      if (/provider|phone|sms/i.test(error.message || "")) {
-        throw new Error("Phone verification is not available yet. SMS authentication must be enabled in Supabase first.");
-      }
-      throw new Error(error.message);
-    }
-    if (data?.user) setUser(data.user);
-    return phone;
-  };
-
-  const verifyPhoneVerification = async ({ phone, token }) => {
-    const normalized = normalizePhone(phone);
+  const verifyEmailOtp = async ({ email, token }) => {
+    const normalizedEmail = normalizeEmail(email);
     const code = String(token || "").replace(/\s/g, "");
     if (!/^\d{6}$/.test(code)) throw new Error("Enter the 6-digit OTP.");
 
     const { data, error } = await supabase.auth.verifyOtp({
-      phone: normalized,
+      email: normalizedEmail,
       token: code,
-      type: "phone_change",
+      type: "email",
     });
+
     if (error) throw new Error(error.message);
+    if (!data?.session || !data?.user) {
+      throw new Error("OTP verification did not create a login session. Please try again.");
+    }
 
-    const { data: userResult } = await supabase.auth.getUser();
-    const verifiedUser = userResult?.user || data?.user || null;
-    if (verifiedUser) setUser(verifiedUser);
-
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({ phone: normalized, updated_at: new Date().toISOString() })
-      .eq("id", verifiedUser?.id || user?.id);
-
-    if (profileError) console.error("[auth] verified phone profile sync failed", profileError.message);
-    return normalized;
+    setUser(data.user);
+    return data.user;
   };
 
   const requestPasswordReset = async (email) => {
@@ -156,7 +89,7 @@ export function AuthProvider({ children }) {
     const isVercelPreview = window.location.hostname.endsWith(".vercel.app");
     const redirectOrigin = isVercelPreview ? stablePreviewOrigin : window.location.origin;
     const redirectTo = `${redirectOrigin}/reset-password`;
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizeEmail(email), { redirectTo });
     if (error) throw new Error(error.message);
   };
 
@@ -186,12 +119,9 @@ export function AuthProvider({ children }) {
         user,
         loading,
         login,
-        signup,
         logout,
-        requestLoginOtp,
-        verifyLoginOtp,
-        requestPhoneVerification,
-        verifyPhoneVerification,
+        requestEmailOtp,
+        verifyEmailOtp,
         requestPasswordReset,
         updatePassword,
         startGuestSession,
