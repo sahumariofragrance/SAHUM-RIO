@@ -27,8 +27,7 @@ export default function AboutPage() {
         authentic oil-based perfumes that are designed to last throughout your day and beyond.
       </p>
       <p className="mt-2 text-[var(--color-text)] leading-relaxed">
-        Our perfumes are carefully formulated using the finest natural ingredients, ensuring a
-        rich, long-lasting fragrance experience that synthetic alternatives simply cannot match.
+        Our perfumes are thoughtfully formulated to deliver a rich, distinctive fragrance experience with a character of their own.
       </p>
 
       <h4 className="mt-8 text-xl font-semibold">Our Founders</h4>
