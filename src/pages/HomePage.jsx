@@ -39,9 +39,9 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
             </h2>
           </div>
           <div className="md:justify-self-end">
-            <p className="max-w-lg text-sm leading-7 text-[var(--color-muted)]">
-              Explore one bottle at a time. Discover what fits today, then return as the collection grows.
-            </p>
+            <blockquote className="max-w-lg font-serif text-xl italic leading-8 text-[var(--color-muted)] md:text-2xl md:leading-9">
+              “A fragrance should not just be worn — it should be remembered.”
+            </blockquote>
           </div>
         </div>
 
