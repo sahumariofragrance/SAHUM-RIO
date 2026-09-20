@@ -93,8 +93,8 @@ module.exports = async (req, res) => {
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100000) {
       return res.status(400).json({ message: "Please enter a valid quantity." });
     }
-    if (!Number.isFinite(estimatedOrderValue) || estimatedOrderValue < 25000) {
-      return res.status(400).json({ message: "Bulk order enquiries must have an estimated order value of at least ₹25,000." });
+    if (!Number.isFinite(estimatedOrderValue) || estimatedOrderValue < 10000) {
+      return res.status(400).json({ message: "Bulk order enquiries must have an estimated order value of at least ₹10,000." });
     }
     if (!acceptedTerms) {
       return res.status(400).json({ message: "Please accept the bulk order terms and conditions." });
