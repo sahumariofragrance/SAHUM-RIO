@@ -42,8 +42,8 @@ function initials(name) {
     .join("") || "C";
 }
 
-export default function ProductReviews({ product, navigate }) {
-  const { user, isGuest } = useAuth();
+export default function ProductReviews({ product }) {
+  const { user, startGuestSession } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -106,7 +106,6 @@ export default function ProductReviews({ product, navigate }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (!user || isGuest) return;
 
     const displayName = form.displayName.trim();
     const title = form.title.trim();
@@ -125,37 +124,48 @@ export default function ProductReviews({ product, navigate }) {
     setError("");
     setMessage("");
 
-    const payload = {
-      display_name: displayName.slice(0, 60),
-      rating: Number(form.rating),
-      title: title.slice(0, 100),
-      body: body.slice(0, 1200),
-      updated_at: new Date().toISOString(),
-    };
+    try {
+      let reviewUser = user;
+      if (!reviewUser) {
+        const session = await startGuestSession();
+        reviewUser = session?.user || null;
+      }
+      if (!reviewUser?.id) throw new Error("Unable to start a guest review session.");
 
-    let saveError;
-    if (ownReview) {
-      const result = await supabase
-        .from("product_reviews")
-        .update(payload)
-        .eq("id", ownReview.id);
-      saveError = result.error;
-    } else {
-      const result = await supabase.from("product_reviews").insert({
-        ...payload,
-        product_id: product.id,
-        user_id: user.id,
-      });
-      saveError = result.error;
-    }
+      const payload = {
+        display_name: displayName.slice(0, 60),
+        rating: Number(form.rating),
+        title: title.slice(0, 100),
+        body: body.slice(0, 1200),
+        updated_at: new Date().toISOString(),
+      };
 
-    if (saveError) {
-      setError("Your review could not be saved. Please try again.");
-    } else {
+      let saveError;
+      if (ownReview) {
+        const result = await supabase
+          .from("product_reviews")
+          .update(payload)
+          .eq("id", ownReview.id);
+        saveError = result.error;
+      } else {
+        const result = await supabase.from("product_reviews").insert({
+          ...payload,
+          product_id: product.id,
+          user_id: reviewUser.id,
+        });
+        saveError = result.error;
+      }
+
+      if (saveError) throw saveError;
+
       setMessage(ownReview ? "Your review has been updated." : "Thank you — your review is now live.");
       await loadReviews();
+    } catch (saveError) {
+      console.error("[reviews] save failed", saveError?.message);
+      setError("Your review could not be saved. Please try again.");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   }
 
   async function handleDelete() {
@@ -213,93 +223,81 @@ export default function ProductReviews({ product, navigate }) {
             )}
           </div>
 
-          {!user || isGuest ? (
-            <div className="mt-5 rounded-2xl border border-dashed border-[var(--color-border)] p-5">
-              <p className="text-sm leading-6 text-[var(--color-muted)]">
-                Sign in with a regular account to write a review.
-              </p>
-              <button
-                type="button"
-                onClick={() => navigate?.("login")}
-                className="mt-4 rounded-full border border-[var(--color-text)] px-5 py-2.5 text-sm font-semibold transition hover:bg-[var(--color-text)] hover:text-[var(--color-bg)]"
-              >
-                Log in to review
-              </button>
+          <form onSubmit={handleSubmit} className="mt-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold">{ownReview ? "Edit your review" : "Write a review"}</p>
+                <p className="mt-1 text-xs text-[var(--color-muted)]">
+                  No account needed. One review per fragrance on this device session.
+                </p>
+              </div>
+              {ownReview && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={saving}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-50"
+                >
+                  <Trash2 className="h-4 w-4" /> Delete
+                </button>
+              )}
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="mt-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold">{ownReview ? "Edit your review" : "Write a review"}</p>
-                  <p className="mt-1 text-xs text-[var(--color-muted)]">One review per fragrance.</p>
-                </div>
-                {ownReview && (
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    disabled={saving}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-50"
-                  >
-                    <Trash2 className="h-4 w-4" /> Delete
-                  </button>
-                )}
+
+            <div className="mt-5">
+              <label className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">Your rating</label>
+              <div className="mt-2">
+                <StarRow value={form.rating} onChange={(rating) => setForm({ ...form, rating })} interactive size="h-6 w-6" />
               </div>
+            </div>
 
-              <div className="mt-5">
-                <label className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">Your rating</label>
-                <div className="mt-2">
-                  <StarRow value={form.rating} onChange={(rating) => setForm({ ...form, rating })} interactive size="h-6 w-6" />
-                </div>
-              </div>
+            <label className="mt-5 block text-sm font-medium">
+              Display name
+              <input
+                value={form.displayName}
+                onChange={(event) => setForm({ ...form, displayName: event.target.value })}
+                maxLength={60}
+                required
+                placeholder="Your name"
+                className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </label>
 
-              <label className="mt-5 block text-sm font-medium">
-                Display name
-                <input
-                  value={form.displayName}
-                  onChange={(event) => setForm({ ...form, displayName: event.target.value })}
-                  maxLength={60}
-                  required
-                  className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </label>
+            <label className="mt-4 block text-sm font-medium">
+              Short title <span className="font-normal text-[var(--color-muted)]">(optional)</span>
+              <input
+                value={form.title}
+                onChange={(event) => setForm({ ...form, title: event.target.value })}
+                maxLength={100}
+                placeholder="What stood out?"
+                className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </label>
 
-              <label className="mt-4 block text-sm font-medium">
-                Short title <span className="font-normal text-[var(--color-muted)]">(optional)</span>
-                <input
-                  value={form.title}
-                  onChange={(event) => setForm({ ...form, title: event.target.value })}
-                  maxLength={100}
-                  placeholder="What stood out?"
-                  className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </label>
+            <label className="mt-4 block text-sm font-medium">
+              Your review
+              <textarea
+                value={form.body}
+                onChange={(event) => setForm({ ...form, body: event.target.value })}
+                minLength={5}
+                maxLength={1200}
+                required
+                rows={5}
+                placeholder="Tell others what it was like to wear this fragrance."
+                className="mt-2 w-full resize-y rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 leading-6 outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </label>
 
-              <label className="mt-4 block text-sm font-medium">
-                Your review
-                <textarea
-                  value={form.body}
-                  onChange={(event) => setForm({ ...form, body: event.target.value })}
-                  minLength={5}
-                  maxLength={1200}
-                  required
-                  rows={5}
-                  placeholder="Tell others what it was like to wear this fragrance."
-                  className="mt-2 w-full resize-y rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 leading-6 outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </label>
+            {error && <p className="mt-4 text-sm text-red-600" role="alert">{error}</p>}
+            {message && <p className="mt-4 text-sm text-green-700" role="status">{message}</p>}
 
-              {error && <p className="mt-4 text-sm text-red-600" role="alert">{error}</p>}
-              {message && <p className="mt-4 text-sm text-green-700" role="status">{message}</p>}
-
-              <button
-                type="submit"
-                disabled={saving}
-                className="mt-5 rounded-full bg-[#24160f] px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:opacity-50"
-              >
-                {saving ? "Saving…" : ownReview ? "Update review" : "Post review"}
-              </button>
-            </form>
-          )}
+            <button
+              type="submit"
+              disabled={saving}
+              className="mt-5 rounded-full bg-[#24160f] px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:opacity-50"
+            >
+              {saving ? "Saving…" : ownReview ? "Update review" : "Post review"}
+            </button>
+          </form>
         </div>
 
         <div>
