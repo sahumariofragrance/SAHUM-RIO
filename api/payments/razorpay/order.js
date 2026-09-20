@@ -4,13 +4,6 @@ const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { requireCustomer } = require("../../_lib/customerAuth");
 
-const PRODUCT_CATALOGUE = new Map([
-  [1, { name: "Bloom", price: 749 }],
-  [2, { name: "Dew Drop", price: 750 }],
-  [3, { name: "Lemon Breeze", price: 749 }],
-  [4, { name: "Morning Dew", price: 749 }],
-  [5, { name: "Night Queen", price: 749 }],
-]);
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
 const MAX_AMOUNT_PAISE = 50_000_000;
@@ -63,12 +56,22 @@ module.exports = async (req, res) => {
     if (currency !== "INR") return res.status(400).json({ message: "Unsupported currency" });
     if (!Array.isArray(items) || !items.length) return res.status(400).json({ message: "items must be a non-empty array" });
 
+    const ids = items.map((item) => safeInt(item?.product_id));
+    if (ids.some((id) => !Number.isInteger(id) || id <= 0)) return res.status(400).json({ message: "Invalid product ID" });
+    const { data: catalogueRows, error: catalogueError } = await serverClient
+      .from("products")
+      .select("id,name,price,active")
+      .in("id", ids)
+      .eq("active", true);
+    if (catalogueError) throw catalogueError;
+    const catalogue = new Map((catalogueRows || []).map((product) => [Number(product.id), { name: product.name, price: Number(product.price) }]));
+
     const seen = new Set(); let count = 0; let amountINR = 0;
     const normalizedItems = [];
     for (const item of items) {
       if (!plain(item)) return res.status(400).json({ message: "Invalid item" });
-      const id = safeInt(item.product_id); const qty = safeInt(item.qty); const product = PRODUCT_CATALOGUE.get(id);
-      if (!product) return res.status(400).json({ message: `Invalid product_id: ${item.product_id}` });
+      const id = safeInt(item.product_id); const qty = safeInt(item.qty); const product = catalogue.get(id);
+      if (!product) return res.status(400).json({ message: `Product ${item.product_id} is unavailable` });
       if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY_PER_ITEM) return res.status(400).json({ message: "Invalid quantity" });
       if (seen.has(id)) return res.status(400).json({ message: `Duplicate product_id ${id}` });
       seen.add(id); count += qty; amountINR += product.price * qty;
