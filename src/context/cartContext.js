@@ -17,7 +17,8 @@ export function CartProvider({ children }) {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
       if (!stored) return [];
       const parsed = JSON.parse(stored);
-      return Array.isArray(parsed) ? parsed.filter((item) => [1, 2, 3, 4, 5].includes(Number(item?.product_id))) : [];
+      const allowedIds = window.location.hostname.endsWith(".vercel.app") ? [1, 2, 3, 4, 5, 99] : [1, 2, 3, 4, 5];
+      return Array.isArray(parsed) ? parsed.filter((item) => allowedIds.includes(Number(item?.product_id))) : [];
     } catch {
       return [];
     }
