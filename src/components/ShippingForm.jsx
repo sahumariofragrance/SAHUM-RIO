@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Input, Select, Textarea } from './ui';
 import { STATES } from '../constants/checkout';
 
-const ShippingForm = React.memo(({ onFormChange, initialValues = {} }) => {
+const ShippingForm = React.memo(({ onFormChange, initialValues = {}, requireEmail = false }) => {
   const [form, setForm] = useState(() => ({ state: 'Maharashtra', ...initialValues }));
   const [errors, setErrors] = useState({});
 
@@ -51,13 +51,13 @@ const ShippingForm = React.memo(({ onFormChange, initialValues = {} }) => {
       !Object.keys(currentErrors).length &&
       Boolean(String(values.name || '').trim()) &&
       /^\d{10}$/.test(phone) &&
-      (!email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) &&
+      (requireEmail ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) : (!email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) &&
       Boolean(String(values.address || '').trim()) &&
       Boolean(String(values.city || '').trim()) &&
       Boolean(String(values.state || '').trim()) &&
       /^\d{6}$/.test(String(values.pin || ''))
     );
-  }, []);
+  }, [requireEmail]);
 
   useEffect(() => {
     onFormChange(form, isValid(form, errors));
@@ -94,8 +94,9 @@ const ShippingForm = React.memo(({ onFormChange, initialValues = {} }) => {
 
       <Input
         name="email"
-        label="Email (optional)"
+        label={requireEmail ? "Email" : "Email (optional)"}
         type="email"
+        required={requireEmail}
         value={form.email || ''}
         onChange={handleChange}
         error={errors.email}
