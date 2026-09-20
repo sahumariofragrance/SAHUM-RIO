@@ -100,11 +100,6 @@ const Hero = React.memo(({ onExplore, onProductNavigate, products = [] }) => {
                 </span>
               </div>
             </button>
-
-            <div className="absolute -bottom-2 -right-2 hidden text-right md:block">
-              <p className="font-serif text-5xl font-semibold text-[var(--color-border)]">{String(available.length).padStart(2, "0")}</p>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">fragrances today</p>
-            </div>
           </div>
         </div>
       </div>
