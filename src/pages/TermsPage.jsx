@@ -66,9 +66,11 @@ export default function TermsPage() {
 
       <Section heading="Membership Eligibility">
         <P>
-          Browsing the website does not require an account, but checkout currently requires
-          you to sign in to a SAHUMÄRIO account. To create your account, you must be
-          eligible to enter into a contract under the Indian Contract Act, 1872. Any minor
+          Browsing the website does not require an account. You may check out as a guest
+          or sign in to a SAHUMÄRIO account. Registered customers can keep eligible orders
+          linked to their account, while guest customers should retain their order number
+          and email confirmation for reference. To create an account, you must be eligible
+          to enter into a contract under the Indian Contract Act, 1872. Any minor
           (a person below the age of 18 years) can use the website and transact only
           through their legal guardians or parents.
         </P>
