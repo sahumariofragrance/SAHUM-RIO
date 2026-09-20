@@ -67,7 +67,7 @@ export function AuthProvider({ children }) {
   const verifyEmailOtp = async ({ email, token }) => {
     const normalizedEmail = normalizeEmail(email);
     const code = String(token || "").replace(/\s/g, "");
-    if (!/^\d{6}$/.test(code)) throw new Error("Enter the 6-digit OTP.");
+    if (!/^\d{8}$/.test(code)) throw new Error("Enter the 8-digit OTP.");
 
     const { data, error } = await supabase.auth.verifyOtp({
       email: normalizedEmail,
