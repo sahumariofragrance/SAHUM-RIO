@@ -7,127 +7,68 @@ const FooterLink = React.memo(({ onClick, href = "#", children }) => (
       event.preventDefault();
       onClick?.();
     }}
-    className="hover:text-amber-600 transition-colors"
+    className="text-stone-300 transition hover:text-amber-300"
   >
     {children}
   </a>
 ));
-
-FooterLink.displayName = 'FooterLink';
+FooterLink.displayName = "FooterLink";
 
 const Footer = React.memo(({ setCurrentPage }) => {
-  const handleNavClick = useCallback((page) => {
-    setCurrentPage?.(page);
-  }, [setCurrentPage]);
-
-  const handleEmailClick = useCallback(() => {
-    window.location.href = 'mailto:sahumariofragrance@gmail.com';
-  }, []);
+  const nav = useCallback((page) => setCurrentPage?.(page), [setCurrentPage]);
 
   return (
-    <footer className="mt-12 border-t border-[var(--color-border)]">
-      <div className="mx-auto max-w-6xl px-4 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
-        {/* Column 1 — Brand */}
-        <div>
-          <button
-            onClick={() => handleNavClick("home")}
-            className="text-left hover:opacity-80 transition"
-          >
-            <h4 className="text-lg font-semibold">SAHUMäRIO</h4>
-          </button>
-          <p className="mt-2 text-[var(--color-muted)]">
-            Authentic oil-based perfumes that last all day.
-          </p>
+    <footer className="mt-0 bg-[#24160f] text-[#fff8ed]">
+      <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16">
+        <div className="grid gap-10 md:grid-cols-[1.4fr_0.7fr_0.9fr_1fr]">
+          <div>
+            <button onClick={() => nav("home")} className="text-left">
+              <p className="font-serif text-3xl font-semibold tracking-[0.08em]">SAHUMäRIO</p>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.3em] text-stone-400">Fragrance</p>
+            </button>
+            <p className="mt-5 max-w-sm text-sm leading-7 text-stone-300">
+              A focused collection of oil-based perfumes, available with secure online payment and guest checkout.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">Shop</h3>
+            <div className="mt-4 space-y-3 text-sm">
+              <p><FooterLink onClick={() => nav("perfumes")}>All Perfumes</FooterLink></p>
+              <p><FooterLink onClick={() => nav("cart")}>Cart</FooterLink></p>
+              <p><FooterLink onClick={() => nav("account")}>My Account</FooterLink></p>
+              <p><FooterLink onClick={() => nav("orders")}>My Orders</FooterLink></p>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">Information</h3>
+            <div className="mt-4 space-y-3 text-sm">
+              <p><FooterLink onClick={() => nav("about")}>About</FooterLink></p>
+              <p><FooterLink href="/shipping-policy" onClick={() => nav("shipping-policy")}>Shipping Policy</FooterLink></p>
+              <p><FooterLink href="/refund-return-policy" onClick={() => nav("refund-policy")}>Refund & Return Policy</FooterLink></p>
+              <p><FooterLink href="/privacy-policy" onClick={() => nav("privacy-policy")}>Privacy Policy</FooterLink></p>
+              <p><FooterLink href="/terms-conditions" onClick={() => nav("terms")}>Terms & Conditions</FooterLink></p>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">Contact</h3>
+            <div className="mt-4 space-y-3 text-sm text-stone-300">
+              <p><a href="mailto:sahumariofragrance@gmail.com" className="hover:text-amber-300">sahumariofragrance@gmail.com</a></p>
+              <p><a href="tel:+919974599911" className="hover:text-amber-300">+91 9974599911</a></p>
+            </div>
+          </div>
         </div>
 
-        {/* Column 2 — Quick Links */}
-        <div>
-          <h5 className="font-medium">Quick Links</h5>
-          <ul className="mt-2 space-y-1 text-[var(--color-muted)]">
-            <li>
-              <FooterLink onClick={() => handleNavClick("home")}>Home</FooterLink>
-            </li>
-            <li>
-              <FooterLink onClick={() => handleNavClick("perfumes")}>Perfumes</FooterLink>
-            </li>
-            <li>
-              <FooterLink onClick={() => handleNavClick("about")}>About</FooterLink>
-            </li>
-            <li>
-              <FooterLink onClick={handleEmailClick}>Contact</FooterLink>
-            </li>
-            {process.env.REACT_APP_ADMIN_ENABLED === "true" && (
-              <li>
-                <FooterLink onClick={() => handleNavClick("admin")}>Admin</FooterLink>
-              </li>
-            )}
-          </ul>
-        </div>
-
-        {/* Column 3 — Policies */}
-        <div>
-          <h5 className="font-medium">Policies</h5>
-          <ul className="mt-2 space-y-1 text-[var(--color-muted)]">
-            <li>
-              <FooterLink
-                href="/privacy-policy"
-                onClick={() => handleNavClick("privacy-policy")}
-              >
-                Privacy Policy
-              </FooterLink>
-            </li>
-            <li>
-              <FooterLink
-                href="/refund-return-policy"
-                onClick={() => handleNavClick("refund-policy")}
-              >
-                Refund &amp; Return Policy
-              </FooterLink>
-            </li>
-            <li>
-              <FooterLink
-                href="/shipping-policy"
-                onClick={() => handleNavClick("shipping-policy")}
-              >
-                Shipping Policy
-              </FooterLink>
-            </li>
-            <li>
-              <FooterLink
-                href="/terms-conditions"
-                onClick={() => handleNavClick("terms")}
-              >
-                Terms &amp; Conditions
-              </FooterLink>
-            </li>
-          </ul>
-        </div>
-
-        {/* Column 4 — Connect */}
-        <div>
-          <h5 className="font-medium">Connect</h5>
-          <p className="mt-2 text-[var(--color-muted)]">
-            Email:{" "}
-            <a
-              href="mailto:sahumariofragrance@gmail.com"
-              className="hover:text-amber-600 transition-colors"
-            >
-              sahumariofragrance@gmail.com
-            </a>
-          </p>
-          <p className="text-[var(--color-muted)]">
-            Phone:{" "}
-            <a href="tel:+919974599911" className="hover:text-amber-600 transition-colors">
-              +91 9974599911
-            </a>
-          </p>
-          <p className="mt-4 text-[var(--color-muted)]">© 2025 SAHUMäRIO. All rights reserved.</p>
+        <div className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-stone-400 sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 SAHUMäRIO. All rights reserved.</p>
+          <p>Secure checkout powered through Razorpay.</p>
         </div>
       </div>
     </footer>
   );
 });
 
-Footer.displayName = 'Footer';
-
+Footer.displayName = "Footer";
 export default Footer;
