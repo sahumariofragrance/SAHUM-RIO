@@ -88,32 +88,6 @@ export function OrdersProvider({ children }) {
     try { localStorage.setItem(cacheKey(activeUserId), JSON.stringify(orders)); } catch {}
   }, [orders, activeUserId]);
 
-  const addOrder = useCallback(async (orderData) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) throw new Error("Please sign in before placing an order.");
-
-    const localOrder = normalizeOrder({ ...orderData, status: orderData.status || "Pending" });
-    setActiveUserId(session.user.id);
-    setOrders((prev) => [localOrder, ...prev.filter(o => o.id !== localOrder.id)]);
-
-    const { error } = await supabase.from("orders").insert({
-      id: orderData.id,
-      user_id: session.user.id,
-      items: orderData.items,
-      subtotal: orderData.subtotal,
-      total: orderData.total ?? orderData.subtotal,
-      address: orderData.address,
-      payment: orderData.payment,
-      status: orderData.status || "Pending",
-      created_at: orderData.createdAt,
-    });
-    if (error) {
-      setOrders((prev) => prev.filter(o => o.id !== localOrder.id));
-      throw new Error("Your payment succeeded, but we couldn't save the order. Please contact support with your payment ID.");
-    }
-    await refreshOrders(session.user.id);
-  }, [refreshOrders]);
-
   const fetchAddress = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return null;
@@ -125,11 +99,22 @@ export function OrdersProvider({ children }) {
   const saveAddress = useCallback(async (addressData) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return false;
-    const { error } = await supabase.from("profiles").upsert({ id: session.user.id, ...addressData, updated_at: new Date().toISOString() });
+    const profile = {
+      id: session.user.id,
+      name: addressData?.name || null,
+      phone: addressData?.phone || null,
+      email: addressData?.email || session.user.email || null,
+      address: addressData?.address || null,
+      city: addressData?.city || null,
+      state: addressData?.state || null,
+      pin: addressData?.pin || null,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from("profiles").upsert(profile);
     return !error;
   }, []);
 
-  return <OrdersContext.Provider value={{ orders, ordersLoading, ordersError, addOrder, refreshOrders, fetchAddress, saveAddress }}>{children}</OrdersContext.Provider>;
+  return <OrdersContext.Provider value={{ orders, ordersLoading, ordersError, refreshOrders, fetchAddress, saveAddress }}>{children}</OrdersContext.Provider>;
 }
 
 export function useOrders() {
