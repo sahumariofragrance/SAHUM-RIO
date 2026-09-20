@@ -86,7 +86,9 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
               className="justify-self-center text-center"
               aria-label="SAHUMäRIO home"
             >
-              <span className="block font-serif text-2xl font-semibold tracking-[0.08em]">SAHUMäRIO</span>
+              <span className="block font-serif text-2xl font-semibold tracking-[0.08em]">
+                SAHUMäRIO<sup className="ml-0.5 align-super text-[0.38em] font-sans font-semibold tracking-normal">®</sup>
+              </span>
               <span className="mt-0.5 block text-[9px] font-semibold uppercase tracking-[0.32em] text-[var(--color-muted)]">Fragrance</span>
             </button>
 
