@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2, LogOut, Package, RefreshCw, Truck, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, LogOut, Package, RefreshCw, Truck, XCircle, Sparkles } from "lucide-react";
+import AdminProductsPanel from "../components/AdminProductsPanel";
 import { fetchAdminOrders, updateAdminOrder } from "../lib/adminOrders";
 import { useAuth } from "../context/AuthContext";
 import { formatINR } from "../utils/money";
@@ -127,6 +128,7 @@ export default function AdminDashboardPage({ setCurrentPage }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("All");
+  const [section, setSection] = useState("orders");
 
   async function load() {
     setLoading(true);
@@ -157,8 +159,8 @@ export default function AdminDashboardPage({ setCurrentPage }) {
     <section className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold">Orders Admin</h1>
-          <p className="mt-2 text-sm text-[var(--color-muted)]">Review paid orders, accept or reject them, and add shipping details.</p>
+          <h1 className="text-3xl font-semibold">SAHUMäRIO Admin</h1>
+          <p className="mt-2 text-sm text-[var(--color-muted)]">Manage orders and the live perfume catalogue.</p>
           <p className="mt-1 text-xs text-[var(--color-muted)]">Signed in as {user?.email}</p>
         </div>
         <div className="flex gap-2">
@@ -167,6 +169,12 @@ export default function AdminDashboardPage({ setCurrentPage }) {
         </div>
       </div>
 
+      <div className="mt-6 flex flex-wrap gap-2 border-b border-[var(--color-border)] pb-4">
+        <button onClick={() => setSection("orders")} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${section === "orders" ? "bg-[#24160f] text-white" : "border border-[var(--color-border)]"}`}><Package className="h-4 w-4" />Orders</button>
+        <button onClick={() => setSection("products")} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${section === "products" ? "bg-[#24160f] text-white" : "border border-[var(--color-border)]"}`}><Sparkles className="h-4 w-4" />Products</button>
+      </div>
+
+      {section === "products" ? <div className="mt-8"><AdminProductsPanel /></div> : <>
       <div className="mt-6 flex flex-wrap gap-2">
         {["All", ...STATUS_LABELS].map((value) => (
           <button key={value} onClick={() => setFilter(value)} className={`rounded-full border px-3 py-1.5 text-sm ${filter === value ? "border-amber-600 bg-amber-600 text-white" : "border-[var(--color-border)]"}`}>{value}</button>
@@ -174,6 +182,7 @@ export default function AdminDashboardPage({ setCurrentPage }) {
       </div>
 
       {loading ? <div className="flex justify-center py-20"><Loader2 className="h-7 w-7 animate-spin text-amber-600" /></div> : error ? <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700"><div className="flex gap-2"><AlertCircle className="h-5 w-5 shrink-0" />{error}</div></div> : filtered.length === 0 ? <div className="py-20 text-center"><Package className="mx-auto h-10 w-10 text-[var(--color-muted)]" /><p className="mt-3 text-[var(--color-muted)]">No orders in this view.</p></div> : <div className="mt-8 space-y-5">{filtered.map((order) => <OrderCard key={order.id} order={order} onSaved={handleSaved} />)}</div>}
+      </>}
     </section>
   );
 }
