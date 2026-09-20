@@ -3,8 +3,13 @@ import { Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home", initialMessage = null }) {
-  const { login, signup, requestPasswordReset } = useAuth();
+  const { login, signup, requestPasswordReset, requestLoginOtp, verifyLoginOtp } = useAuth();
   const [mode, setMode] = useState("login");
+  const [loginMethod, setLoginMethod] = useState("password");
+  const [otpChannel, setOtpChannel] = useState("email");
+  const [otpTarget, setOtpTarget] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", password: "", newsletterSubscribed: false });
   const [loading, setLoading] = useState(false);
@@ -13,6 +18,13 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
 
   const isLogin = mode === "login";
   const isSignup = mode === "signup";
+
+  function resetOtp() {
+    setOtpSent(false);
+    setOtpCode("");
+    setError(null);
+    setMessage(null);
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -25,6 +37,19 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
       if (mode === "forgot") {
         await requestPasswordReset(email);
         setMessage("If an account exists for that email, a password reset link has been sent. Please check your inbox and spam folder.");
+        return;
+      }
+
+      if (isLogin && loginMethod === "otp") {
+        if (!otpSent) {
+          const requested = await requestLoginOtp({ channel: otpChannel, value: otpTarget });
+          setOtpTarget(requested.value);
+          setOtpSent(true);
+          setMessage(`We sent a 6-digit code to your ${otpChannel === "email" ? "email" : "phone"}.`);
+        } else {
+          await verifyLoginOtp({ channel: otpChannel, value: otpTarget, token: otpCode });
+          setCurrentPage?.(redirectAfterLogin);
+        }
         return;
       }
 
@@ -51,6 +76,26 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
       <h1 className="text-2xl md:text-3xl font-semibold text-center">
         {mode === "forgot" ? "Reset Password" : isLogin ? "Welcome Back" : "Create Account"}
       </h1>
+
+      {isLogin && mode !== "forgot" && (
+        <div className="mt-6 grid grid-cols-2 rounded-xl bg-[var(--color-surface-muted)] p-1">
+          <button
+            type="button"
+            onClick={() => { setLoginMethod("password"); resetOtp(); }}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition ${loginMethod === "password" ? "bg-[var(--color-surface)] shadow-sm" : "text-[var(--color-muted)]"}`}
+          >
+            Password
+          </button>
+          <button
+            type="button"
+            onClick={() => { setLoginMethod("otp"); resetOtp(); }}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition ${loginMethod === "otp" ? "bg-[var(--color-surface)] shadow-sm" : "text-[var(--color-muted)]"}`}
+          >
+            OTP
+          </button>
+        </div>
+      )}
+
       {mode === "forgot" && (
         <p className="mt-3 text-center text-sm text-[var(--color-muted)]">
           Enter your account email and we’ll send you a secure reset link.
@@ -71,64 +116,170 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
       )}
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-        {isSignup && (
-          <div>
-            <label htmlFor="auth-name" className="text-sm text-[var(--color-text)]">Full Name</label>
-            <input id="auth-name" type="text" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-600" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
-          </div>
-        )}
-
-        <div>
-          <label htmlFor="auth-email" className="text-sm text-[var(--color-text)]">Email</label>
-          <input id="auth-email" type="email" autoComplete="email" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-600" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
-        </div>
-
-        {mode !== "forgot" && (
-          <div>
-            <div className="flex items-center justify-between gap-3">
-              <label htmlFor="auth-password" className="text-sm text-[var(--color-text)]">Password</label>
-              {isLogin && (
-                <button type="button" onClick={() => { setMode("forgot"); setError(null); setMessage(null); }} className="text-sm font-medium text-amber-600 hover:text-orange-600">
-                  Forgot password?
-                </button>
-              )}
-            </div>
-            <div className="mt-1 relative">
-              <input id="auth-password" type={showPassword ? "text" : "password"} autoComplete={isLogin ? "current-password" : "new-password"} minLength={isLogin ? 6 : 8} className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2.5 pr-11 focus:outline-none focus:ring-2 focus:ring-amber-600" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
-              <button type="button" onClick={() => setShowPassword((s) => !s)} className="absolute inset-y-0 right-2 flex min-h-11 items-center px-1 text-[var(--color-muted)] hover:text-amber-500" aria-label={showPassword ? "Hide password" : "Show password"}>
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+        {isLogin && loginMethod === "otp" ? (
+          <>
+            <div className="grid grid-cols-2 rounded-xl border border-[var(--color-border)] p-1">
+              <button
+                type="button"
+                onClick={() => { setOtpChannel("email"); setOtpTarget(""); resetOtp(); }}
+                className={`rounded-lg px-3 py-2 text-sm font-medium ${otpChannel === "email" ? "bg-[#24160f] text-white" : "text-[var(--color-muted)]"}`}
+              >
+                Email OTP
+              </button>
+              <button
+                type="button"
+                onClick={() => { setOtpChannel("phone"); setOtpTarget(""); resetOtp(); }}
+                className={`rounded-lg px-3 py-2 text-sm font-medium ${otpChannel === "phone" ? "bg-[#24160f] text-white" : "text-[var(--color-muted)]"}`}
+              >
+                Phone OTP
               </button>
             </div>
-            {isSignup && <p className="mt-1 text-xs text-[var(--color-muted)]">Use at least 8 characters.</p>}
-          </div>
-        )}
 
-        {isSignup && (
-          <label className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4">
-            <input
-              type="checkbox"
-              checked={formData.newsletterSubscribed}
-              onChange={(e) => setFormData({ ...formData, newsletterSubscribed: e.target.checked })}
-              className="mt-1 h-4 w-4 rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600"
-            />
-            <span>
-              <span className="block text-sm font-medium text-[var(--color-text)]">Keep me in the SAHUMäRIO loop</span>
-              <span className="mt-1 block text-xs leading-5 text-[var(--color-muted)]">
-                Send me occasional fragrance launches, offers, and SAHUMäRIO news. Optional — you can change this later.
-              </span>
-            </span>
-          </label>
+            {!otpSent ? (
+              <div>
+                <label htmlFor="otp-target" className="text-sm text-[var(--color-text)]">
+                  {otpChannel === "email" ? "Email" : "Phone number"}
+                </label>
+                <input
+                  id="otp-target"
+                  type={otpChannel === "email" ? "email" : "tel"}
+                  inputMode={otpChannel === "email" ? "email" : "tel"}
+                  autoComplete={otpChannel === "email" ? "email" : "tel"}
+                  value={otpTarget}
+                  onChange={(e) => setOtpTarget(e.target.value)}
+                  placeholder={otpChannel === "email" ? "you@example.com" : "+91 98765 43210"}
+                  className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-600"
+                  required
+                />
+                {otpChannel === "phone" && (
+                  <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">
+                    Phone OTP works after that phone number has been verified on your SAHUMäRIO account.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label htmlFor="otp-code" className="text-sm text-[var(--color-text)]">6-digit OTP</label>
+                  <input
+                    id="otp-code"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9]{6}"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-center text-xl tracking-[0.35em] focus:outline-none focus:ring-2 focus:ring-amber-600"
+                    required
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <button type="button" onClick={() => resetOtp()} className="font-medium text-[var(--color-muted)] hover:text-amber-600">
+                    Change {otpChannel === "email" ? "email" : "phone"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={async () => {
+                      setLoading(true);
+                      setError(null);
+                      setMessage(null);
+                      try {
+                        await requestLoginOtp({ channel: otpChannel, value: otpTarget });
+                        setMessage("A new OTP has been sent.");
+                      } catch (err) {
+                        setError(err?.message || "Unable to resend OTP.");
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    className="font-medium text-amber-600 hover:text-orange-600 disabled:opacity-50"
+                  >
+                    Resend code
+                  </button>
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            {isSignup && (
+              <div>
+                <label htmlFor="auth-name" className="text-sm text-[var(--color-text)]">Full Name</label>
+                <input id="auth-name" type="text" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-600" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="auth-email" className="text-sm text-[var(--color-text)]">Email</label>
+              <input id="auth-email" type="email" autoComplete="email" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-600" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+            </div>
+
+            {mode !== "forgot" && (
+              <div>
+                <div className="flex items-center justify-between gap-3">
+                  <label htmlFor="auth-password" className="text-sm text-[var(--color-text)]">Password</label>
+                  {isLogin && (
+                    <button type="button" onClick={() => { setMode("forgot"); setError(null); setMessage(null); }} className="text-sm font-medium text-amber-600 hover:text-orange-600">
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <div className="mt-1 relative">
+                  <input id="auth-password" type={showPassword ? "text" : "password"} autoComplete={isLogin ? "current-password" : "new-password"} minLength={isLogin ? 6 : 8} className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2.5 pr-11 focus:outline-none focus:ring-2 focus:ring-amber-600" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
+                  <button type="button" onClick={() => setShowPassword((s) => !s)} className="absolute inset-y-0 right-2 flex min-h-11 items-center px-1 text-[var(--color-muted)] hover:text-amber-500" aria-label={showPassword ? "Hide password" : "Show password"}>
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                {isSignup && <p className="mt-1 text-xs text-[var(--color-muted)]">Use at least 8 characters.</p>}
+              </div>
+            )}
+
+            {isSignup && (
+              <label className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4">
+                <input
+                  type="checkbox"
+                  checked={formData.newsletterSubscribed}
+                  onChange={(e) => setFormData({ ...formData, newsletterSubscribed: e.target.checked })}
+                  className="mt-1 h-4 w-4 rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-[var(--color-text)]">Keep me in the SAHUMäRIO loop</span>
+                  <span className="mt-1 block text-xs leading-5 text-[var(--color-muted)]">
+                    Send me occasional fragrance launches, offers, and SAHUMäRIO news. Optional — you can change this later.
+                  </span>
+                </span>
+              </label>
+            )}
+          </>
         )}
 
         <button type="submit" disabled={loading} className="w-full rounded-lg bg-amber-600 text-white py-2.5 hover:bg-amber-700 transition-colors disabled:opacity-60">
-          {loading ? "Please wait…" : mode === "forgot" ? "Send Reset Link" : isLogin ? "Login" : "Sign Up"}
+          {loading
+            ? "Please wait…"
+            : mode === "forgot"
+              ? "Send Reset Link"
+              : isLogin && loginMethod === "otp"
+                ? (otpSent ? "Verify & Login" : "Send OTP")
+                : isLogin
+                  ? "Login"
+                  : "Sign Up"}
         </button>
 
         <div className="text-center">
           {mode === "forgot" ? (
-            <button type="button" onClick={() => { setMode("login"); setError(null); setMessage(null); }} className="text-amber-600 hover:text-orange-600 font-medium">Back to login</button>
+            <button type="button" onClick={() => { setMode("login"); setLoginMethod("password"); setError(null); setMessage(null); }} className="text-amber-600 hover:text-orange-600 font-medium">Back to login</button>
           ) : (
-            <button type="button" onClick={() => { setMode(isLogin ? "signup" : "login"); setError(null); setMessage(null); }} className="text-amber-600 hover:text-orange-600 font-medium">
+            <button
+              type="button"
+              onClick={() => {
+                setMode(isLogin ? "signup" : "login");
+                setLoginMethod("password");
+                resetOtp();
+              }}
+              className="text-amber-600 hover:text-orange-600 font-medium"
+            >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Login"}
             </button>
           )}
