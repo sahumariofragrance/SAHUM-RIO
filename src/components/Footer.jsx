@@ -45,6 +45,7 @@ const Footer = React.memo(({ setCurrentPage }) => {
             <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">Information</h3>
             <div className="mt-4 space-y-3 text-sm">
               <p><FooterLink onClick={() => nav("about")}>About</FooterLink></p>
+              <p><FooterLink href="/bulk-orders" onClick={() => nav("bulk-orders")}>Bulk Orders & Corporate Gifting</FooterLink></p>
               <p><FooterLink href="/shipping-policy" onClick={() => nav("shipping-policy")}>Shipping Policy</FooterLink></p>
               <p><FooterLink href="/refund-return-policy" onClick={() => nav("refund-policy")}>Refund & Return Policy</FooterLink></p>
               <p><FooterLink href="/privacy-policy" onClick={() => nav("privacy-policy")}>Privacy Policy</FooterLink></p>
