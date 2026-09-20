@@ -1,9 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Input, Select, Textarea } from './ui';
 import { STATES } from '../constants/checkout';
 
 const ShippingForm = React.memo(({ onFormChange, initialValues = {} }) => {
-  const [form, setForm] = useState(initialValues);
+  const [form, setForm] = useState(() => ({ state: 'Maharashtra', ...initialValues }));
   const [errors, setErrors] = useState({});
 
   const validateField = useCallback((name, value) => {
@@ -44,20 +44,30 @@ const ShippingForm = React.memo(({ onFormChange, initialValues = {} }) => {
     return newErrors;
   }, [errors]);
 
+  const isValid = useCallback((values, currentErrors) => {
+    const phone = String(values.phone || '').replace(/\D/g, '');
+    const email = String(values.email || '').trim();
+    return (
+      !Object.keys(currentErrors).length &&
+      Boolean(String(values.name || '').trim()) &&
+      /^\d{10}$/.test(phone) &&
+      (!email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) &&
+      Boolean(String(values.address || '').trim()) &&
+      Boolean(String(values.city || '').trim()) &&
+      Boolean(String(values.state || '').trim()) &&
+      /^\d{6}$/.test(String(values.pin || ''))
+    );
+  }, []);
+
+  useEffect(() => {
+    onFormChange(form, isValid(form, errors));
+  }, [form, errors, isValid, onFormChange]);
+
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    setForm(prev => {
-      const newForm = { ...prev, [name]: value };
-      const newErrors = validateField(name, value);
-      setErrors(newErrors);
-      // Pass validity as second arg so parent can enable/disable the pay button
-      const valid =
-        !Object.keys(newErrors).length &&
-        !!(newForm.name && newForm.phone && newForm.address && newForm.city && newForm.state && newForm.pin);
-      onFormChange(newForm, valid);
-      return newForm;
-    });
-  }, [onFormChange, validateField]);
+    setForm(prev => ({ ...prev, [name]: value }));
+    setErrors(validateField(name, value));
+  }, [validateField]);
 
   return (
     <form className="space-y-4">
@@ -129,14 +139,6 @@ const ShippingForm = React.memo(({ onFormChange, initialValues = {} }) => {
           placeholder="6-digit PIN"
         />
       </div>
-
-      <Textarea
-        name="notes"
-        label="Order Notes (optional)"
-        value={form.notes || ''}
-        onChange={handleChange}
-        rows={2}
-      />
 
     </form>
   );
