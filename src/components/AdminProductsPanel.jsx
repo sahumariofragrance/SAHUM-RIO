@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
+import { useProducts } from "../context/ProductsContext";
 
 const emptyForm = {
   id: null,
@@ -25,6 +26,7 @@ function slugify(value) {
 }
 
 export default function AdminProductsPanel() {
+  const { refreshProducts } = useProducts();
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [file, setFile] = useState(null);
@@ -100,8 +102,10 @@ export default function AdminProductsPanel() {
       if (form.id) result = await supabase.from("products").update(payload).eq("id", form.id).select("*").single();
       else result = await supabase.from("products").insert({ ...payload, created_by: user?.id || null }).select("*").single();
       if (result.error) throw result.error;
-      setMessage(form.id ? "Product updated." : "Product added to the catalogue."); setFile(null);
+      const savedProduct = result.data;
+      setMessage(form.id ? `Product updated. ID: ${savedProduct.id}.` : `Product added to the catalogue with ID ${savedProduct.id}.`); setFile(null);
       await load();
+      await refreshProducts();
       if (!form.id) setForm({ ...emptyForm, display_order: nextOrder + 10 });
     } catch (err) { setError(err?.message || "Unable to save product."); }
     finally { setSaving(false); }
@@ -110,7 +114,7 @@ export default function AdminProductsPanel() {
   async function toggleActive(product) {
     setError("");
     const { error: updateError } = await supabase.from("products").update({ active: !product.active, updated_at: new Date().toISOString() }).eq("id", product.id);
-    if (updateError) setError(updateError.message); else await load();
+    if (updateError) setError(updateError.message); else { await load(); await refreshProducts(); }
   }
 
   async function removeProduct(product) {
@@ -132,6 +136,7 @@ export default function AdminProductsPanel() {
 
       if (form.id === product.id) reset();
       await load();
+      await refreshProducts();
       setMessage("Product deleted.");
     } catch (err) {
       setError(err?.message || "Unable to delete product.");
@@ -178,7 +183,7 @@ export default function AdminProductsPanel() {
               <article key={product.id} className="flex gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
                 <img src={product.image_url} alt={product.alt || product.name} className="h-24 w-20 rounded-xl object-cover" />
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="font-semibold">{product.name}</h3><p className="text-xs text-[var(--color-muted)]">/product/{product.slug}</p></div><span className="font-semibold">{formatINR(product.price)}</span></div>
+                  <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="font-semibold">{product.name}</h3><p className="text-xs text-[var(--color-muted)]">Product ID {product.id} · /product/{product.slug}</p></div><span className="font-semibold">{formatINR(product.price)}</span></div>
                   <p className="mt-2 line-clamp-2 text-sm text-[var(--color-muted)]">{product.description}</p>
                   <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => edit(product)} className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold"><Pencil className="h-3.5 w-3.5" />Edit</button><button onClick={() => toggleActive(product)} className={product.active ? "rounded-full bg-green-100 px-3 py-1.5 text-xs font-semibold text-green-700" : "rounded-full bg-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-700"}>{product.active ? "Visible" : "Hidden"}</button><button onClick={() => removeProduct(product)} className="inline-flex items-center gap-1 rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600"><Trash2 className="h-3.5 w-3.5" />Delete</button></div>
                 </div>
