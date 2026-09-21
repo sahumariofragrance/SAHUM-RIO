@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import { CircleDot, Clock3, Layers3, MailCheck, ShieldCheck, Sparkles, Truck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Hero from "../components/Hero";
 import ProductGrid from "../components/ProductGrid";
 import { useProducts } from "../context/ProductsContext";
@@ -21,6 +21,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
 
   const handleAdd = useCallback((product) => addToCart(product), [addToCart]);
   const handleQty = useCallback((productId, qty) => updateQty(productId, qty), [updateQty]);
+  const editorialProduct = products[3] || products[0];
 
   return (
     <>
@@ -30,22 +31,19 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
         products={products}
       />
 
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
-        <div className="grid gap-8 border-b border-[var(--color-border)] pb-10 md:grid-cols-[1fr_1.35fr] md:items-end">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-700">The collection</p>
-            <h2 className="mt-3 max-w-xl font-serif text-4xl font-semibold leading-[1.02] tracking-tight md:text-5xl">
-              A fragrance wardrobe made to evolve.
-            </h2>
-          </div>
-          <div className="md:justify-self-end">
-            <p className="max-w-lg text-sm leading-7 text-[var(--color-muted)]">
-              Explore one bottle at a time. Discover what fits today, then return as the collection grows.
-            </p>
-          </div>
+      <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 md:px-12 md:py-28">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">The collection</p>
+          <h2 className="mt-5 font-serif text-5xl font-normal leading-[0.95] tracking-[-0.03em] md:text-7xl">
+            Five fragrances.
+            <span className="block italic">Five different moods.</span>
+          </h2>
+          <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[var(--color-muted)]">
+            Discover the current SAHUMäRIO collection through the fragrance that feels closest to you.
+          </p>
         </div>
 
-        <div className="mt-10">
+        <div className="mt-14 md:mt-20">
           <ProductGrid
             products={products}
             onSelectProduct={onProductNavigate}
@@ -53,66 +51,94 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
             onUpdateQty={handleQty}
           />
         </div>
-      </section>
 
-      <section className="overflow-hidden bg-[#24160f] text-[#fff8ed]">
-        <div className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
-          <div className="grid gap-12 md:grid-cols-[1.25fr_0.75fr] md:items-end">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-300">The SAHUMäRIO way</p>
-              <h2 className="mt-5 max-w-4xl font-serif text-5xl font-semibold leading-[0.95] tracking-tight md:text-7xl">
-                Less noise.
-                <span className="block italic font-medium text-stone-300">More scent.</span>
-              </h2>
-            </div>
-            <p className="max-w-md text-sm leading-7 text-stone-300 md:justify-self-end">
-              Every fragrance gets its own space, its own name, and its own visual world. The collection can grow without losing that sense of focus.
-            </p>
-          </div>
-
-          <div className="mt-14 grid border-y border-white/15 sm:grid-cols-3">
-            {[
-              [CircleDot, "A distinct identity", "Each fragrance is presented as its own character, not just another bottle in a list."],
-              [Layers3, "A collection with room", "New perfumes can join the range while the overall experience stays considered and easy to explore."],
-              [Sparkles, "Discovery first", "The homepage is built around browsing, comparing, and finding what feels right to you."],
-            ].map(([Icon, title, copy], index) => (
-              <div key={title} className={`py-7 sm:px-7 ${index > 0 ? "border-t border-white/15 sm:border-l sm:border-t-0" : ""}`}>
-                <Icon className="h-5 w-5 text-amber-300" />
-                <h3 className="mt-4 font-serif text-xl font-semibold">{title}</h3>
-                <p className="mt-2 max-w-xs text-sm leading-6 text-stone-400">{copy}</p>
-              </div>
-            ))}
-          </div>
+        <div className="mt-14 text-center">
+          <button
+            onClick={() => setCurrentPage?.("perfumes")}
+            className="group inline-flex items-center gap-3 border-b border-[var(--color-text)] pb-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
+          >
+            View all perfumes
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+          </button>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24" aria-labelledby="why-shop-heading">
-        <div className="overflow-hidden rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)]">
-          <div className="grid gap-6 border-b border-[var(--color-border)] px-6 py-10 md:grid-cols-[1fr_0.7fr] md:items-end md:px-12 md:py-14">
+      {editorialProduct && (
+        <section className="grid min-h-[720px] lg:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => onProductNavigate?.(editorialProduct)}
+            className="group relative min-h-[540px] overflow-hidden bg-[var(--color-surface-muted)]"
+            aria-label={"View " + editorialProduct.name}
+          >
+            <img
+              src={editorialProduct.image}
+              alt={editorialProduct.alt || editorialProduct.name}
+              className="absolute inset-0 h-full w-full object-cover transition duration-[1200ms] group-hover:scale-[1.018]"
+            />
+          </button>
+
+          <div className="flex min-h-[540px] flex-col justify-between bg-[#171614] px-6 py-12 text-[#f6f2ea] sm:px-10 md:px-16 md:py-16 lg:px-[7vw] lg:py-20">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-700">Why shop SAHUMäRIO</p>
-              <h2 id="why-shop-heading" className="mt-4 max-w-3xl font-serif text-4xl font-semibold leading-tight md:text-6xl">
-                Clear information. Considered service.
+              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-white/55">The SAHUMäRIO perspective</p>
+              <h2 className="mt-10 max-w-[9ch] font-serif text-[clamp(3.5rem,6vw,6.8rem)] font-normal leading-[0.88] tracking-[-0.04em]">
+                Scent is
+                <span className="block italic">personal.</span>
               </h2>
             </div>
-            <p className="max-w-md text-sm leading-7 text-[var(--color-muted)] md:justify-self-end">
-              The practical details are easy to find, from payment through delivery.
-            </p>
-          </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              [Truck, "Free India-wide shipping", "No shipping charge on orders placed through our website."],
-              [Clock3, "3–7 business days", "Our stated delivery window for orders across India."],
-              [ShieldCheck, "Razorpay payment", "Payments are processed through Razorpay and verified before an order is confirmed."],
-              [MailCheck, "Updates by email", "Order confirmations and status updates go to the email provided at checkout."],
-            ].map(([Icon, title, copy], index) => (
-              <div key={title} className={`p-6 md:p-8 ${index > 0 ? "border-t border-[var(--color-border)] lg:border-l lg:border-t-0" : ""} ${index % 2 === 1 ? "sm:border-l" : ""} ${index >= 2 ? "sm:border-t" : "sm:border-t-0"}`}>
-                <Icon className="h-5 w-5 text-amber-700" />
-                <h3 className="mt-5 font-serif text-xl font-semibold">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">{copy}</p>
-              </div>
-            ))}
+            <div className="max-w-lg">
+              <p className="text-base leading-8 text-white/68">
+                We prefer a quieter way to present fragrance: fewer distractions, clear details, and enough space for every perfume to have its own identity.
+              </p>
+              <button
+                onClick={() => setCurrentPage?.("about")}
+                className="group mt-8 inline-flex items-center gap-3 border-b border-white/70 pb-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
+              >
+                Our story
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="border-b border-[var(--color-border)] border-t border-[var(--color-border)]">
+        <div className="mx-auto grid max-w-[1440px] divide-y divide-[var(--color-border)] px-5 sm:px-8 md:grid-cols-3 md:divide-x md:divide-y-0 md:px-12">
+          {[
+            ["01", "Complimentary delivery", "Free shipping on website orders across India."],
+            ["02", "Delivery window", "Orders are typically delivered in 3–7 business days."],
+            ["03", "Secure checkout", "Payments are processed through Razorpay."],
+          ].map(([number, title, copy]) => (
+            <div key={title} className="py-9 md:px-8 md:py-12 md:first:pl-0 md:last:pr-0">
+              <p className="text-[9px] font-semibold tracking-[0.18em] text-[var(--color-muted)]">{number}</p>
+              <h3 className="mt-5 font-serif text-2xl font-normal">{title}</h3>
+              <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--color-muted)]">{copy}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 md:px-12 md:py-32">
+        <div className="grid gap-12 border-t border-[var(--color-border)] pt-10 md:grid-cols-[1.15fr_0.85fr] md:items-end">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Gifting & larger orders</p>
+            <h2 className="mt-5 max-w-4xl font-serif text-5xl font-normal leading-[0.95] tracking-[-0.035em] md:text-7xl">
+              Fragrance for
+              <span className="block italic">a shared moment.</span>
+            </h2>
+          </div>
+          <div className="md:justify-self-end">
+            <p className="max-w-md text-sm leading-7 text-[var(--color-muted)]">
+              For corporate gifting, events, celebrations, and larger quantities, send us the details and we will help you plan the order.
+            </p>
+            <button
+              onClick={() => setCurrentPage?.("bulk-orders")}
+              className="group mt-7 inline-flex items-center gap-3 border-b border-[var(--color-text)] pb-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
+            >
+              Bulk orders & corporate gifting
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+            </button>
           </div>
         </div>
       </section>
