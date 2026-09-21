@@ -79,10 +79,10 @@ export default function TermsPage() {
       <Section heading="Your Account &amp; Registration Obligations">
         <P>
           If you use the Website as a Registered User, you are responsible for maintaining
-          the confidentiality of your User ID and Password. You are responsible for all
-          activities that occur under your User ID and Password. You agree to provide true,
-          accurate, current and complete information about yourself as prompted by the
-          Website registration form.
+          access to the email address associated with your account and for keeping any
+          password, one-time code, sign-in link, or other authentication method confidential.
+          You are responsible for activity completed through your account. You agree to
+          provide true, accurate, current and complete information when requested by the Website.
         </P>
       </Section>
 

@@ -71,7 +71,7 @@ const Hero = React.memo(({ onExplore, onProductNavigate, products = [] }) => {
 
           <div className="relative flex items-center justify-center md:justify-end">
             <div className="pointer-events-none absolute left-0 top-1/4 hidden -rotate-90 text-[10px] font-semibold uppercase tracking-[0.28em] text-[var(--color-muted)] md:block">
-              SAHUMäRIO / Eau de Parfum
+              SAHUMäRIO / Oil-Based Fragrance
             </div>
 
             <button

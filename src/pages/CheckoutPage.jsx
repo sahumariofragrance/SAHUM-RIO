@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, CheckCircle2, ChevronLeft, Package, X } from "lucide-react";
 import { Card } from "../components/ui";
 import ShippingForm from "../components/ShippingForm";
@@ -6,6 +6,7 @@ import CartSummary from "../components/CartSummary";
 import { useCart } from "../context/cartContext";
 import { useOrders } from "../context/OrdersContext";
 import { useAuth } from "../context/AuthContext";
+import { useProducts } from "../context/ProductsContext";
 import { supabase } from "../lib/supabase";
 import { completeVerifiedOrder } from "../lib/completeOrder";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
@@ -26,6 +27,7 @@ export default function CheckoutPage({ setCurrentPage }) {
   const { items, subtotal, clearCart } = useCart();
   const { refreshOrders, fetchAddress, saveAddress } = useOrders();
   const { user, startGuestSession, isGuest } = useAuth();
+  const { products } = useProducts();
   const [formData, setFormData] = useState({});
   const [formValid, setFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -39,6 +41,17 @@ export default function CheckoutPage({ setCurrentPage }) {
   const processingRef = useRef(false);
   const successRef = useRef(null);
   const testMode = isTestMode(process.env.REACT_APP_RAZORPAY_KEY_ID);
+  const summaryItems = useMemo(() => {
+    const catalogueById = new Map(products.map((product) => [product.id, product]));
+    return items.map((item) => {
+      const product = catalogueById.get(item.product_id);
+      return {
+        ...item,
+        image: item.image || product?.image || product?.image_url || "",
+        alt: item.alt || product?.alt || `${item.name} oil-based perfume bottle`,
+      };
+    });
+  }, [items, products]);
 
   useEffect(() => { if (success) successRef.current?.focus(); }, [success]);
   useEffect(() => {
@@ -134,7 +147,7 @@ export default function CheckoutPage({ setCurrentPage }) {
           {correctedAmount != null && <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">Server-verified total: <strong>₹{Number(correctedAmount).toLocaleString("en-IN")}</strong>. This is the amount presented to Razorpay.</div>}
           <Card className="p-6"><h2 className="mb-6 text-lg font-semibold">Shipping Address</h2>{addressLoaded ? <><ShippingForm key={user?.id || "guest"} onFormChange={handleFormChange} initialValues={formData} requireEmail={guestCheckout || isGuest} />{!guestCheckout && !isGuest && <label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" checked={saveToProfile} onChange={(e) => setSaveToProfile(e.target.checked)} className="rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600" />Save this address to my profile</label>}</> : <div className="h-64 animate-pulse rounded-lg bg-[var(--color-surface-muted)]" />}</Card>
         </div>
-        <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={items} subtotal={subtotal} total={subtotal} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading} /></div></div>
+        <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={summaryItems} subtotal={subtotal} total={subtotal} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading} /></div></div>
       </div>
     </section>
   );

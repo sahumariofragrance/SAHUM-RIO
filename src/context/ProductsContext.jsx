@@ -23,7 +23,7 @@ export function ProductsProvider({ children }) {
     setError("");
     const { data, error: queryError } = await supabase
       .from("products")
-      .select("id,slug,name,description,price,image_url,alt,notes,active,display_order")
+      .select("id,slug,name,description,price,image_url,alt,notes,size_volume,fragrance_family,scent_profile,occasion,active,display_order")
       .eq("active", true)
       .order("display_order", { ascending: true })
       .order("id", { ascending: true });

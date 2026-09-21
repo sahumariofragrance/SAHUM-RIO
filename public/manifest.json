@@ -1,7 +1,7 @@
 {
   "short_name": "SAHUMäRIO",
-  "name": "SAHUMäRIO — Authentic Oil-Based Perfumes",
-  "description": "Discover authentic, long-lasting oil-based perfumes handcrafted with natural ingredients.",
+  "name": "SAHUMäRIO — Oil-Based Perfumes",
+  "description": "Discover SAHUMäRIO's collection of oil-based perfumes.",
   "icons": [
     { "src": "logo192.png", "type": "image/png", "sizes": "192x192", "purpose": "any maskable" },
     { "src": "logo512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import { ArrowRight, CircleDot, Layers3, Sparkles } from "lucide-react";
+import { CircleDot, Clock3, Layers3, MailCheck, ShieldCheck, Sparkles, Truck } from "lucide-react";
 import Hero from "../components/Hero";
 import ProductGrid from "../components/ProductGrid";
 import { useProducts } from "../context/ProductsContext";
@@ -86,25 +86,33 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
-        <div className="relative overflow-hidden rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-12 md:px-12 md:py-16">
-          <div className="pointer-events-none absolute -right-8 -top-12 font-serif text-[10rem] font-semibold leading-none text-[var(--color-surface-muted)] md:text-[15rem]">
-            S
-          </div>
-          <div className="relative max-w-3xl">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-700">Start somewhere</p>
-            <h2 className="mt-4 font-serif text-4xl font-semibold leading-tight md:text-6xl">
-              Your next fragrance is one click away.
-            </h2>
-            <p className="mt-5 max-w-xl text-sm leading-7 text-[var(--color-muted)]">
-              Browse the full collection, compare the bottles, and choose without rushing the decision.
+      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24" aria-labelledby="why-shop-heading">
+        <div className="overflow-hidden rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)]">
+          <div className="grid gap-6 border-b border-[var(--color-border)] px-6 py-10 md:grid-cols-[1fr_0.7fr] md:items-end md:px-12 md:py-14">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-700">Why shop SAHUMäRIO</p>
+              <h2 id="why-shop-heading" className="mt-4 max-w-3xl font-serif text-4xl font-semibold leading-tight md:text-6xl">
+                Clear information. Considered service.
+              </h2>
+            </div>
+            <p className="max-w-md text-sm leading-7 text-[var(--color-muted)] md:justify-self-end">
+              The practical details are easy to find, from payment through delivery.
             </p>
-            <button
-              onClick={() => setCurrentPage?.("perfumes")}
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#24160f] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-amber-800"
-            >
-              Explore all perfumes <ArrowRight className="h-4 w-4" />
-            </button>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              [Truck, "Free India-wide shipping", "No shipping charge on orders placed through our website."],
+              [Clock3, "3–7 business days", "Our stated delivery window for orders across India."],
+              [ShieldCheck, "Razorpay payment", "Payments are processed through Razorpay and verified before an order is confirmed."],
+              [MailCheck, "Updates by email", "Order confirmations and status updates go to the email provided at checkout."],
+            ].map(([Icon, title, copy], index) => (
+              <div key={title} className={`p-6 md:p-8 ${index > 0 ? "border-t border-[var(--color-border)] lg:border-l lg:border-t-0" : ""} ${index % 2 === 1 ? "sm:border-l" : ""} ${index >= 2 ? "sm:border-t" : "sm:border-t-0"}`}>
+                <Icon className="h-5 w-5 text-amber-700" />
+                <h3 className="mt-5 font-serif text-xl font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">{copy}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

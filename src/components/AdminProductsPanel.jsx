@@ -3,7 +3,22 @@ import { AlertCircle, CheckCircle2, ImagePlus, Loader2, Pencil, RefreshCw, Trash
 import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
 
-const emptyForm = { id: null, name: "", slug: "", description: "", price: "", alt: "", notes: "", image_url: "", active: false, display_order: 0 };
+const emptyForm = {
+  id: null,
+  name: "",
+  slug: "",
+  description: "",
+  price: "",
+  alt: "",
+  notes: "",
+  size_volume: "",
+  fragrance_family: "",
+  scent_profile: "",
+  occasion: "",
+  image_url: "",
+  active: false,
+  display_order: 0,
+};
 
 function slugify(value) {
   return String(value || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -43,6 +58,8 @@ export default function AdminProductsPanel() {
     setForm({
       id: product.id, name: product.name || "", slug: product.slug || "", description: product.description || "",
       price: String(product.price ?? ""), alt: product.alt || "", notes: product.notes || "", image_url: product.image_url || "",
+      size_volume: product.size_volume || "", fragrance_family: product.fragrance_family || "",
+      scent_profile: product.scent_profile || "", occasion: product.occasion || "",
       active: Boolean(product.active), display_order: Number(product.display_order || 0),
     });
     setFile(null); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
@@ -70,7 +87,12 @@ export default function AdminProductsPanel() {
       const { data: userData } = await supabase.auth.getUser(); const user = userData?.user;
       const payload = {
         name, slug, description: form.description.trim(), price, image_url: imageUrl,
-        alt: form.alt.trim() || name + " perfume bottle", notes: form.notes.trim() || null,
+        alt: form.alt.trim() || name + " oil-based perfume bottle",
+        notes: form.notes.trim() || null,
+        size_volume: form.size_volume.trim() || null,
+        fragrance_family: form.fragrance_family.trim() || null,
+        scent_profile: form.scent_profile.trim() || null,
+        occasion: form.occasion.trim() || null,
         active: Boolean(form.active), display_order: Number(form.display_order || 0),
         updated_at: new Date().toISOString(), updated_by: user?.id || null,
       };
@@ -133,8 +155,14 @@ export default function AdminProductsPanel() {
             <label className="block text-sm">Price (₹)<input type="number" min="1" step="0.01" value={form.price} onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" required /></label>
             <label className="block text-sm">Display order<input type="number" value={form.display_order} onChange={(e) => setForm((p) => ({ ...p, display_order: e.target.value }))} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
           </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm">Size / volume<input value={form.size_volume} maxLength={80} onChange={(e) => setForm((p) => ({ ...p, size_volume: e.target.value }))} placeholder="For example: 50 ml" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
+            <label className="block text-sm">Fragrance family<input value={form.fragrance_family} maxLength={120} onChange={(e) => setForm((p) => ({ ...p, fragrance_family: e.target.value }))} placeholder="Add only when confirmed" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
+          </div>
+          <label className="block text-sm">Scent profile<input value={form.scent_profile} maxLength={240} onChange={(e) => setForm((p) => ({ ...p, scent_profile: e.target.value }))} placeholder="A concise, verified scent description" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
+          <label className="block text-sm">Occasion<input value={form.occasion} maxLength={160} onChange={(e) => setForm((p) => ({ ...p, occasion: e.target.value }))} placeholder="Add only when confirmed" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
           <label className="block text-sm">Image alt text<input value={form.alt} onChange={(e) => setForm((p) => ({ ...p, alt: e.target.value }))} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
-          <label className="block text-sm">Fragrance notes / internal notes<textarea value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} rows={3} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
+          <label className="block text-sm">Fragrance notes<textarea value={form.notes} maxLength={500} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} rows={3} placeholder="Enter the actual fragrance notes only" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /><span className="mt-1 block text-xs leading-5 text-[var(--color-muted)]">Optional details appear on the product page only when filled in.</span></label>
           <label className="block text-sm">Product image<div className="mt-1 rounded-xl border border-dashed border-[var(--color-border)] p-4"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setFile(e.target.files?.[0] || null)} className="block w-full text-sm" />{form.image_url && !file && <img src={form.image_url} alt="" className="mt-3 h-28 w-24 rounded-lg object-cover" />}{file && <p className="mt-2 text-xs text-[var(--color-muted)]">{file.name}</p>}</div></label>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.active} onChange={(e) => setForm((p) => ({ ...p, active: e.target.checked }))} />Visible in store</label>
           {!form.id && <p className="text-xs leading-5 text-[var(--color-muted)]">New products start hidden by default. Turn on “Visible in store” only when the listing is ready.</p>}

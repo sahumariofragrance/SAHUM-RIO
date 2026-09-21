@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { Clock3, ShieldCheck, Truck } from "lucide-react";
 import SafeImage from "../components/SafeImage";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
@@ -9,6 +10,13 @@ export default function ProductPage({ slug, navigate }) {
   const { bySlug, loading } = useProducts();
   const product = useMemo(() => bySlug.get(slug) || null, [bySlug, slug]);
   const quantity = product ? (items.find((item) => item.product_id === product.id)?.qty || 0) : 0;
+  const productDetails = product ? [
+    ["Size / volume", product.size_volume],
+    ["Fragrance family", product.fragrance_family],
+    ["Scent profile", product.scent_profile],
+    ["Occasion", product.occasion],
+    ["Fragrance notes", product.notes],
+  ].filter(([, value]) => String(value || "").trim()) : [];
 
   if (loading && !product) {
     return <section className="mx-auto max-w-6xl px-4 py-20"><div className="h-96 animate-pulse rounded-2xl bg-[var(--color-surface-muted)]" /></section>;
@@ -32,11 +40,10 @@ export default function ProductPage({ slug, navigate }) {
           <div className="aspect-[4/5]"><SafeImage src={product.image} alt={product.alt || product.name} className="h-full w-full object-cover" priority /></div>
         </div>
         <div className="md:pt-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-amber-600">SAHUMäRIO Eau de Parfum</p>
+          <p className="text-sm uppercase tracking-[0.2em] text-amber-600">SAHUMäRIO Oil-Based Perfume</p>
           <h1 className="mt-3 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">{product.name}</h1>
           <p className="mt-5 text-2xl font-medium">{formatINR(product.price)}</p>
           <p className="mt-6 max-w-xl leading-7 text-[var(--color-muted)]">{product.description}</p>
-          {product.notes && <p className="mt-4 max-w-xl text-sm leading-6 text-[var(--color-muted)]">{product.notes}</p>}
           <div className="mt-8 border-t border-[var(--color-border)] pt-8">
             {quantity === 0 ? (
               <button onClick={() => addToCart(product)} className="w-full rounded-lg bg-amber-600 px-6 py-3.5 font-semibold text-white hover:bg-amber-700 sm:w-auto">Add to Cart</button>
@@ -50,10 +57,21 @@ export default function ProductPage({ slug, navigate }) {
                 <span className="text-sm text-[var(--color-muted)]">In your cart</span>
               </div>
             )}
+            <div className="mt-5 grid gap-2 rounded-2xl bg-[var(--color-surface)] p-4 text-sm text-[var(--color-muted)] sm:grid-cols-3">
+              <div className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-amber-700" /><span>Free India-wide shipping</span></div>
+              <div className="flex items-center gap-2"><Clock3 className="h-4 w-4 shrink-0 text-amber-700" /><span>3–7 business days</span></div>
+              <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-amber-700" /><span>Secure Razorpay payment</span></div>
+            </div>
           </div>
-          <dl className="mt-10 grid grid-cols-2 gap-4 border-t border-[var(--color-border)] pt-6 text-sm">
+          <dl className="mt-10 grid gap-x-8 gap-y-5 border-t border-[var(--color-border)] pt-6 text-sm sm:grid-cols-2">
             <div><dt className="text-[var(--color-muted)]">Brand</dt><dd className="mt-1 font-medium">SAHUMäRIO</dd></div>
-            <div><dt className="text-[var(--color-muted)]">Product</dt><dd className="mt-1 font-medium">Eau de Parfum</dd></div>
+            <div><dt className="text-[var(--color-muted)]">Product</dt><dd className="mt-1 font-medium">Oil-based perfume</dd></div>
+            {productDetails.map(([label, value]) => (
+              <div key={label} className={label === "Fragrance notes" || label === "Scent profile" ? "sm:col-span-2" : ""}>
+                <dt className="text-[var(--color-muted)]">{label}</dt>
+                <dd className="mt-1 whitespace-pre-line font-medium leading-6">{value}</dd>
+              </div>
+            ))}
           </dl>
         </div>
       </div>

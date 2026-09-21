@@ -1,5 +1,6 @@
 import React from "react";
 import { Lock, ShieldCheck, Loader2, Sparkles, FlaskConical } from "lucide-react";
+import SafeImage from "./SafeImage";
 import { formatINR } from "../utils/money";
 
 const CartSummary = React.memo(
@@ -18,18 +19,17 @@ const CartSummary = React.memo(
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
         <h3 className="mb-4 text-lg font-semibold">Order Summary</h3>
 
-        {/* Item list with icon placeholder */}
         <ul className="scrollbar-hide max-h-64 space-y-3 overflow-y-auto">
           {items.map((item) => (
             <li key={item.product_id} className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                {/* Amber accent placeholder — replaces missing thumbnails */}
-                <div
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600"
-                  aria-hidden="true"
-                >
-                  <Sparkles className="h-5 w-5" />
-                </div>
+                {item.image ? (
+                  <SafeImage src={item.image} alt={item.alt || item.name} className="h-12 w-10 shrink-0 rounded-lg object-cover" />
+                ) : (
+                  <div className="flex h-12 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600" aria-hidden="true">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{item.name}</p>
                   <p className="text-xs text-[var(--color-muted)]">Qty {item.qty}</p>
