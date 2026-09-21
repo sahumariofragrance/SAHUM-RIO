@@ -24,7 +24,7 @@ export default function AboutPage() {
       
       <p className="mt-3 text-[var(--color-text)] leading-relaxed">
         SAHUMäRIO is an independent fragrance brand creating a focused collection of
-        oil-based perfumes. Each fragrance is given its own name, character, and visual identity.
+        Eau de Parfum fragrances. Each fragrance is given its own name, character, and visual identity.
       </p>
       <p className="mt-2 text-[var(--color-text)] leading-relaxed">
         We are still growing, and we believe clear information matters. Product details are
