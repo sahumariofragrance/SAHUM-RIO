@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import { Clock3, ShieldCheck, Truck } from "lucide-react";
 import SafeImage from "../components/SafeImage";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
@@ -19,60 +18,64 @@ export default function ProductPage({ slug, navigate }) {
   ].filter(([, value]) => String(value || "").trim()) : [];
 
   if (loading && !product) {
-    return <section className="mx-auto max-w-6xl px-4 py-20"><div className="h-96 animate-pulse rounded-2xl bg-[var(--color-surface-muted)]" /></section>;
+    return <section className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 md:px-12"><div className="h-[70vh] animate-pulse bg-[var(--color-surface-muted)]" /></section>;
   }
 
   if (!product) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-20 text-center">
-        <p className="text-sm uppercase tracking-[0.2em] text-[var(--color-muted)]">404</p>
-        <h1 className="mt-3 text-3xl font-semibold">Perfume not found</h1>
-        <button onClick={() => navigate("perfumes")} className="mt-8 rounded-lg bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700">Back to collection</button>
+      <section className="mx-auto max-w-4xl px-5 py-24 text-center">
+        <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--color-muted)]">404</p>
+        <h1 className="mt-4 font-serif text-5xl font-normal">Perfume not found</h1>
+        <button onClick={() => navigate("perfumes")} className="mt-8 border-b border-[var(--color-text)] pb-1 text-[10px] font-semibold uppercase tracking-[0.16em]">Back to collection</button>
       </section>
     );
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
-      <button onClick={() => navigate("perfumes")} className="mb-7 text-sm font-medium text-[var(--color-muted)] hover:text-amber-600" aria-label="Back to perfume collection">← Our Collection</button>
-      <div className="grid gap-10 md:grid-cols-2 md:items-start">
-        <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)]">
-          <div className="aspect-[4/5]"><SafeImage src={product.image} alt={product.alt || product.name} className="h-full w-full object-cover" priority /></div>
+    <section className="mx-auto max-w-[1440px] px-5 py-8 sm:px-8 md:px-12 md:py-12">
+      <button onClick={() => navigate("perfumes")} className="mb-8 text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)] transition hover:text-[var(--color-text)]" aria-label="Back to perfume collection">← All fragrances</button>
+
+      <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
+        <div className="min-h-[560px] overflow-hidden bg-[var(--color-surface-muted)]">
+          <SafeImage src={product.image} alt={product.alt || product.name} className="h-full w-full object-cover" priority />
         </div>
-        <div className="md:pt-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-amber-600">SAHUMäRIO Eau de Parfum</p>
-          <h1 className="mt-3 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">{product.name}</h1>
-          <p className="mt-5 text-2xl font-medium">{formatINR(product.price)}</p>
-          <p className="mt-6 max-w-xl leading-7 text-[var(--color-muted)]">{product.description}</p>
-          <div className="mt-8 border-t border-[var(--color-border)] pt-8">
+
+        <div className="flex flex-col justify-center lg:py-8">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">SAHUMäRIO · Eau de Parfum</p>
+          <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.025em] sm:text-6xl">{product.name}</h1>
+          <p className="mt-4 text-base">{formatINR(product.price)}</p>
+          <p className="mt-7 max-w-xl text-sm leading-7 text-[var(--color-muted)]">{product.description}</p>
+
+          <div className="mt-9 border-t border-[var(--color-border)] pt-6">
             {quantity === 0 ? (
-              <button onClick={() => addToCart(product)} className="w-full rounded-lg bg-amber-600 px-6 py-3.5 font-semibold text-white hover:bg-amber-700 sm:w-auto">Add to Cart</button>
+              <button onClick={() => addToCart(product)} className="flex h-12 w-full items-center justify-between bg-[var(--color-text)] px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-bg)] transition-opacity hover:opacity-85">
+                <span>Add to bag</span><span>+</span>
+              </button>
             ) : (
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center overflow-hidden rounded-lg border border-[var(--color-border)]" aria-label={product.name + " quantity"}>
-                  <button onClick={() => updateQty(product.id, quantity - 1)} className="px-4 py-3 hover:bg-[var(--color-surface-muted)]" aria-label={"Decrease " + product.name}>−</button>
-                  <span className="min-w-10 text-center font-medium">{quantity}</span>
-                  <button onClick={() => updateQty(product.id, quantity + 1)} className="px-4 py-3 hover:bg-[var(--color-surface-muted)]" aria-label={"Increase " + product.name}>+</button>
-                </div>
-                <span className="text-sm text-[var(--color-muted)]">In your cart</span>
+              <div className="grid h-12 grid-cols-[3rem_1fr_3rem] border border-[var(--color-border)]">
+                <button onClick={() => updateQty(product.id, quantity - 1)} className="text-lg" aria-label={"Decrease " + product.name}>−</button>
+                <span className="flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.12em]">{quantity} in bag</span>
+                <button onClick={() => updateQty(product.id, quantity + 1)} className="text-lg" aria-label={"Increase " + product.name}>+</button>
               </div>
             )}
-            <div className="mt-5 grid gap-2 rounded-2xl bg-[var(--color-surface)] p-4 text-sm text-[var(--color-muted)] sm:grid-cols-3">
-              <div className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-amber-700" /><span>Free India-wide shipping</span></div>
-              <div className="flex items-center gap-2"><Clock3 className="h-4 w-4 shrink-0 text-amber-700" /><span>3–7 business days</span></div>
-              <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-amber-700" /><span>Secure Razorpay payment</span></div>
-            </div>
           </div>
-          <dl className="mt-10 grid gap-x-8 gap-y-5 border-t border-[var(--color-border)] pt-6 text-sm sm:grid-cols-2">
-            <div><dt className="text-[var(--color-muted)]">Brand</dt><dd className="mt-1 font-medium">SAHUMäRIO</dd></div>
-            <div><dt className="text-[var(--color-muted)]">Product</dt><dd className="mt-1 font-medium">Eau de Parfum</dd></div>
-            {productDetails.map(([label, value]) => (
-              <div key={label} className={label === "Fragrance notes" || label === "Scent profile" ? "sm:col-span-2" : ""}>
-                <dt className="text-[var(--color-muted)]">{label}</dt>
-                <dd className="mt-1 whitespace-pre-line font-medium leading-6">{value}</dd>
-              </div>
-            ))}
-          </dl>
+
+          {productDetails.length > 0 && (
+            <dl className="mt-10 border-t border-[var(--color-border)]">
+              {productDetails.map(([label, value]) => (
+                <div key={label} className="grid gap-2 border-b border-[var(--color-border)] py-4 sm:grid-cols-[10rem_1fr]">
+                  <dt className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">{label}</dt>
+                  <dd className="whitespace-pre-line text-sm leading-6">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          <div className="mt-8 space-y-3 border-t border-[var(--color-border)] pt-5 text-xs leading-5 text-[var(--color-muted)]">
+            <p>Complimentary delivery across India.</p>
+            <p>Typical delivery window: 3–7 business days.</p>
+            <p>Payments are processed through Razorpay.</p>
+          </div>
         </div>
       </div>
     </section>
