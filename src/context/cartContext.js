@@ -46,7 +46,7 @@ export function CartProvider({ children }) {
             name: product.name,
             price: product.price,
             image: product.image || product.image_url || item.image || "",
-            alt: product.alt || item.alt || `${product.name} oil-based perfume bottle`,
+            alt: product.alt || item.alt || `${product.name} Eau de Parfum bottle`,
             slug: product.slug || item.slug || "",
             qty: item.qty + 1,
           } : item
@@ -57,7 +57,7 @@ export function CartProvider({ children }) {
         name: product.name,
         price: product.price,
         image: product.image || product.image_url || "",
-        alt: product.alt || `${product.name} oil-based perfume bottle`,
+        alt: product.alt || `${product.name} Eau de Parfum bottle`,
         slug: product.slug || "",
         qty: 1,
       }];

@@ -19,7 +19,7 @@ export default function CartPage({ setCurrentPage }) {
     return {
       ...item,
       image: item.image || product?.image || product?.image_url || "",
-      alt: item.alt || product?.alt || `${item.name} oil-based perfume bottle`,
+      alt: item.alt || product?.alt || `${item.name} Eau de Parfum bottle`,
     };
   }), [items, catalogueById]);
 
@@ -49,7 +49,7 @@ export default function CartPage({ setCurrentPage }) {
               </div>
 
               <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">Oil-based perfume</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">Eau de Parfum</p>
                 <h2 className="mt-1 truncate font-serif text-xl font-semibold">{item.name}</h2>
                 <p className="mt-2 text-sm text-[var(--color-muted)]">{formatINR(item.price)} each</p>
               </div>

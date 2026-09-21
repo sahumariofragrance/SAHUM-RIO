@@ -10,7 +10,7 @@ comment on column public.products.scent_profile is 'Optional verified customer-f
 comment on column public.products.occasion is 'Optional verified occasion guidance.';
 
 update public.products
-set alt = 'SAHUMäRIO Dew Drop oil-based perfume bottle',
+set alt = 'SAHUMäRIO Dew Drop Eau de Parfum bottle',
     updated_at = now()
 where slug = 'dew-drop'
-  and alt ilike '%eau de parfum%';
+  and alt ilike '%oil-based perfume%';

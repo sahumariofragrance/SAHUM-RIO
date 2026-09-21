@@ -1,6 +1,6 @@
 # SAHUMäRIO — Perfume E-Commerce
 
-A React-based e-commerce storefront for oil-based perfumes with Razorpay payment integration.
+A React-based e-commerce storefront for Eau de Parfum fragrances with Razorpay payment integration.
 
 ---
 

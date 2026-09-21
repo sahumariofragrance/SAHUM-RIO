@@ -61,7 +61,7 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
   return (
     <>
       <div className="bg-[#24160f] px-4 py-2 text-center text-[11px] font-medium uppercase tracking-[0.16em] text-[#fff8ed]">
-        SAHUMäRIO · OIL-BASED FRAGRANCE
+        SAHUMäRIO · EAU DE PARFUM
       </div>
       <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[color:var(--color-bg)]/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 md:px-6">

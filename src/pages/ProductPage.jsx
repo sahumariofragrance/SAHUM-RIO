@@ -40,7 +40,7 @@ export default function ProductPage({ slug, navigate }) {
           <div className="aspect-[4/5]"><SafeImage src={product.image} alt={product.alt || product.name} className="h-full w-full object-cover" priority /></div>
         </div>
         <div className="md:pt-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-amber-600">SAHUMäRIO Oil-Based Perfume</p>
+          <p className="text-sm uppercase tracking-[0.2em] text-amber-600">SAHUMäRIO Eau de Parfum</p>
           <h1 className="mt-3 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">{product.name}</h1>
           <p className="mt-5 text-2xl font-medium">{formatINR(product.price)}</p>
           <p className="mt-6 max-w-xl leading-7 text-[var(--color-muted)]">{product.description}</p>
@@ -65,7 +65,7 @@ export default function ProductPage({ slug, navigate }) {
           </div>
           <dl className="mt-10 grid gap-x-8 gap-y-5 border-t border-[var(--color-border)] pt-6 text-sm sm:grid-cols-2">
             <div><dt className="text-[var(--color-muted)]">Brand</dt><dd className="mt-1 font-medium">SAHUMäRIO</dd></div>
-            <div><dt className="text-[var(--color-muted)]">Product</dt><dd className="mt-1 font-medium">Oil-based perfume</dd></div>
+            <div><dt className="text-[var(--color-muted)]">Product</dt><dd className="mt-1 font-medium">Eau de Parfum</dd></div>
             {productDetails.map(([label, value]) => (
               <div key={label} className={label === "Fragrance notes" || label === "Scent profile" ? "sm:col-span-2" : ""}>
                 <dt className="text-[var(--color-muted)]">{label}</dt>

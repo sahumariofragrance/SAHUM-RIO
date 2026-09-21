@@ -28,7 +28,7 @@ const Hero = React.memo(({ onExplore, onProductNavigate, products = [] }) => {
 
               <div className="mt-9 flex max-w-xl flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                 <p className="max-w-sm text-sm leading-7 text-[var(--color-muted)] md:text-base">
-                  A growing collection of oil-based perfumes, each with its own identity. Choose the one that feels right today.
+                  A growing collection of Eau de Parfum fragrances, each with its own identity. Choose the one that feels right today.
                 </p>
                 <button
                   onClick={onExplore}
@@ -71,7 +71,7 @@ const Hero = React.memo(({ onExplore, onProductNavigate, products = [] }) => {
 
           <div className="relative flex items-center justify-center md:justify-end">
             <div className="pointer-events-none absolute left-0 top-1/4 hidden -rotate-90 text-[10px] font-semibold uppercase tracking-[0.28em] text-[var(--color-muted)] md:block">
-              SAHUMäRIO / Oil-Based Fragrance
+              SAHUMäRIO / Eau de Parfum
             </div>
 
             <button

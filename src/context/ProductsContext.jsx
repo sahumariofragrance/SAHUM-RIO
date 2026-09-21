@@ -5,11 +5,15 @@ import fallbackProducts from "../data/products.json";
 const ProductsContext = createContext(null);
 
 function normalizeProduct(product) {
+  const alt = String(product.alt || `${product.name} Eau de Parfum bottle`)
+    .replace(/oil-based perfume/gi, "Eau de Parfum");
+
   return {
     ...product,
     id: Number(product.id),
     price: Number(product.price),
     image: product.image_url || product.image,
+    alt,
   };
 }
 

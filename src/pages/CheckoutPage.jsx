@@ -48,7 +48,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       return {
         ...item,
         image: item.image || product?.image || product?.image_url || "",
-        alt: item.alt || product?.alt || `${item.name} oil-based perfume bottle`,
+        alt: item.alt || product?.alt || `${item.name} Eau de Parfum bottle`,
       };
     });
   }, [items, products]);

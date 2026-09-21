@@ -87,7 +87,7 @@ export default function AdminProductsPanel() {
       const { data: userData } = await supabase.auth.getUser(); const user = userData?.user;
       const payload = {
         name, slug, description: form.description.trim(), price, image_url: imageUrl,
-        alt: form.alt.trim() || name + " oil-based perfume bottle",
+        alt: form.alt.trim() || name + " Eau de Parfum bottle",
         notes: form.notes.trim() || null,
         size_volume: form.size_volume.trim() || null,
         fragrance_family: form.fragrance_family.trim() || null,

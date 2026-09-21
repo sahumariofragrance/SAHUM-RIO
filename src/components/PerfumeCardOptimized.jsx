@@ -35,7 +35,7 @@ const PerfumeCardOptimized = React.memo(({
           priority={priority}
         />
         <div className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-800 backdrop-blur">
-          Oil-Based Perfume
+          Eau de Parfum
         </div>
       </div>
 

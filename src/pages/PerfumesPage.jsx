@@ -28,7 +28,7 @@ export default function PerfumesPage({ onProductNavigate }) {
           <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-700">All fragrances</p>
           <h1 className="mt-3 font-serif text-4xl font-semibold tracking-tight md:text-6xl">The fragrance wardrobe</h1>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--color-muted)]">
-            Our oil-based fragrance collection, presented simply so you can focus on the bottle that speaks to you.
+            Our Eau de Parfum collection, presented simply so you can focus on the bottle that speaks to you.
           </p>
         </div>
         <div className="text-sm text-[var(--color-muted)] md:text-right">
