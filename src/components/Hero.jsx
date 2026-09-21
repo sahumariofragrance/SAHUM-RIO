@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 
 const Hero = React.memo(({ onExplore, onProductNavigate, products = [] }) => {
-  const available = useMemo(() => products.slice(0, 5), [products]);
+  const available = useMemo(() => products.slice(0, 6), [products]);
   const [activeId, setActiveId] = useState(available[0]?.id ?? null);
   const active = available.find((product) => product.id === activeId) || available[0];
 
