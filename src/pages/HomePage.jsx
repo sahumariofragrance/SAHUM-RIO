@@ -35,8 +35,8 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">The collection</p>
           <h2 className="mt-5 font-serif text-5xl font-normal leading-[0.95] tracking-[-0.03em] md:text-7xl">
-            Five fragrances.
-            <span className="block italic">Five different moods.</span>
+            Six fragrances.
+            <span className="block italic">Six different moods.</span>
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[var(--color-muted)]">
             Discover the current SAHUMäRIO collection through the fragrance that feels closest to you.
