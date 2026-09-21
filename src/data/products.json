@@ -1,6 +1,7 @@
 [
   {
     "id": 1,
+    "slug": "bloom",
     "name": "Bloom",
     "description": "Warm, resinous amber with smoky oud base.",
     "price": 749,
@@ -9,6 +10,7 @@
   },
   {
     "id": 2,
+    "slug": "dew-drop",
     "name": "Dew Drop",
     "description": "Clean, soft musk with subtle floral notes.",
     "price": 750,
@@ -17,6 +19,7 @@
   },
   {
     "id": 3,
+    "slug": "lemon-breeze",
     "name": "Lemon Breeze",
     "description": "Clean, soft musk with subtle floral notes.",
     "price": 749,
@@ -25,6 +28,7 @@
   },
   {
     "id": 4,
+    "slug": "morning-dew",
     "name": "Morning Dew",
     "description": "Clean, soft musk with subtle floral notes.",
     "price": 749,
@@ -33,10 +37,20 @@
   },
   {
     "id": 5,
+    "slug": "night-queen",
     "name": "Night Queen",
     "description": "Clean, soft musk with subtle floral notes.",
     "price": 749,
     "image": "/products/night_queen.jpg",
     "alt": "Bottle of White Musk perfume"
+  },
+  {
+    "id": 9,
+    "slug": "blix",
+    "name": "Blix",
+    "description": "Cool, Fresh, Fruity",
+    "price": 750,
+    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/blix-1789976292293.png",
+    "alt": "Blix perfume bottle"
   }
 ]
