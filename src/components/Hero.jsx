@@ -28,7 +28,7 @@ const Hero = React.memo(({ onExplore, onProductNavigate, products = [] }) => {
 
               <div className="mt-9 flex max-w-xl flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                 <p className="max-w-sm text-sm leading-7 text-[var(--color-muted)] md:text-base">
-                  A growing collection of Eau de Parfum fragrances, each with its own identity. Choose the one that feels right today.
+                  A growing collection of oil-based perfumes, each with its own identity. Choose the one that feels right today.
                 </p>
                 <button
                   onClick={onExplore}

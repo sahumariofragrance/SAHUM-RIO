@@ -27,7 +27,7 @@ const Footer = React.memo(({ setCurrentPage }) => {
               <p className="mt-1 text-[10px] uppercase tracking-[0.3em] text-stone-400">Fragrance</p>
             </button>
             <p className="mt-5 max-w-sm text-sm leading-7 text-stone-300">
-              A growing Eau de Parfum collection with distinct names, visual identities, and a focused point of view.
+              A growing collection of oil-based perfumes with distinct names, visual identities, and a focused point of view.
             </p>
           </div>
 
