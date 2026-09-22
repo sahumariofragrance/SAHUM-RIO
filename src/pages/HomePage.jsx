@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from "react";
 import { ArrowRight } from "lucide-react";
-import Hero from "../components/Hero";
 import ProductGrid from "../components/ProductGrid";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
@@ -8,138 +7,35 @@ import { useCart } from "../context/cartContext";
 export default function HomePage({ onProductNavigate, setCurrentPage }) {
   const { items, addToCart, updateQty } = useCart();
   const { products: catalogueProducts } = useProducts();
-
-  const itemQtyById = useMemo(() => items.reduce((acc, item) => {
-    acc[item.product_id] = item.qty;
-    return acc;
-  }, {}), [items]);
-
-  const products = useMemo(() => catalogueProducts.map((product) => ({
-    ...product,
-    qty: itemQtyById[product.id] ?? 0,
-  })), [catalogueProducts, itemQtyById]);
-
+  const itemQtyById = useMemo(() => items.reduce((acc, item) => { acc[item.product_id] = item.qty; return acc; }, {}), [items]);
+  const products = useMemo(() => catalogueProducts.map((product) => ({ ...product, qty: itemQtyById[product.id] ?? 0 })), [catalogueProducts, itemQtyById]);
   const handleAdd = useCallback((product) => addToCart(product), [addToCart]);
   const handleQty = useCallback((productId, qty) => updateQty(productId, qty), [updateQty]);
 
-  return (
-    <>
-      <Hero
-        onExplore={() => setCurrentPage?.("perfumes")}
-        onProductNavigate={onProductNavigate}
-        products={products}
-      />
+  return <>
+    <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 md:px-12 md:py-28">
+      <div className="glass-soft flex flex-col gap-5 rounded-[1.6rem] px-6 py-7 md:flex-row md:items-end md:justify-between md:px-8 md:py-8">
+        <div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">The collection</p><h2 className="mt-3 font-serif text-5xl font-normal tracking-[-0.025em] md:text-6xl">Eau de Parfum</h2></div>
+        <p className="max-w-md text-sm leading-7 text-[var(--color-muted)]">Explore the current SAHUMäRIO collection.</p>
+      </div>
+      <div className="mt-10 md:mt-14"><ProductGrid products={products} onSelectProduct={onProductNavigate} onAddToCart={handleAdd} onUpdateQty={handleQty} /></div>
+      <div className="mt-14 text-center"><button onClick={() => setCurrentPage?.("perfumes")} className="group inline-flex items-center gap-3 border-b border-[var(--color-text)] pb-1 text-[10px] font-semibold uppercase tracking-[0.16em]">View the full collection<ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" /></button></div>
+    </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
-        <div className="grid gap-8 border-b border-[var(--color-border)] pb-10 md:grid-cols-[1fr_1.35fr] md:items-end">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-700">The collection</p>
-            <h2 className="mt-3 max-w-xl font-serif text-4xl font-semibold leading-[1.02] tracking-tight md:text-5xl">
-              A fragrance wardrobe made to evolve.
-            </h2>
-          </div>
-          <div className="md:justify-self-end">
-            <blockquote className="max-w-lg font-serif text-xl italic leading-8 text-[var(--color-muted)] md:text-2xl md:leading-9">
-              “A fragrance should not just be worn — it should be remembered.”
-            </blockquote>
-          </div>
-        </div>
+    <section className="glass-quote-stage border-y border-[var(--color-border)] px-5 py-16 sm:px-8 md:py-24">
+      <div className="glass-panel relative z-10 mx-auto flex min-h-[360px] max-w-5xl flex-col items-center justify-center rounded-[2.25rem] px-6 py-20 text-center md:min-h-[430px] md:px-12 md:py-24">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">The House</p>
+        <blockquote className="mt-7 max-w-4xl font-serif text-[clamp(3rem,5.5vw,6rem)] font-normal leading-[0.96] tracking-[-0.035em]">
+          A fragrance should be
+          <span className="block italic">discovered, not explained.</span>
+        </blockquote>
+        <div className="mt-10 h-px w-10 bg-[var(--color-border)]" aria-hidden="true" />
+        <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">SAHUMäRIO</p>
+      </div>
+    </section>
 
-        <div className="mt-10">
-          <ProductGrid
-            products={products}
-            onSelectProduct={onProductNavigate}
-            onAddToCart={handleAdd}
-            onUpdateQty={handleQty}
-          />
-        </div>
-      </section>
-
-      <section className="overflow-hidden bg-[#24160f] text-[#fff8ed]">
-        <div className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
-          <div className="relative overflow-hidden rounded-[2rem] border border-white/15 px-6 py-8 md:px-10 md:py-10">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-6 -top-20 font-serif text-[13rem] font-semibold leading-none text-white/[0.035] md:text-[22rem]"
-            >
-              S
-            </div>
-
-            <div className="relative grid gap-12 md:grid-cols-[1.15fr_0.85fr] md:gap-16">
-              <div className="flex min-h-[430px] flex-col justify-between">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-300">
-                    A note from SAHUMäRIO
-                  </p>
-                  <h2 className="mt-6 max-w-3xl font-serif text-[clamp(3.4rem,7vw,7rem)] font-semibold leading-[0.84] tracking-[-0.045em]">
-                    Scent,
-                    <span className="block italic font-medium text-stone-300">before</span>
-                    <span className="block">words.</span>
-                  </h2>
-                </div>
-
-                <p className="mt-10 max-w-lg text-sm leading-7 text-stone-300 md:text-base">
-                  No complicated fragrance language. Start with the bottle that catches you, wear it your way, and let the feeling decide what comes next.
-                </p>
-              </div>
-
-              <div className="flex flex-col justify-between rounded-[1.6rem] border border-white/15 bg-white/[0.04] p-6 md:p-8">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-stone-400">
-                    Follow your instinct
-                  </p>
-
-                  <div className="mt-7 divide-y divide-white/15 border-y border-white/15">
-                    {[
-                      ["01", "Notice", "What pulls you in."],
-                      ["02", "Wear", "Give it your day."],
-                      ["03", "Keep", "Return to the one you miss."],
-                    ].map(([number, title, copy]) => (
-                      <div key={number} className="grid grid-cols-[3rem_1fr] gap-4 py-5">
-                        <span className="pt-1 text-[10px] font-semibold tracking-[0.2em] text-amber-300">{number}</span>
-                        <div>
-                          <h3 className="font-serif text-2xl font-semibold">{title}</h3>
-                          <p className="mt-1 text-sm text-stone-400">{copy}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setCurrentPage?.("perfumes")}
-                  className="mt-8 inline-flex w-fit items-center gap-2 rounded-full border border-white/30 px-5 py-3 text-sm font-semibold transition hover:bg-white hover:text-[#24160f]"
-                >
-                  Find your fragrance <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
-        <div className="relative overflow-hidden rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-12 md:px-12 md:py-16">
-          <div className="pointer-events-none absolute -right-8 -top-12 font-serif text-[10rem] font-semibold leading-none text-[var(--color-surface-muted)] md:text-[15rem]">
-            S
-          </div>
-          <div className="relative max-w-3xl">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-700">Start somewhere</p>
-            <h2 className="mt-4 font-serif text-4xl font-semibold leading-tight md:text-6xl">
-              Your next fragrance is one click away.
-            </h2>
-            <p className="mt-5 max-w-xl text-sm leading-7 text-[var(--color-muted)]">
-              Browse the full collection, compare the bottles, and choose without rushing the decision.
-            </p>
-            <button
-              onClick={() => setCurrentPage?.("perfumes")}
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#24160f] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-amber-800"
-            >
-              Explore all perfumes <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </section>
-    </>
-  );
+    <section className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 md:px-12 md:py-20"><div className="grid gap-4 md:grid-cols-3 md:gap-5">
+      {[["Complimentary delivery", "Free shipping on website orders across India."], ["Delivery", "Orders are typically delivered in 3–7 business days."], ["Secure payment", "Payments are processed through Razorpay."]].map(([title, copy]) => <div key={title} className="glass-soft rounded-2xl px-5 py-6 md:px-6 md:py-7"><h3 className="text-[11px] font-semibold uppercase tracking-[0.15em]">{title}</h3><p className="mt-3 max-w-sm text-sm leading-6 text-[var(--color-muted)]">{copy}</p></div>)}
+    </div></section>
+  </>;
 }
