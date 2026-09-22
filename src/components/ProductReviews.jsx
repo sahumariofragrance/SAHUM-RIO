@@ -44,6 +44,7 @@ function initials(name) {
 
 export default function ProductReviews({ product }) {
   const { user, startGuestSession } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -81,6 +82,20 @@ export default function ProductReviews({ product }) {
   useEffect(() => {
     loadReviews();
   }, [loadReviews]);
+
+  useEffect(() => {
+    let live = true;
+    if (!user?.id) {
+      setIsAdmin(false);
+      return () => { live = false; };
+    }
+
+    supabase.rpc("is_admin").then(({ data, error: adminError }) => {
+      if (live) setIsAdmin(!adminError && data === true);
+    });
+
+    return () => { live = false; };
+  }, [user?.id]);
 
   useEffect(() => {
     if (ownReview) {
@@ -179,7 +194,7 @@ export default function ProductReviews({ product }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ product_id: product.id }),
+        body: JSON.stringify({ review_id: ownReview.id, product_id: product.id }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) deleteError = new Error(payload.message || "Your review could not be deleted.");
@@ -193,6 +208,38 @@ export default function ProductReviews({ product }) {
       await loadReviews();
     }
     setSaving(false);
+  }
+
+  async function handleAdminDelete(review) {
+    if (!isAdmin || !review?.id || !window.confirm(`Delete review by ${review.display_name || "this customer"}?`)) return;
+
+    setSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Your admin session expired.");
+
+      const response = await fetch("/api/reviews/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ review_id: review.id, product_id: product.id }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || "Review could not be deleted.");
+
+      setMessage("Review deleted.");
+      await loadReviews();
+    } catch (deleteError) {
+      setError(deleteError.message || "Review could not be deleted.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -345,7 +392,21 @@ export default function ProductReviews({ product }) {
                             })}
                           </p>
                         </div>
-                        <StarRow value={Number(review.rating)} size="h-4 w-4" />
+                        <div className="flex items-center gap-3">
+                          <StarRow value={Number(review.rating)} size="h-4 w-4" />
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => handleAdminDelete(review)}
+                              disabled={saving}
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 transition hover:text-red-700 disabled:opacity-50"
+                              aria-label={`Delete review by ${review.display_name}`}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </button>
+                          )}
+                        </div>
                       </div>
                       {review.title && (
                         <h4 className="mt-4 font-serif text-xl font-semibold">{review.title}</h4>
