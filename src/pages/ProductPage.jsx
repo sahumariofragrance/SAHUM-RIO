@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import SafeImage from "../components/SafeImage";
+import ProductReviews from "../components/ProductReviews";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
 import { supabase } from "../lib/supabase";
@@ -146,6 +147,8 @@ export default function ProductPage({ slug, navigate }) {
           </div>
         </div>
       </div>
+
+      <ProductReviews product={product} navigate={navigate} />
     </section>
   );
 }
