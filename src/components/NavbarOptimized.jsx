@@ -64,7 +64,7 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
         Complimentary delivery across India
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[color:var(--color-bg)]/96 backdrop-blur-md">
+      <header className="glass-surface sticky top-0 z-40 border-b">
         <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-10">
           <div className="grid h-[76px] grid-cols-[1fr_auto_1fr] items-center">
             <div className="flex items-center">
@@ -109,7 +109,7 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
                 </button>
 
                 {permanentUser && dropdownOpen && (
-                  <div className="absolute right-0 mt-3 w-60 border border-[var(--color-border)] bg-[var(--color-bg)] shadow-2xl">
+                  <div className="glass-panel absolute right-0 mt-3 w-60 overflow-hidden rounded-2xl">
                     <div className="border-b border-[var(--color-border)] px-4 py-3">
                       <p className="text-xs text-[var(--color-muted)]">Signed in as</p>
                       <p className="mt-0.5 truncate text-sm font-medium">{user.user_metadata?.name || user.email}</p>
@@ -139,7 +139,7 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
           </div>
 
           {isMenuOpen && (
-            <nav className="border-t border-[var(--color-border)] py-3 md:hidden">
+            <nav className="glass-surface -mx-4 border-t px-4 py-3 sm:-mx-6 sm:px-6 md:hidden">
               <button onClick={() => nav("home")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Home</button>
               <button onClick={() => nav("perfumes")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Perfumes</button>
               <button onClick={() => nav("about")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">The House</button>
