@@ -2,7 +2,6 @@
 
 const { requireCustomer } = require("../_lib/customerAuth");
 const {
-  getServiceClient,
   setJsonSecurityHeaders,
   enforceJsonRequest,
   enforceRateLimit,
@@ -20,7 +19,7 @@ module.exports = async (req, res) => {
   if (!enforceJsonRequest(req, res, { methods: ["POST"], maxBytes: 8 * 1024 })) return;
 
   try {
-    const { user } = await requireCustomer(req);
+    const { user, serverClient } = await requireCustomer(req);
     if (!(await enforceRateLimit(req, res, {
       scope: "review-write",
       limit: 8,
@@ -48,10 +47,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ message: "Review must be at least 5 characters" });
     }
 
-    const serviceClient = getServiceClient();
-    if (!serviceClient) return res.status(503).json({ message: "Review service is temporarily unavailable" });
-
-    const { data: product, error: productError } = await serviceClient
+    const { data: product, error: productError } = await serverClient
       .from("products")
       .select("id")
       .eq("id", productId)
@@ -60,7 +56,7 @@ module.exports = async (req, res) => {
     if (productError) throw productError;
     if (!product) return res.status(404).json({ message: "Product is unavailable" });
 
-    const { data: existing, error: existingError } = await serviceClient
+    const { data: existing, error: existingError } = await serverClient
       .from("product_reviews")
       .select("id")
       .eq("product_id", productId)
@@ -78,7 +74,7 @@ module.exports = async (req, res) => {
 
     let query;
     if (existing?.id) {
-      query = serviceClient
+      query = serverClient
         .from("product_reviews")
         .update(payload)
         .eq("id", existing.id)
@@ -86,7 +82,7 @@ module.exports = async (req, res) => {
         .select("id")
         .single();
     } else {
-      query = serviceClient
+      query = serverClient
         .from("product_reviews")
         .insert({ ...payload, product_id: productId, user_id: user.id })
         .select("id")
