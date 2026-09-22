@@ -3,7 +3,7 @@
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { requireCustomer } = require("../../_lib/customerAuth");
-const { setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../../_lib/security");
+const { getServiceClient, setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../../_lib/security");
 
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
@@ -120,7 +120,10 @@ module.exports = async (req, res) => {
       },
     });
 
-    const intent = await serverClient.from("payment_intents").insert({
+    const serviceClient = getServiceClient();
+    if (!serviceClient) return res.status(503).json({ message: "Checkout service is temporarily unavailable." });
+
+    const intent = await serviceClient.from("payment_intents").insert({
       razorpay_order_id: order.id,
       user_id: user.id,
       items: normalizedItems,
