@@ -3,6 +3,7 @@
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { requireCustomer } = require("../../_lib/customerAuth");
+const { setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../../_lib/security");
 
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
@@ -19,10 +20,7 @@ function getRazorpayClient() {
   return razorpayClient;
 }
 function setSecurityHeaders(res) {
-  res.setHeader("Content-Type", "application/json");
-  res.setHeader("Cache-Control", "no-store");
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
+  setJsonSecurityHeaders(res);
 }
 function sanitizeText(value, max = 120) { return value == null ? "" : String(value).replace(/[\u0000-\u001F\u007F\r\n\t]/g, " ").trim().slice(0, max); }
 function safeInt(value) { return typeof value === "number" && Number.isInteger(value) ? value : typeof value === "string" && /^\d+$/.test(value.trim()) ? parseInt(value, 10) : NaN; }
@@ -46,11 +44,16 @@ function safeAddress(address, user) {
 
 module.exports = async (req, res) => {
   setSecurityHeaders(res);
-  if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
-  if (!req.headers["content-type"]?.includes("application/json")) return res.status(415).json({ message: "Content-Type must be application/json" });
+  if (!enforceJsonRequest(req, res, { methods: ["POST"], maxBytes: 24 * 1024 })) return;
 
   try {
     const { user, serverClient } = await requireCustomer(req);
+    if (!(await enforceRateLimit(req, res, {
+      scope: "razorpay-order",
+      limit: 12,
+      windowSeconds: 600,
+      identifier: user.id,
+    }))) return;
     const body = plain(req.body) ? req.body : {};
     const { items, frontendAmount, currency = "INR", customer = {}, address } = body;
     if (currency !== "INR") return res.status(400).json({ message: "Unsupported currency" });
