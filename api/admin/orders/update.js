@@ -1,5 +1,6 @@
 "use strict";
 const { requireAdmin, setApiHeaders } = require("../../_lib/adminAuth");
+const { enforceJsonRequest, enforceRateLimit } = require("../../_lib/security");
 const { sendStatusEmail, sendShipped } = require("../../_lib/email");
 const ALLOWED = new Set(["Pending", "Accepted", "Processing", "Shipped", "Delivered", "Rejected", "Cancelled"]);
 function cleanText(value, max) { if (value == null) return null; if (typeof value !== "string") return undefined; const text = value.trim(); return text ? text.slice(0, max) : null; }
@@ -39,9 +40,15 @@ async function releaseEmailClaim(adminClient, eventId) {
 
 module.exports = async (req, res) => {
   setApiHeaders(res);
-  if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
+  if (!enforceJsonRequest(req, res, { methods: ["POST"], maxBytes: 12 * 1024 })) return;
   try {
     const { adminClient, user } = await requireAdmin(req);
+    if (!(await enforceRateLimit(req, res, {
+      scope: "admin-order-update",
+      limit: 60,
+      windowSeconds: 600,
+      identifier: user.id,
+    }))) return;
     const body = req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body : {};
     const orderId = cleanText(body.order_id, 128); const status = cleanText(body.status, 32);
     const courier = cleanText(body.courier, 100); const trackingNumber = cleanText(body.tracking_number, 150); const trackingUrl = cleanText(body.tracking_url, 500);
