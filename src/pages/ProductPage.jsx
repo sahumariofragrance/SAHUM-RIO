@@ -9,13 +9,26 @@ import { formatINR } from "../utils/money";
 
 const MAX_PRODUCT_IMAGES = 5;
 
+function galleryObjectPath(publicUrl) {
+  const marker = "/storage/v1/object/public/product-images/";
+  const value = String(publicUrl || "");
+  if (!value.includes(marker)) return "";
+  return decodeURIComponent((value.split(marker)[1] || "").split("?")[0]);
+}
+
 function buildGalleryUrls(product) {
   if (!product) return [];
+
+  const primaryObject = galleryObjectPath(product.image);
+  const slash = primaryObject.lastIndexOf("/");
+  const galleryParent = primaryObject.startsWith("gallery/") && slash > 0
+    ? primaryObject.slice(0, slash)
+    : `gallery/${product.slug}`;
 
   const gallery = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => (
     supabase.storage
       .from("product-images")
-      .getPublicUrl(`gallery/${product.slug}/${index + 1}`).data.publicUrl
+      .getPublicUrl(`${galleryParent}/${index + 1}`).data.publicUrl
   ));
 
   return [...new Set([product.image, ...gallery].filter(Boolean))];
