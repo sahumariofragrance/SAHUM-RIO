@@ -1,6 +1,7 @@
 "use strict";
 
 const { createClient } = require("@supabase/supabase-js");
+const { setJsonSecurityHeaders } = require("./security");
 
 function getEnv() {
   const url = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
@@ -55,10 +56,7 @@ async function requireAdmin(req) {
 }
 
 function setApiHeaders(res) {
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", "no-store");
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
+  setJsonSecurityHeaders(res);
 }
 
 module.exports = { requireAdmin, setApiHeaders };
