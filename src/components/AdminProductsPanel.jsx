@@ -29,8 +29,30 @@ function slugify(value) {
   return String(value || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
-function galleryPath(slug, index) {
-  return `gallery/${slug}/${index + 1}`;
+function galleryPath(slug, index, version = "") {
+  return version
+    ? `gallery/${slug}/${version}/${index + 1}`
+    : `gallery/${slug}/${index + 1}`;
+}
+
+function fileKey(file) {
+  return file ? `${file.name}::${file.size}::${file.lastModified}` : "";
+}
+
+function storageObjectPath(publicUrl) {
+  const marker = "/storage/v1/object/public/product-images/";
+  const value = String(publicUrl || "");
+  if (!value.includes(marker)) return "";
+  return decodeURIComponent((value.split(marker)[1] || "").split("?")[0]);
+}
+
+function siblingGalleryPaths(publicUrl) {
+  const objectPath = storageObjectPath(publicUrl);
+  if (!objectPath.startsWith("gallery/")) return [];
+  const slash = objectPath.lastIndexOf("/");
+  if (slash < 0) return [];
+  const parent = objectPath.slice(0, slash);
+  return Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => `${parent}/${index + 1}`);
 }
 
 export default function AdminProductsPanel() {
@@ -38,6 +60,7 @@ export default function AdminProductsPanel() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [files, setFiles] = useState([]);
+  const [thumbnailKey, setThumbnailKey] = useState("");
   const previewUrls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -66,7 +89,11 @@ export default function AdminProductsPanel() {
   }, [loading, nextOrder, form.id, form.name, form.display_order]);
 
   function reset() {
-    setForm({ ...emptyForm, display_order: nextOrder }); setFiles([]); setMessage(""); setError("");
+    setForm({ ...emptyForm, display_order: nextOrder });
+    setFiles([]);
+    setThumbnailKey("");
+    setMessage("");
+    setError("");
   }
 
   function edit(product) {
@@ -77,7 +104,7 @@ export default function AdminProductsPanel() {
       scent_profile: product.scent_profile || "", occasion: product.occasion || "",
       active: Boolean(product.active), display_order: Number(product.display_order || 0),
     });
-    setFiles([]); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
+    setFiles([]); setThumbnailKey(""); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function selectImages(event) {
@@ -108,13 +135,18 @@ export default function AdminProductsPanel() {
     }
 
     setFiles(selected);
+    setThumbnailKey(selected[0] ? fileKey(selected[0]) : "");
   }
 
   function makeThumbnail(index) {
-    if (index <= 0 || index >= files.length) return;
+    if (index < 0 || index >= files.length) return;
+    const selectedKey = fileKey(files[index]);
+    setThumbnailKey(selectedKey);
     setFiles((current) => {
       const next = [...current];
-      const [selected] = next.splice(index, 1);
+      const selectedIndex = next.findIndex((file) => fileKey(file) === selectedKey);
+      if (selectedIndex <= 0) return next;
+      const [selected] = next.splice(selectedIndex, 1);
       next.unshift(selected);
       return next;
     });
@@ -133,17 +165,33 @@ export default function AdminProductsPanel() {
   async function uploadGallery(productSlug) {
     if (!files.length) return form.image_url;
 
-    const paths = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => galleryPath(productSlug, index));
-    const { error: cleanupError } = await supabase.storage.from("product-images").remove(paths);
-    if (cleanupError) throw cleanupError;
+    const selectedThumbnailKey = thumbnailKey || fileKey(files[0]);
+    const thumbnailIndex = files.findIndex((file) => fileKey(file) === selectedThumbnailKey);
+    const orderedFiles = thumbnailIndex > 0
+      ? [files[thumbnailIndex], ...files.filter((_, index) => index !== thumbnailIndex)]
+      : [...files];
 
+    const legacyPaths = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => galleryPath(productSlug, index));
+    const currentGalleryPaths = siblingGalleryPaths(form.image_url);
+    const cleanupPaths = [...new Set([...legacyPaths, ...currentGalleryPaths])];
+    if (cleanupPaths.length) {
+      const { error: cleanupError } = await supabase.storage.from("product-images").remove(cleanupPaths);
+      if (cleanupError) throw cleanupError;
+    }
+
+    const version = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
     let primaryUrl = "";
-    for (let index = 0; index < files.length; index += 1) {
-      const file = files[index];
-      const objectName = galleryPath(productSlug, index);
+
+    for (let index = 0; index < orderedFiles.length; index += 1) {
+      const file = orderedFiles[index];
+      const objectName = galleryPath(productSlug, index, version);
       const { error: uploadError } = await supabase.storage
         .from("product-images")
-        .upload(objectName, file, { upsert: false, contentType: file.type, cacheControl: "3600" });
+        .upload(objectName, file, {
+          upsert: false,
+          contentType: file.type,
+          cacheControl: "31536000",
+        });
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from("product-images").getPublicUrl(objectName);
@@ -184,6 +232,7 @@ export default function AdminProductsPanel() {
       const galleryMessage = files.length > 1 ? ` ${files.length} images saved.` : files.length === 1 ? " 1 image saved." : "";
       setMessage(form.id ? `Product updated. ID: ${savedProduct.id}.${galleryMessage}` : `Product added to the catalogue with ID ${savedProduct.id}.${galleryMessage}`);
       setFiles([]);
+      setThumbnailKey("");
       await load();
       await refreshProducts();
       if (!form.id) setForm({ ...emptyForm, display_order: nextOrder + 10 });
@@ -205,13 +254,12 @@ export default function AdminProductsPanel() {
       const { error: deleteError } = await supabase.from("products").delete().eq("id", product.id);
       if (deleteError) throw deleteError;
 
-      const cleanupObjects = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => galleryPath(product.slug, index));
-      const marker = "/storage/v1/object/public/product-images/";
-      const imageUrl = String(product.image_url || "");
-      if (imageUrl.includes(marker)) {
-        const currentPrimaryObject = decodeURIComponent(imageUrl.split(marker)[1] || "");
-        if (currentPrimaryObject) cleanupObjects.push(currentPrimaryObject);
-      }
+      const cleanupObjects = [
+        ...Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => galleryPath(product.slug, index)),
+        ...siblingGalleryPaths(product.image_url),
+      ];
+      const currentPrimaryObject = storageObjectPath(product.image_url);
+      if (currentPrimaryObject) cleanupObjects.push(currentPrimaryObject);
 
       const uniqueObjects = [...new Set(cleanupObjects.filter(Boolean))];
       if (uniqueObjects.length) {
@@ -254,10 +302,11 @@ export default function AdminProductsPanel() {
           <label className="block text-sm">Image alt text<input value={form.alt} onChange={(e) => setForm((p) => ({ ...p, alt: e.target.value }))} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
           <label className="block text-sm">Fragrance notes<textarea value={form.notes} maxLength={500} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} rows={3} placeholder="Enter the actual fragrance notes only" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /><span className="mt-1 block text-xs leading-5 text-[var(--color-muted)]">Optional details appear on the product page only when filled in.</span></label>
 
-          <label className="block text-sm">
-            Product gallery
+          <div className="block text-sm">
+            <label htmlFor="product-gallery-input" className="block">Product gallery</label>
             <div className="mt-1 rounded-xl border border-dashed border-[var(--color-border)] p-4">
               <input
+                id="product-gallery-input"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 multiple
@@ -278,7 +327,7 @@ export default function AdminProductsPanel() {
                     {files.map((selectedFile, index) => (
                       <div
                         key={selectedFile.name + selectedFile.size + selectedFile.lastModified}
-                        className={"overflow-hidden rounded-xl border p-2 " + (index === 0 ? "border-amber-500 bg-amber-500/5" : "border-[var(--color-border)]")}
+                        className={"overflow-hidden rounded-xl border p-2 " + ((fileKey(selectedFile) === thumbnailKey || (!thumbnailKey && index === 0)) ? "border-amber-500 bg-amber-500/5" : "border-[var(--color-border)]")}
                       >
                         <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-[var(--color-surface-muted)]">
                           <img
@@ -287,7 +336,7 @@ export default function AdminProductsPanel() {
                             className="h-full w-full object-cover"
                           />
                           <span className="absolute left-2 top-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold text-white">
-                            {index === 0 ? "Thumbnail" : `Image ${index + 1}`}
+                            {(fileKey(selectedFile) === thumbnailKey || (!thumbnailKey && index === 0)) ? "Thumbnail" : `Image ${index + 1}`}
                           </span>
                         </div>
 
@@ -296,7 +345,7 @@ export default function AdminProductsPanel() {
                         </p>
 
                         <div className="mt-2 flex items-center gap-2">
-                          {index === 0 ? (
+                          {fileKey(selectedFile) === thumbnailKey || (!thumbnailKey && index === 0) ? (
                             <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-amber-600">
                               <Star className="h-3 w-3 fill-current" />
                               Thumbnail
@@ -351,7 +400,7 @@ export default function AdminProductsPanel() {
                 </div>
               )}
             </div>
-          </label>
+          </div>
 
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.active} onChange={(e) => setForm((p) => ({ ...p, active: e.target.checked }))} />Visible in store</label>
           {!form.id && <p className="text-xs leading-5 text-[var(--color-muted)]">New products start hidden by default. Turn on “Visible in store” only when the listing is ready.</p>}
