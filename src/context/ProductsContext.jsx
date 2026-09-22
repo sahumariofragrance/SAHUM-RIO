@@ -4,6 +4,13 @@ import fallbackProducts from "../data/products.json";
 
 const ProductsContext = createContext(null);
 
+function withImageVersion(url, updatedAt) {
+  const value = String(url || "");
+  if (!value || !updatedAt) return value;
+  const version = encodeURIComponent(String(updatedAt));
+  return value + (value.includes("?") ? "&" : "?") + "v=" + version;
+}
+
 function normalizeProduct(product) {
   const alt = String(product.alt || `${product.name} Eau de Parfum bottle`)
     .replace(/oil-based perfume/gi, "Eau de Parfum");
@@ -12,13 +19,13 @@ function normalizeProduct(product) {
     ...product,
     id: Number(product.id),
     price: Number(product.price),
-    image: product.image_url || product.image,
+    image: withImageVersion(product.image_url || product.image, product.updated_at),
     alt,
   };
 }
 
 export function ProductsProvider({ children }) {
-  const [products, setProducts] = useState(() => fallbackProducts.map(normalizeProduct));
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -27,7 +34,7 @@ export function ProductsProvider({ children }) {
     setError("");
     const { data, error: queryError } = await supabase
       .from("products")
-      .select("id,slug,name,description,price,image_url,alt,notes,size_volume,fragrance_family,scent_profile,occasion,active,display_order")
+      .select("id,slug,name,description,price,image_url,alt,notes,size_volume,fragrance_family,scent_profile,occasion,active,display_order,updated_at")
       .eq("active", true)
       .order("display_order", { ascending: true })
       .order("id", { ascending: true });
