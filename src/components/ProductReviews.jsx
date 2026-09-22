@@ -199,7 +199,7 @@ export default function ProductReviews({ product }) {
             Reviews of {product.name}
           </h2>
 
-          <div className="mt-7 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+          <div className="glass-soft mt-7 rounded-2xl p-6">
             {reviews.length ? (
               <>
                 <div className="flex items-end gap-3">
@@ -223,7 +223,7 @@ export default function ProductReviews({ product }) {
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+          <form onSubmit={handleSubmit} className="glass-panel mt-5 rounded-2xl p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold">{ownReview ? "Edit your review" : "Write a review"}</p>
