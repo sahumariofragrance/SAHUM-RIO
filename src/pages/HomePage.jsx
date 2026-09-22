@@ -14,7 +14,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
 
   return <>
     <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 md:px-12 md:py-28">
-      <div className="flex flex-col gap-5 border-b border-[var(--color-border)] pb-8 md:flex-row md:items-end md:justify-between">
+      <div className="glass-soft flex flex-col gap-5 rounded-[1.6rem] px-6 py-7 md:flex-row md:items-end md:justify-between md:px-8 md:py-8">
         <div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">The collection</p><h2 className="mt-3 font-serif text-5xl font-normal tracking-[-0.025em] md:text-6xl">Eau de Parfum</h2></div>
         <p className="max-w-md text-sm leading-7 text-[var(--color-muted)]">Explore the current SAHUMäRIO collection.</p>
       </div>
@@ -23,7 +23,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
     </section>
 
     <section className="glass-quote-stage border-y border-[var(--color-border)] px-5 py-16 sm:px-8 md:py-24">
-      <div className="glass-panel mx-auto flex min-h-[360px] max-w-5xl flex-col items-center justify-center rounded-[2rem] px-6 py-20 text-center md:min-h-[430px] md:px-12 md:py-24">
+      <div className="glass-panel relative z-10 mx-auto flex min-h-[360px] max-w-5xl flex-col items-center justify-center rounded-[2.25rem] px-6 py-20 text-center md:min-h-[430px] md:px-12 md:py-24">
         <p className="text-[9px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">The House</p>
         <blockquote className="mt-7 max-w-4xl font-serif text-[clamp(3rem,5.5vw,6rem)] font-normal leading-[0.96] tracking-[-0.035em]">
           A fragrance should be
