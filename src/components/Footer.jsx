@@ -1,17 +1,15 @@
 import React, { useCallback } from "react";
 import BrandMark from "./BrandMark";
+import SpaLink from "./SpaLink";
 
-const FooterLink = React.memo(({ onClick, href = "#", children }) => (
-  <a
+const FooterLink = React.memo(({ onClick, href, children }) => (
+  <SpaLink
     href={href}
-    onClick={(event) => {
-      event.preventDefault();
-      onClick?.();
-    }}
+    onNavigate={onClick}
     className="text-white/65 transition hover:text-white"
   >
     {children}
-  </a>
+  </SpaLink>
 ));
 FooterLink.displayName = "FooterLink";
 
@@ -21,9 +19,9 @@ const Footer = React.memo(({ setCurrentPage }) => {
   return (
     <footer className="bg-[#11110f] text-white">
       <div className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 md:px-12 md:py-20">
-        <button onClick={() => nav("home")} className="text-left" aria-label="SAHUMäRIO registered trademark home">
+        <SpaLink href="/" onNavigate={() => nav("home")} className="block text-left" aria-label="SAHUMäRIO registered trademark home">
           <BrandMark className="font-serif text-[clamp(3.8rem,9vw,9rem)] font-normal leading-none tracking-[-0.025em]" />
-        </button>
+        </SpaLink>
 
         <div className="mt-14 grid gap-12 border-t border-white/15 pt-10 md:grid-cols-[1.4fr_0.7fr_1fr_1fr]">
           <div>
@@ -35,17 +33,17 @@ const Footer = React.memo(({ setCurrentPage }) => {
           <div>
             <h3 className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">Shop</h3>
             <div className="mt-5 space-y-3 text-sm">
-              <p><FooterLink onClick={() => nav("perfumes")}>All Perfumes</FooterLink></p>
-              <p><FooterLink onClick={() => nav("cart")}>Cart</FooterLink></p>
-              <p><FooterLink onClick={() => nav("account")}>My Account</FooterLink></p>
-              <p><FooterLink onClick={() => nav("orders")}>My Orders</FooterLink></p>
+              <p><FooterLink href="/perfumes" onClick={() => nav("perfumes")}>All Perfumes</FooterLink></p>
+              <p><FooterLink href="/cart" onClick={() => nav("cart")}>Cart</FooterLink></p>
+              <p><FooterLink href="/account" onClick={() => nav("account")}>My Account</FooterLink></p>
+              <p><FooterLink href="/account/orders" onClick={() => nav("orders")}>My Orders</FooterLink></p>
             </div>
           </div>
 
           <div>
             <h3 className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">Information</h3>
             <div className="mt-5 space-y-3 text-sm">
-              <p><FooterLink onClick={() => nav("about")}>About</FooterLink></p>
+              <p><FooterLink href="/about" onClick={() => nav("about")}>About</FooterLink></p>
               <p><FooterLink href="/bulk-orders" onClick={() => nav("bulk-orders")}>Bulk Orders & Corporate Gifting</FooterLink></p>
               <p><FooterLink href="/shipping-policy" onClick={() => nav("shipping-policy")}>Shipping Policy</FooterLink></p>
               <p><FooterLink href="/refund-return-policy" onClick={() => nav("refund-policy")}>Refund & Return Policy</FooterLink></p>
