@@ -132,31 +132,26 @@ export default function ProductReviews({ product }) {
       }
       if (!reviewUser?.id) throw new Error("Unable to start a guest review session.");
 
-      const payload = {
-        display_name: displayName.slice(0, 60),
-        rating: Number(form.rating),
-        title: title.slice(0, 100),
-        body: body.slice(0, 1200),
-        updated_at: new Date().toISOString(),
-      };
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Your review session expired. Please try again.");
 
-      let saveError;
-      if (ownReview) {
-        const result = await supabase
-          .from("product_reviews")
-          .update(payload)
-          .eq("id", ownReview.id);
-        saveError = result.error;
-      } else {
-        const result = await supabase.from("product_reviews").insert({
-          ...payload,
+      const response = await fetch("/api/reviews/upsert", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
           product_id: product.id,
-          user_id: reviewUser.id,
-        });
-        saveError = result.error;
-      }
+          display_name: displayName.slice(0, 60),
+          rating: Number(form.rating),
+          title: title.slice(0, 100),
+          body: body.slice(0, 1200),
+        }),
+      });
 
-      if (saveError) throw saveError;
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || "Your review could not be saved.");
 
       setMessage(ownReview ? "Your review has been updated." : "Thank you — your review is now live.");
       await loadReviews();
@@ -173,13 +168,25 @@ export default function ProductReviews({ product }) {
     setSaving(true);
     setError("");
     setMessage("");
-    const { error: deleteError } = await supabase
-      .from("product_reviews")
-      .delete()
-      .eq("id", ownReview.id);
+    const { data: { session } } = await supabase.auth.getSession();
+    let deleteError = null;
+    if (!session?.access_token) {
+      deleteError = new Error("Your review session expired.");
+    } else {
+      const response = await fetch("/api/reviews/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ product_id: product.id }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) deleteError = new Error(payload.message || "Your review could not be deleted.");
+    }
 
     if (deleteError) {
-      setError("Your review could not be deleted.");
+      setError(deleteError.message || "Your review could not be deleted.");
     } else {
       setForm((current) => ({ ...current, rating: 5, title: "", body: "" }));
       setMessage("Your review has been deleted.");
