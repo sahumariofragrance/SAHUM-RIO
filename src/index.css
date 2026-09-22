@@ -83,3 +83,54 @@ footer {
   background: #171614;
   color: #F5F3EF;
 }
+
+
+/* ── Subtle glass system ────────────────────────────────────────────────── */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.34);
+  --glass-bg-strong: rgba(255, 255, 255, 0.52);
+  --glass-border: rgba(255, 255, 255, 0.58);
+  --glass-shadow: 0 24px 70px rgba(47, 38, 30, 0.08);
+}
+
+:root[data-theme="dark"] {
+  --glass-bg: rgba(34, 33, 30, 0.48);
+  --glass-bg-strong: rgba(43, 41, 37, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+}
+
+.glass-surface {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
+  backdrop-filter: blur(22px) saturate(135%);
+}
+
+.glass-panel {
+  background:
+    linear-gradient(135deg, var(--glass-bg-strong), var(--glass-bg));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(26px) saturate(140%);
+  backdrop-filter: blur(26px) saturate(140%);
+}
+
+.glass-soft {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  backdrop-filter: blur(18px) saturate(130%);
+}
+
+.glass-quote-stage {
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255,255,255,0.72), transparent 42%),
+    var(--color-bg);
+}
+
+:root[data-theme="dark"] .glass-quote-stage {
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255,255,255,0.05), transparent 42%),
+    var(--color-bg);
+}
