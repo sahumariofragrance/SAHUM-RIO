@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, Loader2, Pencil, RefreshCw, Star, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
 import { useProducts } from "../context/ProductsContext";
@@ -38,6 +38,7 @@ export default function AdminProductsPanel() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [files, setFiles] = useState([]);
+  const previewUrls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -51,6 +52,10 @@ export default function AdminProductsPanel() {
   }
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => () => {
+    previewUrls.forEach((url) => URL.revokeObjectURL(url));
+  }, [previewUrls]);
 
   const nextOrder = useMemo(() => products.reduce((max, product) => Math.max(max, Number(product.display_order || 0)), 0) + 10, [products]);
 
@@ -103,6 +108,26 @@ export default function AdminProductsPanel() {
     }
 
     setFiles(selected);
+  }
+
+  function makeThumbnail(index) {
+    if (index <= 0 || index >= files.length) return;
+    setFiles((current) => {
+      const next = [...current];
+      const [selected] = next.splice(index, 1);
+      next.unshift(selected);
+      return next;
+    });
+  }
+
+  function moveGalleryImage(index, direction) {
+    setFiles((current) => {
+      const target = index + direction;
+      if (index <= 0 || target <= 0 || target >= current.length) return current;
+      const next = [...current];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
   }
 
   async function uploadGallery(productSlug) {
@@ -240,17 +265,81 @@ export default function AdminProductsPanel() {
                 className="block w-full text-sm"
               />
               <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">
-                Choose up to 5 images. The first selected image becomes the main collection image. Uploading new images replaces this perfume’s existing gallery.
+                Choose up to 5 images. Select the thumbnail, then arrange the remaining images in the order you want them to appear. Uploading new images replaces this perfume’s existing gallery.
               </p>
 
               {files.length > 0 && (
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {files.map((selectedFile, index) => (
-                    <div key={selectedFile.name + index} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs">
-                      <span className="font-semibold">{index === 0 ? "Primary · " : `Image ${index + 1} · `}</span>
-                      <span className="break-all text-[var(--color-muted)]">{selectedFile.name}</span>
-                    </div>
-                  ))}
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-xs text-[var(--color-muted)]">
+                    <span className="font-semibold text-[var(--color-text)]">Gallery order:</span> image 1 is the collection thumbnail and opens first on the product page.
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {files.map((selectedFile, index) => (
+                      <div
+                        key={selectedFile.name + selectedFile.size + selectedFile.lastModified}
+                        className={"overflow-hidden rounded-xl border p-2 " + (index === 0 ? "border-amber-500 bg-amber-500/5" : "border-[var(--color-border)]")}
+                      >
+                        <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-[var(--color-surface-muted)]">
+                          <img
+                            src={previewUrls[index]}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                          <span className="absolute left-2 top-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold text-white">
+                            {index === 0 ? "Thumbnail" : `Image ${index + 1}`}
+                          </span>
+                        </div>
+
+                        <p className="mt-2 truncate text-xs text-[var(--color-muted)]" title={selectedFile.name}>
+                          {selectedFile.name}
+                        </p>
+
+                        <div className="mt-2 flex items-center gap-2">
+                          {index === 0 ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-amber-600">
+                              <Star className="h-3 w-3 fill-current" />
+                              Thumbnail
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => makeThumbnail(index)}
+                              className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] transition hover:border-amber-500 hover:text-amber-600"
+                            >
+                              <Star className="h-3 w-3" />
+                              Make thumbnail
+                            </button>
+                          )}
+
+                          {index > 0 && (
+                            <div className="ml-auto flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => moveGalleryImage(index, -1)}
+                                disabled={index === 1}
+                                className="rounded-md border border-[var(--color-border)] p-1.5 transition hover:bg-[var(--color-surface-muted)] disabled:cursor-not-allowed disabled:opacity-30"
+                                aria-label={`Move ${selectedFile.name} earlier`}
+                                title="Move earlier"
+                              >
+                                <ChevronLeft className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => moveGalleryImage(index, 1)}
+                                disabled={index === files.length - 1}
+                                className="rounded-md border border-[var(--color-border)] p-1.5 transition hover:bg-[var(--color-surface-muted)] disabled:cursor-not-allowed disabled:opacity-30"
+                                aria-label={`Move ${selectedFile.name} later`}
+                                title="Move later"
+                              >
+                                <ChevronRight className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
