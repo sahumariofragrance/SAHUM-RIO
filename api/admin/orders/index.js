@@ -1,6 +1,7 @@
 "use strict";
 
 const { requireAdmin, setApiHeaders } = require("../../_lib/adminAuth");
+const { enforceRateLimit } = require("../../_lib/security");
 
 function safeDiagnostic(err) {
   const message = String(err?.message || "");
@@ -37,7 +38,13 @@ module.exports = async (req, res) => {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
 
   try {
-    const { adminClient } = await requireAdmin(req);
+    const { adminClient, user } = await requireAdmin(req);
+    if (!(await enforceRateLimit(req, res, {
+      scope: "admin-orders-read",
+      limit: 120,
+      windowSeconds: 600,
+      identifier: user.id,
+    }))) return;
     const { data, error } = await adminClient
       .from("orders")
       .select("*")
