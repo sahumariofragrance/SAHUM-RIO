@@ -26,7 +26,7 @@ const PerfumeCardOptimized = React.memo(({
         }
       }}
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-surface-muted)]">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[1.6rem] bg-[var(--color-surface-muted)] shadow-[0_16px_42px_rgba(55,45,36,0.10)]">
         <SafeImage
           src={image}
           alt={alt || name}
@@ -35,7 +35,7 @@ const PerfumeCardOptimized = React.memo(({
         />
       </div>
 
-      <div className="pt-4">
+      <div className="glass-card-meta relative z-10">
         <div className="flex items-start justify-between gap-5">
           <div className="min-w-0">
             <h3 className="font-serif text-[1.65rem] font-normal leading-tight">{name}</h3>
