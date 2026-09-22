@@ -5,7 +5,7 @@ import { useCart } from "../context/cartContext";
 
 export default function PerfumesPage({ onProductNavigate }) {
   const { items, addToCart, updateQty } = useCart();
-  const { products: catalogueProducts } = useProducts();
+  const { products: catalogueProducts, loading } = useProducts();
 
   const itemQtyById = useMemo(() => items.reduce((acc, item) => {
     acc[item.product_id] = item.qty;
@@ -33,6 +33,7 @@ export default function PerfumesPage({ onProductNavigate }) {
       <div className="mt-10 md:mt-14">
         <ProductGrid
           products={products}
+          loading={loading}
           onSelectProduct={onProductNavigate}
           onAddToCart={handleAddToCart}
           onUpdateQty={handleUpdateQty}
