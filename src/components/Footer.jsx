@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import BrandMark from "./BrandMark";
 
 const FooterLink = React.memo(({ onClick, href = "#", children }) => (
   <a
@@ -20,8 +21,8 @@ const Footer = React.memo(({ setCurrentPage }) => {
   return (
     <footer className="bg-[#11110f] text-white">
       <div className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 md:px-12 md:py-20">
-        <button onClick={() => nav("home")} className="text-left" aria-label="SAHUMäRIO home">
-          <p className="font-serif text-[clamp(3.8rem,9vw,9rem)] font-normal leading-none tracking-[-0.025em]">SAHUMäRIO</p>
+        <button onClick={() => nav("home")} className="text-left" aria-label="SAHUMäRIO registered trademark home">
+          <BrandMark className="font-serif text-[clamp(3.8rem,9vw,9rem)] font-normal leading-none tracking-[-0.025em]" />
         </button>
 
         <div className="mt-14 grid gap-12 border-t border-white/15 pt-10 md:grid-cols-[1.4fr_0.7fr_1fr_1fr]">
@@ -63,7 +64,7 @@ const Footer = React.memo(({ setCurrentPage }) => {
         </div>
 
         <div className="mt-14 flex flex-col gap-3 border-t border-white/15 pt-6 text-[10px] uppercase tracking-[0.14em] text-white/35 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 SAHUMäRIO. All rights reserved.</p>
+          <p>© 2026 SAHUMäRIO®. All rights reserved.</p>
           <p>Fragrance · India</p>
         </div>
       </div>
