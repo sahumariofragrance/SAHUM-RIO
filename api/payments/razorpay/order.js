@@ -69,7 +69,7 @@ module.exports = async (req, res) => {
     if (catalogueError) throw catalogueError;
     const catalogue = new Map((catalogueRows || []).map((product) => [Number(product.id), { name: product.name, price: Number(product.price) }]));
 
-    const seen = new Set(); let count = 0; let amountINR = 0;
+    const seen = new Set(); let count = 0; let amountPaise = 0;
     const normalizedItems = [];
     for (const item of items) {
       if (!plain(item)) return res.status(400).json({ message: "Invalid item" });
@@ -77,12 +77,21 @@ module.exports = async (req, res) => {
       if (!product) return res.status(400).json({ message: `Product ${item.product_id} is unavailable` });
       if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY_PER_ITEM) return res.status(400).json({ message: "Invalid quantity" });
       if (seen.has(id)) return res.status(400).json({ message: `Duplicate product_id ${id}` });
-      seen.add(id); count += qty; amountINR += product.price * qty;
-      normalizedItems.push({ product_id: id, name: product.name, price: product.price, qty });
+      const unitPaise = Math.round(Number(product.price) * 100);
+      if (!Number.isSafeInteger(unitPaise) || unitPaise < MIN_AMOUNT_PAISE) {
+        return res.status(409).json({ message: `Product ${id} has an invalid price` });
+      }
+      seen.add(id);
+      count += qty;
+      amountPaise += unitPaise * qty;
+      normalizedItems.push({ product_id: id, name: product.name, price: unitPaise / 100, qty });
     }
     if (count > MAX_TOTAL_ITEMS) return res.status(400).json({ message: "Cart quantity is too large" });
-    const amount = amountINR * 100;
-    if (amount < MIN_AMOUNT_PAISE || amount > MAX_AMOUNT_PAISE) return res.status(400).json({ message: "Order amount is outside the allowed range" });
+    const amount = amountPaise;
+    const amountINR = amount / 100;
+    if (!Number.isSafeInteger(amount) || amount < MIN_AMOUNT_PAISE || amount > MAX_AMOUNT_PAISE) {
+      return res.status(400).json({ message: "Order amount is outside the allowed range" });
+    }
 
     const shipping = safeAddress(address, user);
     if (!shipping.name || !shipping.phone || !shipping.email || !shipping.address || !shipping.city || !shipping.state || !shipping.pin) {
