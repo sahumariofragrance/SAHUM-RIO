@@ -1,13 +1,42 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import SafeImage from "../components/SafeImage";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
+import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
+
+const MAX_PRODUCT_IMAGES = 5;
+
+function buildGalleryUrls(product) {
+  if (!product) return [];
+
+  const gallery = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => (
+    supabase.storage
+      .from("product-images")
+      .getPublicUrl(`gallery/${product.slug}/${index + 1}`).data.publicUrl
+  ));
+
+  return [...new Set([product.image, ...gallery].filter(Boolean))];
+}
 
 export default function ProductPage({ slug, navigate }) {
   const { items, addToCart, updateQty } = useCart();
   const { bySlug, loading } = useProducts();
   const product = useMemo(() => bySlug.get(slug) || null, [bySlug, slug]);
+  const galleryUrls = useMemo(() => buildGalleryUrls(product), [product]);
+  const [activeImage, setActiveImage] = useState("");
+  const [failedImages, setFailedImages] = useState([]);
+
+  useEffect(() => {
+    setActiveImage(product?.image || "");
+    setFailedImages([]);
+  }, [product?.id, product?.image]);
+
+  const visibleGallery = useMemo(
+    () => galleryUrls.filter((url) => !failedImages.includes(url)),
+    [galleryUrls, failedImages]
+  );
+
   const quantity = product ? (items.find((item) => item.product_id === product.id)?.qty || 0) : 0;
   const productDetails = product ? [
     ["Size / volume", product.size_volume],
@@ -16,6 +45,11 @@ export default function ProductPage({ slug, navigate }) {
     ["Occasion", product.occasion],
     ["Fragrance notes", product.notes],
   ].filter(([, value]) => String(value || "").trim()) : [];
+
+  function markImageFailed(url) {
+    setFailedImages((current) => current.includes(url) ? current : [...current, url]);
+    if (activeImage === url) setActiveImage(product?.image || "");
+  }
 
   if (loading && !product) {
     return <section className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 md:px-12"><div className="h-[70vh] animate-pulse bg-[var(--color-surface-muted)]" /></section>;
@@ -36,8 +70,42 @@ export default function ProductPage({ slug, navigate }) {
       <button onClick={() => navigate("perfumes")} className="mb-8 text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)] transition hover:text-[var(--color-text)]" aria-label="Back to perfume collection">← All fragrances</button>
 
       <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
-        <div className="min-h-[560px] overflow-hidden bg-[var(--color-surface-muted)]">
-          <SafeImage src={product.image} alt={product.alt || product.name} className="h-full w-full object-cover" priority />
+        <div>
+          <div className="min-h-[560px] overflow-hidden bg-[var(--color-surface-muted)]">
+            <SafeImage src={activeImage || product.image} alt={product.alt || product.name} className="h-full w-full object-cover" priority />
+          </div>
+
+          {visibleGallery.length > 1 && (
+            <div className="mt-3 grid grid-cols-5 gap-2" aria-label={product.name + " image gallery"}>
+              {galleryUrls.map((url, index) => (
+                !failedImages.includes(url) && (
+                  <button
+                    key={url}
+                    type="button"
+                    onClick={() => setActiveImage(url)}
+                    className={"relative aspect-[4/5] overflow-hidden border transition " + ((activeImage || product.image) === url ? "border-[var(--color-text)]" : "border-transparent opacity-65 hover:opacity-100")}
+                    aria-label={`View ${product.name} image ${index + 1}`}
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      onError={() => markImageFailed(url)}
+                      className="h-full w-full object-cover"
+                      loading={index === 0 ? "eager" : "lazy"}
+                    />
+                  </button>
+                )
+              ))}
+            </div>
+          )}
+
+          <div className="hidden">
+            {galleryUrls.map((url) => (
+              !failedImages.includes(url) && (
+                <img key={"probe-" + url} src={url} alt="" onError={() => markImageFailed(url)} />
+              )
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col justify-center lg:py-8">
