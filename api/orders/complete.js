@@ -122,7 +122,10 @@ module.exports = async (req, res) => {
       intent.currency === "INR" &&
       note(gatewayOrder.notes, "user_id") === String(intent.user_id) &&
       note(gatewayOrder.notes, "server_verified_amount_inr") === expectedSubtotal &&
-      note(gatewayOrder.notes, "cart_hash") === expectedHash;
+      note(gatewayOrder.notes, "cart_hash") === expectedHash &&
+      note(gatewayOrder.notes, "intent_version") === "3" &&
+      Number(gatewayPayment?.amount_refunded || 0) === 0 &&
+      !gatewayPayment?.refund_status;
 
     if (!metadataVerified) {
       return res.status(409).json({ message: "Payment could not be matched to the stored order. Please contact support with your payment ID." });
