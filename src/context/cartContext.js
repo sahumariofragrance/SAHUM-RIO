@@ -9,6 +9,36 @@ import React, {
 
 const CartCtx = createContext(null);
 const CART_STORAGE_KEY = "sahumario_cart";
+const MAX_CART_LINES = 50;
+const MAX_QTY_PER_ITEM = 20;
+
+function normalizeStoredCart(value) {
+  if (!Array.isArray(value)) return [];
+  const byId = new Map();
+
+  for (const raw of value.slice(0, MAX_CART_LINES * 2)) {
+    const productId = Number(raw?.product_id);
+    const qty = Number(raw?.qty);
+    const price = Number(raw?.price);
+    if (!Number.isInteger(productId) || productId <= 0) continue;
+    if (!Number.isInteger(qty) || qty <= 0) continue;
+    if (!Number.isFinite(price) || price <= 0) continue;
+
+    const current = byId.get(productId);
+    const safeQty = Math.min(MAX_QTY_PER_ITEM, (current?.qty || 0) + qty);
+    byId.set(productId, {
+      product_id: productId,
+      name: String(raw?.name || "").slice(0, 160),
+      price,
+      image: String(raw?.image || "").slice(0, 1000),
+      alt: String(raw?.alt || "").slice(0, 240),
+      slug: String(raw?.slug || "").slice(0, 160),
+      qty: safeQty,
+    });
+    if (byId.size >= MAX_CART_LINES) break;
+  }
+  return [...byId.values()];
+}
 
 export function CartProvider({ children }) {
   // Initialise from localStorage on first render
@@ -17,7 +47,7 @@ export function CartProvider({ children }) {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
       if (!stored) return [];
       const parsed = JSON.parse(stored);
-      return Array.isArray(parsed) ? parsed.filter((item) => Number.isInteger(Number(item?.product_id)) && Number(item.product_id) > 0) : [];
+      return normalizeStoredCart(parsed);
     } catch {
       return [];
     }
@@ -48,10 +78,11 @@ export function CartProvider({ children }) {
             image: product.image || product.image_url || item.image || "",
             alt: product.alt || item.alt || `${product.name} Eau de Parfum bottle`,
             slug: product.slug || item.slug || "",
-            qty: item.qty + 1,
+            qty: Math.min(MAX_QTY_PER_ITEM, item.qty + 1),
           } : item
         );
       }
+      if (prev.length >= MAX_CART_LINES) return prev;
       return [...prev, {
         product_id: product.id,
         name: product.name,
@@ -67,8 +98,10 @@ export function CartProvider({ children }) {
   const updateQty = useCallback((itemId, qty) => {
     setItems((prev) => {
       // Removing item when qty reaches 0
-      if (qty <= 0) return prev.filter((item) => item.product_id !== itemId);
-      return prev.map((item) => (item.product_id === itemId ? { ...item, qty } : item));
+      const safeQty = Number(qty);
+      if (!Number.isFinite(safeQty) || safeQty <= 0) return prev.filter((item) => item.product_id !== itemId);
+      const boundedQty = Math.min(MAX_QTY_PER_ITEM, Math.max(1, Math.floor(safeQty)));
+      return prev.map((item) => (item.product_id === itemId ? { ...item, qty: boundedQty } : item));
     });
   }, []);
 
