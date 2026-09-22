@@ -1,6 +1,7 @@
 "use strict";
 
 const { createClient } = require("@supabase/supabase-js");
+const { setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../_lib/security");
 
 function clean(value, max = 300) {
   return String(value ?? "")
@@ -57,12 +58,13 @@ function escapeHtml(value) {
 }
 
 module.exports = async (req, res) => {
-  res.setHeader("Cache-Control", "no-store");
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
-  if (!req.headers["content-type"]?.includes("application/json")) {
-    return res.status(415).json({ message: "Content-Type must be application/json" });
-  }
+  setJsonSecurityHeaders(res);
+  if (!enforceJsonRequest(req, res, { methods: ["POST"], maxBytes: 16 * 1024 })) return;
+  if (!(await enforceRateLimit(req, res, {
+    scope: "bulk-inquiry",
+    limit: 5,
+    windowSeconds: 3600,
+  }))) return;
 
   try {
     const body = req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body : {};
