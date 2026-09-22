@@ -26,7 +26,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
     <section className="glass-quote-stage border-y border-[var(--color-border)] px-5 py-16 sm:px-8 md:py-24">
       <div className="glass-panel relative z-10 mx-auto flex min-h-[360px] max-w-5xl flex-col items-center justify-center rounded-[2.25rem] px-6 py-20 text-center md:min-h-[430px] md:px-12 md:py-24">
         <p className="text-[9px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">The House</p>
-        <blockquote className="mt-7 max-w-4xl font-serif text-[clamp(3rem,5.5vw,6rem)] font-normal leading-[0.96] tracking-[-0.035em]">
+        <blockquote className="mt-7 max-w-3xl font-serif text-[clamp(2.2rem,4.35vw,4.75rem)] font-normal leading-[1.02] tracking-[-0.028em]">
           A fragrance should be
           <span className="block italic">discovered, not explained.</span>
         </blockquote>
