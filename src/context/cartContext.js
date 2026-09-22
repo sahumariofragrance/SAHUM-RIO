@@ -40,12 +40,27 @@ export function CartProvider({ children }) {
     setItems((prev) => {
       const existing = prev.find((item) => item.product_id === product.id);
       if (existing) {
-        // Increment quantity if already in cart
         return prev.map((item) =>
-          item.product_id === product.id ? { ...item, qty: item.qty + 1 } : item
+          item.product_id === product.id ? {
+            ...item,
+            name: product.name,
+            price: product.price,
+            image: product.image || product.image_url || item.image || "",
+            alt: product.alt || item.alt || `${product.name} Eau de Parfum bottle`,
+            slug: product.slug || item.slug || "",
+            qty: item.qty + 1,
+          } : item
         );
       }
-      return [...prev, { product_id: product.id, name: product.name, price: product.price, qty: 1 }];
+      return [...prev, {
+        product_id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image || product.image_url || "",
+        alt: product.alt || `${product.name} Eau de Parfum bottle`,
+        slug: product.slug || "",
+        qty: 1,
+      }];
     });
   }, []);
 
