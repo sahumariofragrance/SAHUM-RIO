@@ -5,15 +5,28 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 import BrandMark from "./BrandMark";
+import SpaLink from "./SpaLink";
 
-const NavButton = ({ id, active, onClick, children }) => (
-  <button
-    onClick={() => onClick(id)}
-    className={"relative py-2 text-[10px] font-semibold uppercase tracking-[0.18em] transition-opacity hover:opacity-55 " + (active ? "opacity-100" : "opacity-75")}
+const PAGE_HREFS = {
+  home: "/",
+  perfumes: "/perfumes",
+  about: "/about",
+  cart: "/cart",
+  account: "/account",
+  orders: "/account/orders",
+  admin: "/admin",
+  login: "/login",
+};
+
+const NavLink = ({ id, active, onNavigate, children, className = "" }) => (
+  <SpaLink
+    href={PAGE_HREFS[id] || "/"}
+    onNavigate={() => onNavigate(id)}
+    className={"relative py-2 text-[10px] font-semibold uppercase tracking-[0.18em] transition-opacity hover:opacity-55 " + (active ? "opacity-100 " : "opacity-75 ") + className}
   >
     {children}
     {active && <span className="absolute inset-x-0 -bottom-0.5 h-px bg-[var(--color-text)]" />}
-  </button>
+  </SpaLink>
 );
 
 const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, setIsMenuOpen }) => {
@@ -79,15 +92,15 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
               </button>
 
               <nav className="hidden items-center gap-7 md:flex">
-                <NavButton id="home" active={currentPage === "home"} onClick={nav}>Home</NavButton>
-                <NavButton id="perfumes" active={currentPage === "perfumes" || currentPage === "product"} onClick={nav}>Perfumes</NavButton>
-                <NavButton id="about" active={currentPage === "about"} onClick={nav}>The House</NavButton>
+                <NavLink id="home" active={currentPage === "home"} onNavigate={nav}>Home</NavLink>
+                <NavLink id="perfumes" active={currentPage === "perfumes" || currentPage === "product"} onNavigate={nav}>Perfumes</NavLink>
+                <NavLink id="about" active={currentPage === "about"} onNavigate={nav}>The House</NavLink>
               </nav>
             </div>
 
-            <button onClick={() => nav("home")} className="justify-self-center px-4 text-center" aria-label="SAHUMäRIO registered trademark home">
+            <SpaLink href="/" onNavigate={() => nav("home")} className="justify-self-center px-4 text-center" aria-label="SAHUMäRIO registered trademark home">
               <BrandMark className="block font-serif text-[27px] font-medium leading-none tracking-[0.075em]" />
-            </button>
+            </SpaLink>
 
             <div className="flex items-center justify-end gap-0.5">
               <button
@@ -110,23 +123,24 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
                 </button>
 
                 {permanentUser && dropdownOpen && (
-                  <div className="glass-panel absolute right-0 mt-3 w-60 overflow-hidden rounded-2xl">
+                  <div className="glass-panel right-0 mt-3 w-60 overflow-hidden rounded-2xl" style={{ position: "absolute" }}>
                     <div className="border-b border-[var(--color-border)] px-4 py-3">
                       <p className="text-xs text-[var(--color-muted)]">Signed in as</p>
                       <p className="mt-0.5 truncate text-sm font-medium">{user.user_metadata?.name || user.email}</p>
                     </div>
-                    <button onClick={() => nav("account")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface)]"><User className="h-4 w-4" />My Account</button>
-                    <button onClick={() => nav("orders")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface)]"><Package className="h-4 w-4" />My Orders</button>
-                    {isAdmin && <button onClick={() => nav("admin")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface)]"><ShieldCheck className="h-4 w-4" />Admin Dashboard</button>}
+                    <SpaLink href="/account" onNavigate={() => nav("account")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface)]"><User className="h-4 w-4" />My Account</SpaLink>
+                    <SpaLink href="/account/orders" onNavigate={() => nav("orders")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface)]"><Package className="h-4 w-4" />My Orders</SpaLink>
+                    {isAdmin && <SpaLink href="/admin" onNavigate={() => nav("admin")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface)]"><ShieldCheck className="h-4 w-4" />Admin Dashboard</SpaLink>}
                     <button onClick={handleLogout} className="flex w-full items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-[var(--color-surface)]"><LogOut className="h-4 w-4" />Log Out</button>
                   </div>
                 )}
               </div>
 
-              <button
+              <SpaLink
+                href="/cart"
+                onNavigate={() => nav("cart")}
                 className="relative p-2.5 transition-opacity hover:opacity-55"
                 title="Cart"
-                onClick={() => nav("cart")}
                 aria-label={"Shopping cart with " + count + " items"}
               >
                 <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.7} />
@@ -135,25 +149,25 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
                     {count > 99 ? "99+" : count}
                   </span>
                 )}
-              </button>
+              </SpaLink>
             </div>
           </div>
 
           {isMenuOpen && (
             <nav className="glass-surface -mx-4 border-t px-4 py-3 sm:-mx-6 sm:px-6 md:hidden">
-              <button onClick={() => nav("home")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Home</button>
-              <button onClick={() => nav("perfumes")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Perfumes</button>
-              <button onClick={() => nav("about")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">The House</button>
-              <button onClick={() => nav("cart")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Cart ({count})</button>
+              <SpaLink href="/" onNavigate={() => nav("home")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Home</SpaLink>
+              <SpaLink href="/perfumes" onNavigate={() => nav("perfumes")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Perfumes</SpaLink>
+              <SpaLink href="/about" onNavigate={() => nav("about")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">The House</SpaLink>
+              <SpaLink href="/cart" onNavigate={() => nav("cart")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Cart ({count})</SpaLink>
               {permanentUser ? (
                 <>
-                  <button onClick={() => nav("account")} className="block w-full px-1 py-3 text-left text-sm">My Account</button>
-                  <button onClick={() => nav("orders")} className="block w-full px-1 py-3 text-left text-sm">My Orders</button>
-                  {isAdmin && <button onClick={() => nav("admin")} className="block w-full px-1 py-3 text-left text-sm">Admin Dashboard</button>}
+                  <SpaLink href="/account" onNavigate={() => nav("account")} className="block w-full px-1 py-3 text-left text-sm">My Account</SpaLink>
+                  <SpaLink href="/account/orders" onNavigate={() => nav("orders")} className="block w-full px-1 py-3 text-left text-sm">My Orders</SpaLink>
+                  {isAdmin && <SpaLink href="/admin" onNavigate={() => nav("admin")} className="block w-full px-1 py-3 text-left text-sm">Admin Dashboard</SpaLink>}
                   <button onClick={handleLogout} className="block w-full px-1 py-3 text-left text-sm text-red-600">Log Out</button>
                 </>
               ) : (
-                <button onClick={() => nav("login")} className="block w-full px-1 py-3 text-left text-sm">Login / Sign Up</button>
+                <SpaLink href="/login" onNavigate={() => nav("login")} className="block w-full px-1 py-3 text-left text-sm">Login / Sign Up</SpaLink>
               )}
             </nav>
           )}
