@@ -12,14 +12,14 @@
 }
 
 :root[data-theme="dark"] {
-  --color-bg: #151513;
-  --color-text: #F4F1EB;
-  --color-surface: #1D1C19;
-  --color-surface-muted: #292722;
-  --color-border: #3D3A34;
-  --color-muted: #AAA49A;
-  --color-sage: #A8AD96;
-  --color-hero-overlay: rgba(0, 0, 0, 0.32);
+  --color-bg: #151210;
+  --color-text: #F4EFE8;
+  --color-surface: #1D1917;
+  --color-surface-muted: #28221F;
+  --color-border: rgba(244, 239, 232, 0.14);
+  --color-muted: #B9AEA5;
+  --color-sage: #A7AE9A;
+  --color-hero-overlay: rgba(0, 0, 0, 0.38);
 }
 
 * {
@@ -95,11 +95,11 @@ footer {
 }
 
 :root[data-theme="dark"] {
-  --glass-bg: rgba(31, 30, 27, 0.54);
-  --glass-bg-strong: rgba(47, 45, 40, 0.68);
-  --glass-border: rgba(255, 255, 255, 0.18);
-  --glass-shadow: 0 20px 60px rgba(0, 0, 0, 0.36), 0 2px 12px rgba(0, 0, 0, 0.2);
-  --glass-highlight: rgba(255, 255, 255, 0.16);
+  --glass-bg: rgba(38, 31, 28, 0.46);
+  --glass-bg-strong: rgba(56, 46, 41, 0.60);
+  --glass-border: rgba(255, 244, 235, 0.18);
+  --glass-shadow: 0 28px 80px rgba(0, 0, 0, 0.42), 0 4px 20px rgba(0, 0, 0, 0.22);
+  --glass-highlight: rgba(255, 248, 240, 0.18);
 }
 
 body {
@@ -129,19 +129,23 @@ body::before {
 }
 
 :root[data-theme="dark"] body {
-  background-color: #151513;
+  background-color: #151210;
   background-image:
-    radial-gradient(ellipse at 4% 8%, rgba(112, 129, 101, 0.18) 0%, rgba(112, 129, 101, 0.07) 20%, transparent 44%),
-    radial-gradient(ellipse at 96% 22%, rgba(142, 104, 82, 0.17) 0%, rgba(142, 104, 82, 0.06) 20%, transparent 44%),
-    radial-gradient(ellipse at 52% 50%, rgba(255,255,255,0.035) 0%, transparent 52%),
-    radial-gradient(ellipse at 18% 86%, rgba(103, 121, 99, 0.10) 0%, transparent 44%),
-    linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.03));
+    radial-gradient(ellipse at 7% 8%, rgba(116, 128, 100, 0.24) 0%, rgba(116, 128, 100, 0.10) 18%, transparent 42%),
+    radial-gradient(ellipse at 94% 18%, rgba(153, 104, 79, 0.24) 0%, rgba(153, 104, 79, 0.09) 19%, transparent 43%),
+    radial-gradient(ellipse at 52% 46%, rgba(203, 180, 158, 0.08) 0%, rgba(203, 180, 158, 0.025) 30%, transparent 56%),
+    radial-gradient(ellipse at 18% 84%, rgba(86, 102, 82, 0.17) 0%, rgba(86, 102, 82, 0.05) 20%, transparent 46%),
+    radial-gradient(ellipse at 86% 90%, rgba(132, 87, 69, 0.14) 0%, transparent 43%),
+    linear-gradient(155deg, #12100f 0%, #191411 44%, #211a17 72%, #131110 100%);
+  background-attachment: fixed;
+  background-size: 125% 125%, 120% 120%, 145% 145%, 125% 125%, 120% 120%, 100% 100%;
 }
 
 :root[data-theme="dark"] body::before {
   background:
-    linear-gradient(115deg, rgba(255,255,255,0.035), transparent 30%, rgba(255,255,255,0.018) 54%, transparent 74%),
-    radial-gradient(circle at 50% -8%, rgba(255,255,255,0.055), transparent 40%);
+    linear-gradient(118deg, rgba(255,245,236,0.05), transparent 24%, rgba(255,255,255,0.018) 51%, transparent 72%),
+    radial-gradient(circle at 50% -12%, rgba(255,235,220,0.09), transparent 38%),
+    radial-gradient(circle at 48% 110%, rgba(172,129,103,0.06), transparent 42%);
   opacity: 1;
 }
 
@@ -247,15 +251,30 @@ body::before {
 }
 
 :root[data-theme="dark"] .glass-card-meta {
-  background: rgba(35,34,31,0.64);
-  border-color: rgba(255,255,255,0.15);
-  box-shadow: 0 14px 36px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.12);
+  background: linear-gradient(145deg, rgba(57,46,41,0.70), rgba(31,27,25,0.60));
+  border-color: rgba(255,244,235,0.18);
+  box-shadow: 0 18px 46px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,248,240,0.15);
 }
 
 :root[data-theme="dark"] .glass-quote-stage {
   background:
-    radial-gradient(circle at 16% 28%, rgba(111, 127, 99, 0.16), transparent 22rem),
-    radial-gradient(circle at 86% 68%, rgba(135, 102, 83, 0.14), transparent 24rem),
-    radial-gradient(circle at 50% 10%, rgba(255,255,255,0.06), transparent 30rem),
-    var(--color-bg);
+    radial-gradient(circle at 14% 30%, rgba(116, 132, 101, 0.24), transparent 22rem),
+    radial-gradient(circle at 88% 70%, rgba(153, 103, 78, 0.22), transparent 24rem),
+    radial-gradient(circle at 50% 4%, rgba(255,235,220,0.09), transparent 30rem),
+    linear-gradient(145deg, #161310, #201916 55%, #141210);
+}
+
+
+:root[data-theme="dark"] .glass-panel::before {
+  background:
+    linear-gradient(118deg, rgba(255,248,240,0.15) 0%, rgba(255,248,240,0.035) 34%, transparent 58%);
+}
+
+:root[data-theme="dark"] .glass-soft::after {
+  background: linear-gradient(125deg, rgba(255,248,240,0.10), transparent 44%);
+}
+
+:root[data-theme="dark"] ::selection {
+  background: #F4EFE8;
+  color: #171310;
 }
