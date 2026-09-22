@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import SafeImage from "../components/SafeImage";
 import ProductReviews from "../components/ProductReviews";
+import BrandMark from "../components/BrandMark";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
 import { supabase } from "../lib/supabase";
@@ -110,7 +111,7 @@ export default function ProductPage({ slug, navigate }) {
         </div>
 
         <div className="flex flex-col justify-center lg:py-8">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">SAHUMäRIO · Eau de Parfum</p>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]"><BrandMark /> · Eau de Parfum</p>
           <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.025em] sm:text-6xl">{product.name}</h1>
           <p className="mt-4 text-base">{formatINR(product.price)}</p>
           <p className="mt-7 max-w-xl text-sm leading-7 text-[var(--color-muted)]">{product.description}</p>
