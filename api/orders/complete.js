@@ -5,6 +5,7 @@ const Razorpay = require("razorpay");
 const { createClient } = require("@supabase/supabase-js");
 const { requireCustomer } = require("../_lib/customerAuth");
 const { sendOrderReceived } = require("../_lib/email");
+const { setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../_lib/security");
 
 let razorpayClient = null;
 
@@ -51,15 +52,17 @@ function note(notes, key) {
 }
 
 module.exports = async (req, res) => {
-  res.setHeader("Cache-Control", "no-store");
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
-  if (!req.headers["content-type"]?.includes("application/json")) {
-    return res.status(415).json({ message: "Content-Type must be application/json" });
-  }
+  setJsonSecurityHeaders(res);
+  if (!enforceJsonRequest(req, res, { methods: ["POST"], maxBytes: 16 * 1024 })) return;
 
   try {
     const { user } = await requireCustomer(req);
+    if (!(await enforceRateLimit(req, res, {
+      scope: "complete-order",
+      limit: 20,
+      windowSeconds: 600,
+      identifier: user.id,
+    }))) return;
     const body = req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body : {};
     const orderId = body.razorpay_order_id;
     const paymentId = body.razorpay_payment_id;
