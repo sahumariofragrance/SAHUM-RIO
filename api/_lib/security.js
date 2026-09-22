@@ -96,6 +96,7 @@ function safeString(value, max = 200) {
 }
 
 module.exports = {
+  getServiceClient,
   setJsonSecurityHeaders,
   enforceJsonRequest,
   enforceRateLimit,
