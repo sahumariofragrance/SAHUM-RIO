@@ -20,14 +20,15 @@ FounderCard.displayName = 'FounderCard';
 export default function AboutPage() {
   return (
     <section className="mx-auto max-w-5xl px-4 py-12">
-      <SectionHeader title="About Sahumärio" />
+      <SectionHeader title="About SAHUMäRIO" />
       
       <p className="mt-3 text-[var(--color-text)] leading-relaxed">
-        Welcome to Sahumärio, where tradition meets luxury. We specialize in crafting
-        authentic oil-based perfumes that are designed to last throughout your day and beyond.
+        SAHUMäRIO is an independent fragrance brand creating a focused collection of
+        Eau de Parfum fragrances. Each fragrance is given its own name, character, and visual identity.
       </p>
       <p className="mt-2 text-[var(--color-text)] leading-relaxed">
-        Our perfumes are thoughtfully formulated to deliver a rich, distinctive fragrance experience with a character of their own.
+        We are still growing, and we believe clear information matters. Product details are
+        added only when they have been confirmed, so customers can choose without unsupported claims.
       </p>
 
       <h4 className="mt-8 text-xl font-semibold">Our Founders</h4>
@@ -36,13 +37,13 @@ export default function AboutPage() {
           initials="HM"
           name="Harsh Maradiya"
           role="Co-Founder"
-          description="Passionate about bringing authentic fragrances to discerning customers worldwide."
+          description="Focused on developing the fragrances and growing the collection in India."
         />
         <FounderCard
           initials="NM"
           name="Neel Maradiya"
           role="Co-Founder"
-          description="Dedicated to crafting perfumes that create lasting impressions and memories."
+          description="Focused on the brand, digital storefront, and customer experience."
         />
       </div>
     </section>
