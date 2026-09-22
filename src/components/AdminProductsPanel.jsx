@@ -4,6 +4,10 @@ import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
 import { useProducts } from "../context/ProductsContext";
 
+const MAX_PRODUCT_IMAGES = 5;
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+
 const emptyForm = {
   id: null,
   name: "",
@@ -25,11 +29,15 @@ function slugify(value) {
   return String(value || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
+function galleryPath(slug, index) {
+  return `gallery/${slug}/${index + 1}`;
+}
+
 export default function AdminProductsPanel() {
   const { refreshProducts } = useProducts();
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -53,7 +61,7 @@ export default function AdminProductsPanel() {
   }, [loading, nextOrder, form.id, form.name, form.display_order]);
 
   function reset() {
-    setForm({ ...emptyForm, display_order: nextOrder }); setFile(null); setMessage(""); setError("");
+    setForm({ ...emptyForm, display_order: nextOrder }); setFiles([]); setMessage(""); setError("");
   }
 
   function edit(product) {
@@ -64,19 +72,60 @@ export default function AdminProductsPanel() {
       scent_profile: product.scent_profile || "", occasion: product.occasion || "",
       active: Boolean(product.active), display_order: Number(product.display_order || 0),
     });
-    setFile(null); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
+    setFiles([]); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  async function uploadImage(productSlug) {
-    if (!file) return form.image_url;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new Error("Use a JPG, PNG, or WebP image.");
-    if (file.size > 10 * 1024 * 1024) throw new Error("Image must be 10 MB or smaller.");
-    const extension = (file.name.split(".").pop() || "jpg").toLowerCase();
-    const objectName = productSlug + "-" + Date.now() + "." + extension;
-    const { error: uploadError } = await supabase.storage.from("product-images").upload(objectName, file, { upsert: false, contentType: file.type });
-    if (uploadError) throw uploadError;
-    const { data } = supabase.storage.from("product-images").getPublicUrl(objectName);
-    return data.publicUrl;
+  function selectImages(event) {
+    const selected = Array.from(event.target.files || []);
+    setError("");
+
+    if (selected.length > MAX_PRODUCT_IMAGES) {
+      event.target.value = "";
+      setFiles([]);
+      setError("Choose a maximum of 5 product images.");
+      return;
+    }
+
+    const invalidType = selected.find((file) => !ACCEPTED_IMAGE_TYPES.includes(file.type));
+    if (invalidType) {
+      event.target.value = "";
+      setFiles([]);
+      setError("Use JPG, PNG, or WebP images only.");
+      return;
+    }
+
+    const tooLarge = selected.find((file) => file.size > MAX_IMAGE_SIZE);
+    if (tooLarge) {
+      event.target.value = "";
+      setFiles([]);
+      setError("Each image must be 10 MB or smaller.");
+      return;
+    }
+
+    setFiles(selected);
+  }
+
+  async function uploadGallery(productSlug) {
+    if (!files.length) return form.image_url;
+
+    const paths = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => galleryPath(productSlug, index));
+    const { error: cleanupError } = await supabase.storage.from("product-images").remove(paths);
+    if (cleanupError) throw cleanupError;
+
+    let primaryUrl = "";
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      const objectName = galleryPath(productSlug, index);
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(objectName, file, { upsert: false, contentType: file.type, cacheControl: "3600" });
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("product-images").getPublicUrl(objectName);
+      if (index === 0) primaryUrl = data.publicUrl;
+    }
+
+    return primaryUrl;
   }
 
   async function save(event) {
@@ -84,8 +133,11 @@ export default function AdminProductsPanel() {
     try {
       const name = form.name.trim(); const slug = slugify(form.slug || name); const price = Number(form.price);
       if (!name || !slug || !form.description.trim() || !Number.isFinite(price) || price <= 0) throw new Error("Name, description, slug, and a valid price are required.");
-      const imageUrl = await uploadImage(slug);
-      if (!imageUrl) throw new Error("Please upload a product image.");
+      if (!form.id && !files.length && !form.image_url) throw new Error("Please upload at least one product image.");
+
+      const imageUrl = await uploadGallery(slug);
+      if (!imageUrl) throw new Error("Please upload at least one product image.");
+
       const { data: userData } = await supabase.auth.getUser(); const user = userData?.user;
       const payload = {
         name, slug, description: form.description.trim(), price, image_url: imageUrl,
@@ -102,11 +154,15 @@ export default function AdminProductsPanel() {
       if (form.id) result = await supabase.from("products").update(payload).eq("id", form.id).select("*").single();
       else result = await supabase.from("products").insert({ ...payload, created_by: user?.id || null }).select("*").single();
       if (result.error) throw result.error;
+
       const savedProduct = result.data;
-      setMessage(form.id ? `Product updated. ID: ${savedProduct.id}.` : `Product added to the catalogue with ID ${savedProduct.id}.`); setFile(null);
+      const galleryMessage = files.length > 1 ? ` ${files.length} images saved.` : files.length === 1 ? " 1 image saved." : "";
+      setMessage(form.id ? `Product updated. ID: ${savedProduct.id}.${galleryMessage}` : `Product added to the catalogue with ID ${savedProduct.id}.${galleryMessage}`);
+      setFiles([]);
       await load();
       await refreshProducts();
       if (!form.id) setForm({ ...emptyForm, display_order: nextOrder + 10 });
+      else setForm((current) => ({ ...current, image_url: savedProduct.image_url }));
     } catch (err) { setError(err?.message || "Unable to save product."); }
     finally { setSaving(false); }
   }
@@ -124,14 +180,18 @@ export default function AdminProductsPanel() {
       const { error: deleteError } = await supabase.from("products").delete().eq("id", product.id);
       if (deleteError) throw deleteError;
 
+      const cleanupObjects = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => galleryPath(product.slug, index));
       const marker = "/storage/v1/object/public/product-images/";
       const imageUrl = String(product.image_url || "");
       if (imageUrl.includes(marker)) {
-        const objectName = decodeURIComponent(imageUrl.split(marker)[1] || "");
-        if (objectName) {
-          const { error: storageError } = await supabase.storage.from("product-images").remove([objectName]);
-          if (storageError) console.warn("Product image cleanup failed", storageError.message);
-        }
+        const currentPrimaryObject = decodeURIComponent(imageUrl.split(marker)[1] || "");
+        if (currentPrimaryObject) cleanupObjects.push(currentPrimaryObject);
+      }
+
+      const uniqueObjects = [...new Set(cleanupObjects.filter(Boolean))];
+      if (uniqueObjects.length) {
+        const { error: storageError } = await supabase.storage.from("product-images").remove(uniqueObjects);
+        if (storageError) console.warn("Product image cleanup failed", storageError.message);
       }
 
       if (form.id === product.id) reset();
@@ -168,7 +228,42 @@ export default function AdminProductsPanel() {
           <label className="block text-sm">Occasion<input value={form.occasion} maxLength={160} onChange={(e) => setForm((p) => ({ ...p, occasion: e.target.value }))} placeholder="Add only when confirmed" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
           <label className="block text-sm">Image alt text<input value={form.alt} onChange={(e) => setForm((p) => ({ ...p, alt: e.target.value }))} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
           <label className="block text-sm">Fragrance notes<textarea value={form.notes} maxLength={500} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} rows={3} placeholder="Enter the actual fragrance notes only" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /><span className="mt-1 block text-xs leading-5 text-[var(--color-muted)]">Optional details appear on the product page only when filled in.</span></label>
-          <label className="block text-sm">Product image<div className="mt-1 rounded-xl border border-dashed border-[var(--color-border)] p-4"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setFile(e.target.files?.[0] || null)} className="block w-full text-sm" />{form.image_url && !file && <img src={form.image_url} alt="" className="mt-3 h-28 w-24 rounded-lg object-cover" />}{file && <p className="mt-2 text-xs text-[var(--color-muted)]">{file.name}</p>}</div></label>
+
+          <label className="block text-sm">
+            Product gallery
+            <div className="mt-1 rounded-xl border border-dashed border-[var(--color-border)] p-4">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                onChange={selectImages}
+                className="block w-full text-sm"
+              />
+              <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">
+                Choose up to 5 images. The first selected image becomes the main collection image. Uploading new images replaces this perfume’s existing gallery.
+              </p>
+
+              {files.length > 0 && (
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {files.map((selectedFile, index) => (
+                    <div key={selectedFile.name + index} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs">
+                      <span className="font-semibold">{index === 0 ? "Primary · " : `Image ${index + 1} · `}</span>
+                      <span className="break-all text-[var(--color-muted)]">{selectedFile.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {form.image_url && files.length === 0 && (
+                <div className="mt-4">
+                  <p className="mb-2 text-xs text-[var(--color-muted)]">Current primary image</p>
+                  <img src={form.image_url} alt="" className="h-32 w-28 rounded-lg object-cover" />
+                  {form.id && <p className="mt-2 text-xs text-[var(--color-muted)]">Leave the file picker empty to keep the existing gallery unchanged.</p>}
+                </div>
+              )}
+            </div>
+          </label>
+
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.active} onChange={(e) => setForm((p) => ({ ...p, active: e.target.checked }))} />Visible in store</label>
           {!form.id && <p className="text-xs leading-5 text-[var(--color-muted)]">New products start hidden by default. Turn on “Visible in store” only when the listing is ready.</p>}
         </div>
