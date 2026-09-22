@@ -1,61 +1,150 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import SafeImage from "../components/SafeImage";
 import ProductReviews from "../components/ProductReviews";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
+import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
+
+const MAX_PRODUCT_IMAGES = 5;
+
+function buildGalleryUrls(product) {
+  if (!product) return [];
+
+  const gallery = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => (
+    supabase.storage
+      .from("product-images")
+      .getPublicUrl(`gallery/${product.slug}/${index + 1}`).data.publicUrl
+  ));
+
+  return [...new Set([product.image, ...gallery].filter(Boolean))];
+}
 
 export default function ProductPage({ slug, navigate }) {
   const { items, addToCart, updateQty } = useCart();
   const { bySlug, loading } = useProducts();
   const product = useMemo(() => bySlug.get(slug) || null, [bySlug, slug]);
+  const galleryUrls = useMemo(() => buildGalleryUrls(product), [product]);
+  const [activeImage, setActiveImage] = useState("");
+  const [failedImages, setFailedImages] = useState([]);
+
+  useEffect(() => {
+    setActiveImage(product?.image || "");
+    setFailedImages([]);
+  }, [product?.id, product?.image]);
+
+  const visibleGallery = useMemo(
+    () => galleryUrls.filter((url) => !failedImages.includes(url)),
+    [galleryUrls, failedImages]
+  );
+
   const quantity = product ? (items.find((item) => item.product_id === product.id)?.qty || 0) : 0;
+  const productDetails = product ? [
+    ["Size / volume", product.size_volume],
+    ["Fragrance family", product.fragrance_family],
+    ["Scent profile", product.scent_profile],
+    ["Occasion", product.occasion],
+    ["Fragrance notes", product.notes],
+  ].filter(([, value]) => String(value || "").trim()) : [];
+
+  function markImageFailed(url) {
+    setFailedImages((current) => current.includes(url) ? current : [...current, url]);
+    if (activeImage === url) setActiveImage(product?.image || "");
+  }
 
   if (loading && !product) {
-    return <section className="mx-auto max-w-6xl px-4 py-20"><div className="h-96 animate-pulse rounded-2xl bg-[var(--color-surface-muted)]" /></section>;
+    return <section className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 md:px-12"><div className="h-[70vh] animate-pulse bg-[var(--color-surface-muted)]" /></section>;
   }
 
   if (!product) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-20 text-center">
-        <p className="text-sm uppercase tracking-[0.2em] text-[var(--color-muted)]">404</p>
-        <h1 className="mt-3 text-3xl font-semibold">Perfume not found</h1>
-        <button onClick={() => navigate("perfumes")} className="mt-8 rounded-lg bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700">Back to collection</button>
+      <section className="mx-auto max-w-4xl px-5 py-24 text-center">
+        <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--color-muted)]">404</p>
+        <h1 className="mt-4 font-serif text-5xl font-normal">Perfume not found</h1>
+        <button onClick={() => navigate("perfumes")} className="mt-8 border-b border-[var(--color-text)] pb-1 text-[10px] font-semibold uppercase tracking-[0.16em]">Back to collection</button>
       </section>
     );
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
-      <button onClick={() => navigate("perfumes")} className="mb-7 text-sm font-medium text-[var(--color-muted)] hover:text-amber-600" aria-label="Back to perfume collection">← Our Collection</button>
-      <div className="grid gap-10 md:grid-cols-2 md:items-start">
-        <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)]">
-          <div className="aspect-[4/5]"><SafeImage src={product.image} alt={product.alt || product.name} className="h-full w-full object-cover" priority /></div>
+    <section className="mx-auto max-w-[1440px] px-5 py-8 sm:px-8 md:px-12 md:py-12">
+      <button onClick={() => navigate("perfumes")} className="mb-8 text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)] transition hover:text-[var(--color-text)]" aria-label="Back to perfume collection">← All fragrances</button>
+
+      <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
+        <div>
+          <div className="min-h-[560px] overflow-hidden bg-[var(--color-surface-muted)]">
+            <SafeImage src={activeImage || product.image} alt={product.alt || product.name} className="h-full w-full object-cover" priority />
+          </div>
+
+          {visibleGallery.length > 1 && (
+            <div className="mt-3 grid grid-cols-5 gap-2" aria-label={product.name + " image gallery"}>
+              {galleryUrls.map((url, index) => (
+                !failedImages.includes(url) && (
+                  <button
+                    key={url}
+                    type="button"
+                    onClick={() => setActiveImage(url)}
+                    className={"relative aspect-[4/5] overflow-hidden border transition " + ((activeImage || product.image) === url ? "border-[var(--color-text)]" : "border-transparent opacity-65 hover:opacity-100")}
+                    aria-label={`View ${product.name} image ${index + 1}`}
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      onError={() => markImageFailed(url)}
+                      className="h-full w-full object-cover"
+                      loading={index === 0 ? "eager" : "lazy"}
+                    />
+                  </button>
+                )
+              ))}
+            </div>
+          )}
+
+          <div className="hidden">
+            {galleryUrls.map((url) => (
+              !failedImages.includes(url) && (
+                <img key={"probe-" + url} src={url} alt="" onError={() => markImageFailed(url)} />
+              )
+            ))}
+          </div>
         </div>
-        <div className="md:pt-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-amber-600">SAHUMäRIO Eau de Parfum</p>
-          <h1 className="mt-3 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">{product.name}</h1>
-          <p className="mt-5 text-2xl font-medium">{formatINR(product.price)}</p>
-          <p className="mt-6 max-w-xl leading-7 text-[var(--color-muted)]">{product.description}</p>
-          {product.notes && <p className="mt-4 max-w-xl text-sm leading-6 text-[var(--color-muted)]">{product.notes}</p>}
-          <div className="mt-8 border-t border-[var(--color-border)] pt-8">
+
+        <div className="flex flex-col justify-center lg:py-8">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">SAHUMäRIO · Eau de Parfum</p>
+          <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.025em] sm:text-6xl">{product.name}</h1>
+          <p className="mt-4 text-base">{formatINR(product.price)}</p>
+          <p className="mt-7 max-w-xl text-sm leading-7 text-[var(--color-muted)]">{product.description}</p>
+
+          <div className="mt-9 border-t border-[var(--color-border)] pt-6">
             {quantity === 0 ? (
-              <button onClick={() => addToCart(product)} className="w-full rounded-lg bg-amber-600 px-6 py-3.5 font-semibold text-white hover:bg-amber-700 sm:w-auto">Add to Cart</button>
+              <button onClick={() => addToCart(product)} className="flex h-12 w-full items-center justify-between bg-[var(--color-text)] px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-bg)] transition-opacity hover:opacity-85">
+                <span>Add to bag</span><span>+</span>
+              </button>
             ) : (
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center overflow-hidden rounded-lg border border-[var(--color-border)]" aria-label={product.name + " quantity"}>
-                  <button onClick={() => updateQty(product.id, quantity - 1)} className="px-4 py-3 hover:bg-[var(--color-surface-muted)]" aria-label={"Decrease " + product.name}>−</button>
-                  <span className="min-w-10 text-center font-medium">{quantity}</span>
-                  <button onClick={() => updateQty(product.id, quantity + 1)} className="px-4 py-3 hover:bg-[var(--color-surface-muted)]" aria-label={"Increase " + product.name}>+</button>
-                </div>
-                <span className="text-sm text-[var(--color-muted)]">In your cart</span>
+              <div className="grid h-12 grid-cols-[3rem_1fr_3rem] border border-[var(--color-border)]">
+                <button onClick={() => updateQty(product.id, quantity - 1)} className="text-lg" aria-label={"Decrease " + product.name}>−</button>
+                <span className="flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.12em]">{quantity} in bag</span>
+                <button onClick={() => updateQty(product.id, quantity + 1)} className="text-lg" aria-label={"Increase " + product.name}>+</button>
               </div>
             )}
           </div>
-          <dl className="mt-10 grid grid-cols-2 gap-4 border-t border-[var(--color-border)] pt-6 text-sm">
-            <div><dt className="text-[var(--color-muted)]">Brand</dt><dd className="mt-1 font-medium">SAHUMäRIO</dd></div>
-            <div><dt className="text-[var(--color-muted)]">Product</dt><dd className="mt-1 font-medium">Eau de Parfum</dd></div>
-          </dl>
+
+          {productDetails.length > 0 && (
+            <dl className="mt-10 border-t border-[var(--color-border)]">
+              {productDetails.map(([label, value]) => (
+                <div key={label} className="grid gap-2 border-b border-[var(--color-border)] py-4 sm:grid-cols-[10rem_1fr]">
+                  <dt className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">{label}</dt>
+                  <dd className="whitespace-pre-line text-sm leading-6">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          <div className="mt-8 space-y-3 border-t border-[var(--color-border)] pt-5 text-xs leading-5 text-[var(--color-muted)]">
+            <p>Complimentary delivery across India.</p>
+            <p>Typical delivery window: 3–7 business days.</p>
+            <p>Payments are processed through Razorpay.</p>
+          </div>
         </div>
       </div>
 
