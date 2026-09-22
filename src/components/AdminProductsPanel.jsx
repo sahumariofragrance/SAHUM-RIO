@@ -2,17 +2,42 @@ import React, { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, ImagePlus, Loader2, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
+import { useProducts } from "../context/ProductsContext";
 
-const emptyForm = { id: null, name: "", slug: "", description: "", price: "", alt: "", notes: "", image_url: "", active: false, display_order: 0 };
+const MAX_PRODUCT_IMAGES = 5;
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+
+const emptyForm = {
+  id: null,
+  name: "",
+  slug: "",
+  description: "",
+  price: "",
+  alt: "",
+  notes: "",
+  size_volume: "",
+  fragrance_family: "",
+  scent_profile: "",
+  occasion: "",
+  image_url: "",
+  active: false,
+  display_order: 0,
+};
 
 function slugify(value) {
   return String(value || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
+function galleryPath(slug, index) {
+  return `gallery/${slug}/${index + 1}`;
+}
+
 export default function AdminProductsPanel() {
+  const { refreshProducts } = useProducts();
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -36,28 +61,71 @@ export default function AdminProductsPanel() {
   }, [loading, nextOrder, form.id, form.name, form.display_order]);
 
   function reset() {
-    setForm({ ...emptyForm, display_order: nextOrder }); setFile(null); setMessage(""); setError("");
+    setForm({ ...emptyForm, display_order: nextOrder }); setFiles([]); setMessage(""); setError("");
   }
 
   function edit(product) {
     setForm({
       id: product.id, name: product.name || "", slug: product.slug || "", description: product.description || "",
       price: String(product.price ?? ""), alt: product.alt || "", notes: product.notes || "", image_url: product.image_url || "",
+      size_volume: product.size_volume || "", fragrance_family: product.fragrance_family || "",
+      scent_profile: product.scent_profile || "", occasion: product.occasion || "",
       active: Boolean(product.active), display_order: Number(product.display_order || 0),
     });
-    setFile(null); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
+    setFiles([]); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  async function uploadImage(productSlug) {
-    if (!file) return form.image_url;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new Error("Use a JPG, PNG, or WebP image.");
-    if (file.size > 10 * 1024 * 1024) throw new Error("Image must be 10 MB or smaller.");
-    const extension = (file.name.split(".").pop() || "jpg").toLowerCase();
-    const objectName = productSlug + "-" + Date.now() + "." + extension;
-    const { error: uploadError } = await supabase.storage.from("product-images").upload(objectName, file, { upsert: false, contentType: file.type });
-    if (uploadError) throw uploadError;
-    const { data } = supabase.storage.from("product-images").getPublicUrl(objectName);
-    return data.publicUrl;
+  function selectImages(event) {
+    const selected = Array.from(event.target.files || []);
+    setError("");
+
+    if (selected.length > MAX_PRODUCT_IMAGES) {
+      event.target.value = "";
+      setFiles([]);
+      setError("Choose a maximum of 5 product images.");
+      return;
+    }
+
+    const invalidType = selected.find((file) => !ACCEPTED_IMAGE_TYPES.includes(file.type));
+    if (invalidType) {
+      event.target.value = "";
+      setFiles([]);
+      setError("Use JPG, PNG, or WebP images only.");
+      return;
+    }
+
+    const tooLarge = selected.find((file) => file.size > MAX_IMAGE_SIZE);
+    if (tooLarge) {
+      event.target.value = "";
+      setFiles([]);
+      setError("Each image must be 10 MB or smaller.");
+      return;
+    }
+
+    setFiles(selected);
+  }
+
+  async function uploadGallery(productSlug) {
+    if (!files.length) return form.image_url;
+
+    const paths = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => galleryPath(productSlug, index));
+    const { error: cleanupError } = await supabase.storage.from("product-images").remove(paths);
+    if (cleanupError) throw cleanupError;
+
+    let primaryUrl = "";
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      const objectName = galleryPath(productSlug, index);
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(objectName, file, { upsert: false, contentType: file.type, cacheControl: "3600" });
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("product-images").getPublicUrl(objectName);
+      if (index === 0) primaryUrl = data.publicUrl;
+    }
+
+    return primaryUrl;
   }
 
   async function save(event) {
@@ -65,12 +133,20 @@ export default function AdminProductsPanel() {
     try {
       const name = form.name.trim(); const slug = slugify(form.slug || name); const price = Number(form.price);
       if (!name || !slug || !form.description.trim() || !Number.isFinite(price) || price <= 0) throw new Error("Name, description, slug, and a valid price are required.");
-      const imageUrl = await uploadImage(slug);
-      if (!imageUrl) throw new Error("Please upload a product image.");
+      if (!form.id && !files.length && !form.image_url) throw new Error("Please upload at least one product image.");
+
+      const imageUrl = await uploadGallery(slug);
+      if (!imageUrl) throw new Error("Please upload at least one product image.");
+
       const { data: userData } = await supabase.auth.getUser(); const user = userData?.user;
       const payload = {
         name, slug, description: form.description.trim(), price, image_url: imageUrl,
-        alt: form.alt.trim() || name + " perfume bottle", notes: form.notes.trim() || null,
+        alt: form.alt.trim() || name + " Eau de Parfum bottle",
+        notes: form.notes.trim() || null,
+        size_volume: form.size_volume.trim() || null,
+        fragrance_family: form.fragrance_family.trim() || null,
+        scent_profile: form.scent_profile.trim() || null,
+        occasion: form.occasion.trim() || null,
         active: Boolean(form.active), display_order: Number(form.display_order || 0),
         updated_at: new Date().toISOString(), updated_by: user?.id || null,
       };
@@ -78,9 +154,15 @@ export default function AdminProductsPanel() {
       if (form.id) result = await supabase.from("products").update(payload).eq("id", form.id).select("*").single();
       else result = await supabase.from("products").insert({ ...payload, created_by: user?.id || null }).select("*").single();
       if (result.error) throw result.error;
-      setMessage(form.id ? "Product updated." : "Product added to the catalogue."); setFile(null);
+
+      const savedProduct = result.data;
+      const galleryMessage = files.length > 1 ? ` ${files.length} images saved.` : files.length === 1 ? " 1 image saved." : "";
+      setMessage(form.id ? `Product updated. ID: ${savedProduct.id}.${galleryMessage}` : `Product added to the catalogue with ID ${savedProduct.id}.${galleryMessage}`);
+      setFiles([]);
       await load();
+      await refreshProducts();
       if (!form.id) setForm({ ...emptyForm, display_order: nextOrder + 10 });
+      else setForm((current) => ({ ...current, image_url: savedProduct.image_url }));
     } catch (err) { setError(err?.message || "Unable to save product."); }
     finally { setSaving(false); }
   }
@@ -88,7 +170,7 @@ export default function AdminProductsPanel() {
   async function toggleActive(product) {
     setError("");
     const { error: updateError } = await supabase.from("products").update({ active: !product.active, updated_at: new Date().toISOString() }).eq("id", product.id);
-    if (updateError) setError(updateError.message); else await load();
+    if (updateError) setError(updateError.message); else { await load(); await refreshProducts(); }
   }
 
   async function removeProduct(product) {
@@ -98,18 +180,23 @@ export default function AdminProductsPanel() {
       const { error: deleteError } = await supabase.from("products").delete().eq("id", product.id);
       if (deleteError) throw deleteError;
 
+      const cleanupObjects = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => galleryPath(product.slug, index));
       const marker = "/storage/v1/object/public/product-images/";
       const imageUrl = String(product.image_url || "");
       if (imageUrl.includes(marker)) {
-        const objectName = decodeURIComponent(imageUrl.split(marker)[1] || "");
-        if (objectName) {
-          const { error: storageError } = await supabase.storage.from("product-images").remove([objectName]);
-          if (storageError) console.warn("Product image cleanup failed", storageError.message);
-        }
+        const currentPrimaryObject = decodeURIComponent(imageUrl.split(marker)[1] || "");
+        if (currentPrimaryObject) cleanupObjects.push(currentPrimaryObject);
+      }
+
+      const uniqueObjects = [...new Set(cleanupObjects.filter(Boolean))];
+      if (uniqueObjects.length) {
+        const { error: storageError } = await supabase.storage.from("product-images").remove(uniqueObjects);
+        if (storageError) console.warn("Product image cleanup failed", storageError.message);
       }
 
       if (form.id === product.id) reset();
       await load();
+      await refreshProducts();
       setMessage("Product deleted.");
     } catch (err) {
       setError(err?.message || "Unable to delete product.");
@@ -133,9 +220,50 @@ export default function AdminProductsPanel() {
             <label className="block text-sm">Price (₹)<input type="number" min="1" step="0.01" value={form.price} onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" required /></label>
             <label className="block text-sm">Display order<input type="number" value={form.display_order} onChange={(e) => setForm((p) => ({ ...p, display_order: e.target.value }))} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
           </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm">Size / volume<input value={form.size_volume} maxLength={80} onChange={(e) => setForm((p) => ({ ...p, size_volume: e.target.value }))} placeholder="For example: 50 ml" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
+            <label className="block text-sm">Fragrance family<input value={form.fragrance_family} maxLength={120} onChange={(e) => setForm((p) => ({ ...p, fragrance_family: e.target.value }))} placeholder="Add only when confirmed" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
+          </div>
+          <label className="block text-sm">Scent profile<input value={form.scent_profile} maxLength={240} onChange={(e) => setForm((p) => ({ ...p, scent_profile: e.target.value }))} placeholder="A concise, verified scent description" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
+          <label className="block text-sm">Occasion<input value={form.occasion} maxLength={160} onChange={(e) => setForm((p) => ({ ...p, occasion: e.target.value }))} placeholder="Add only when confirmed" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
           <label className="block text-sm">Image alt text<input value={form.alt} onChange={(e) => setForm((p) => ({ ...p, alt: e.target.value }))} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
-          <label className="block text-sm">Fragrance notes / internal notes<textarea value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} rows={3} className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /></label>
-          <label className="block text-sm">Product image<div className="mt-1 rounded-xl border border-dashed border-[var(--color-border)] p-4"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setFile(e.target.files?.[0] || null)} className="block w-full text-sm" />{form.image_url && !file && <img src={form.image_url} alt="" className="mt-3 h-28 w-24 rounded-lg object-cover" />}{file && <p className="mt-2 text-xs text-[var(--color-muted)]">{file.name}</p>}</div></label>
+          <label className="block text-sm">Fragrance notes<textarea value={form.notes} maxLength={500} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} rows={3} placeholder="Enter the actual fragrance notes only" className="mt-1 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5" /><span className="mt-1 block text-xs leading-5 text-[var(--color-muted)]">Optional details appear on the product page only when filled in.</span></label>
+
+          <label className="block text-sm">
+            Product gallery
+            <div className="mt-1 rounded-xl border border-dashed border-[var(--color-border)] p-4">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                onChange={selectImages}
+                className="block w-full text-sm"
+              />
+              <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">
+                Choose up to 5 images. The first selected image becomes the main collection image. Uploading new images replaces this perfume’s existing gallery.
+              </p>
+
+              {files.length > 0 && (
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {files.map((selectedFile, index) => (
+                    <div key={selectedFile.name + index} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs">
+                      <span className="font-semibold">{index === 0 ? "Primary · " : `Image ${index + 1} · `}</span>
+                      <span className="break-all text-[var(--color-muted)]">{selectedFile.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {form.image_url && files.length === 0 && (
+                <div className="mt-4">
+                  <p className="mb-2 text-xs text-[var(--color-muted)]">Current primary image</p>
+                  <img src={form.image_url} alt="" className="h-32 w-28 rounded-lg object-cover" />
+                  {form.id && <p className="mt-2 text-xs text-[var(--color-muted)]">Leave the file picker empty to keep the existing gallery unchanged.</p>}
+                </div>
+              )}
+            </div>
+          </label>
+
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.active} onChange={(e) => setForm((p) => ({ ...p, active: e.target.checked }))} />Visible in store</label>
           {!form.id && <p className="text-xs leading-5 text-[var(--color-muted)]">New products start hidden by default. Turn on “Visible in store” only when the listing is ready.</p>}
         </div>
@@ -150,7 +278,7 @@ export default function AdminProductsPanel() {
               <article key={product.id} className="flex gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
                 <img src={product.image_url} alt={product.alt || product.name} className="h-24 w-20 rounded-xl object-cover" />
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="font-semibold">{product.name}</h3><p className="text-xs text-[var(--color-muted)]">/product/{product.slug}</p></div><span className="font-semibold">{formatINR(product.price)}</span></div>
+                  <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="font-semibold">{product.name}</h3><p className="text-xs text-[var(--color-muted)]">Product ID {product.id} · /product/{product.slug}</p></div><span className="font-semibold">{formatINR(product.price)}</span></div>
                   <p className="mt-2 line-clamp-2 text-sm text-[var(--color-muted)]">{product.description}</p>
                   <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => edit(product)} className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold"><Pencil className="h-3.5 w-3.5" />Edit</button><button onClick={() => toggleActive(product)} className={product.active ? "rounded-full bg-green-100 px-3 py-1.5 text-xs font-semibold text-green-700" : "rounded-full bg-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-700"}>{product.active ? "Visible" : "Hidden"}</button><button onClick={() => removeProduct(product)} className="inline-flex items-center gap-1 rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600"><Trash2 className="h-3.5 w-3.5" />Delete</button></div>
                 </div>
