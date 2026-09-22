@@ -85,7 +85,7 @@ export default function BulkOrdersPage() {
   }
 
   return (
-    <main>
+    <div>
       <section className="overflow-hidden bg-[#24160f] text-[#fff8ed]">
         <div className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
           <div className="grid gap-12 md:grid-cols-[1.15fr_0.85fr] md:items-end">
@@ -198,6 +198,6 @@ export default function BulkOrdersPage() {
           </div>
         </aside>
       </section>
-    </main>
+    </div>
   );
 }
