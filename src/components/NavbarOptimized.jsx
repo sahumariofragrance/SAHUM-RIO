@@ -4,6 +4,7 @@ import { useCart } from "../context/cartContext";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
+import BrandMark from "./BrandMark";
 
 const NavButton = ({ id, active, onClick, children }) => (
   <button
@@ -84,8 +85,8 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
               </nav>
             </div>
 
-            <button onClick={() => nav("home")} className="justify-self-center px-4 text-center" aria-label="SAHUMäRIO home">
-              <span className="block font-serif text-[27px] font-medium leading-none tracking-[0.075em]">SAHUMäRIO</span>
+            <button onClick={() => nav("home")} className="justify-self-center px-4 text-center" aria-label="SAHUMäRIO registered trademark home">
+              <BrandMark className="block font-serif text-[27px] font-medium leading-none tracking-[0.075em]" />
             </button>
 
             <div className="flex items-center justify-end gap-0.5">
