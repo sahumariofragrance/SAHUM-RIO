@@ -1,4 +1,3 @@
-// src/pages/PerfumesPage.jsx
 import React, { useCallback, useMemo } from "react";
 import ProductGrid from "../components/ProductGrid";
 import { useProducts } from "../context/ProductsContext";
@@ -22,21 +21,16 @@ export default function PerfumesPage({ onProductNavigate }) {
   const handleUpdateQty = useCallback((productId, newQty) => updateQty(productId, newQty), [updateQty]);
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16">
-      <div className="grid gap-8 border-b border-[var(--color-border)] pb-9 md:grid-cols-[1fr_auto] md:items-end">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-700">All fragrances</p>
-          <h1 className="mt-3 font-serif text-4xl font-semibold tracking-tight md:text-6xl">The fragrance wardrobe</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--color-muted)]">
-            Our oil-based fragrance collection, presented simply so you can focus on the bottle that speaks to you.
-          </p>
-        </div>
-        <div className="text-sm text-[var(--color-muted)] md:text-right">
-          <p>{products.length} fragrance{products.length === 1 ? "" : "s"}</p>
-          {products.length > 0 && <p className="mt-1">From ₹{Math.min(...products.map((product) => Number(product.price))).toLocaleString("en-IN")}</p>}
-        </div>
+    <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 md:px-12 md:py-20">
+      <div className="border-b border-[var(--color-border)] pb-9 text-center md:pb-12">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">SAHUMäRIO</p>
+        <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.03em] md:text-7xl">All fragrances</h1>
+        <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[var(--color-muted)]">
+          Eau de Parfum from the current collection.
+        </p>
       </div>
-      <div className="mt-10">
+
+      <div className="mt-10 md:mt-14">
         <ProductGrid
           products={products}
           onSelectProduct={onProductNavigate}
