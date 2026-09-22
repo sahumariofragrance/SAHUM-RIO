@@ -15,6 +15,7 @@
 "use strict";
 
 const crypto = require("crypto");
+const { setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../../_lib/security");
 
 // Razorpay IDs are always ASCII hex/alphanumeric strings of known max length.
 // We enforce this to prevent any prototype-pollution or buffer-overflow vectors.
@@ -23,11 +24,7 @@ const PAYMENT_ID_RE = /^pay_[A-Za-z0-9]{14,20}$/;
 const SIGNATURE_RE  = /^[a-f0-9]{64}$/;   // HMAC-SHA256 hex output is always 64 chars
 
 function setSecurityHeaders(res) {
-  res.setHeader("Content-Type",           "application/json");
-  res.setHeader("Cache-Control",          "no-store");
-  res.setHeader("Pragma",                 "no-cache");
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options",        "DENY");
+  setJsonSecurityHeaders(res);
 }
 
 /** Returns a sanitised string or null if the value is not a plain non-empty string. */
@@ -35,16 +32,14 @@ function asString(value) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
   setSecurityHeaders(res);
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
-
-  if (!req.headers["content-type"]?.includes("application/json")) {
-    return res.status(415).json({ message: "Content-Type must be application/json" });
-  }
+  if (!enforceJsonRequest(req, res, { methods: ["POST"], maxBytes: 8 * 1024 })) return;
+  if (!(await enforceRateLimit(req, res, {
+    scope: "razorpay-verify",
+    limit: 30,
+    windowSeconds: 600,
+  }))) return;
 
   const body = req.body && typeof req.body === "object" && !Array.isArray(req.body)
     ? req.body
