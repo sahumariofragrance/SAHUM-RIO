@@ -5,11 +5,15 @@ import fallbackProducts from "../data/products.json";
 const ProductsContext = createContext(null);
 
 function normalizeProduct(product) {
+  const alt = String(product.alt || `${product.name} Eau de Parfum bottle`)
+    .replace(/oil-based perfume/gi, "Eau de Parfum");
+
   return {
     ...product,
     id: Number(product.id),
     price: Number(product.price),
     image: product.image_url || product.image,
+    alt,
   };
 }
 
@@ -23,7 +27,7 @@ export function ProductsProvider({ children }) {
     setError("");
     const { data, error: queryError } = await supabase
       .from("products")
-      .select("id,slug,name,description,price,image_url,alt,notes,active,display_order")
+      .select("id,slug,name,description,price,image_url,alt,notes,size_volume,fragrance_family,scent_profile,occasion,active,display_order")
       .eq("active", true)
       .order("display_order", { ascending: true })
       .order("id", { ascending: true });
