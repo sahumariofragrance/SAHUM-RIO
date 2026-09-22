@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const ThemeContext = createContext();
-const THEME_STORAGE_KEY = "sahumario_theme";
+const THEME_STORAGE_KEY = "sahumario_theme_v2";
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     try {
-      return localStorage.getItem(THEME_STORAGE_KEY) || "light";
+      return localStorage.getItem(THEME_STORAGE_KEY) || "dark";
     } catch {
-      return "light";
+      return "dark";
     }
   });
 
