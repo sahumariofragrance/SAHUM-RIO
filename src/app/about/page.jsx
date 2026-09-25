@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "About SAHUMäRIO® | Independent Fragrance Brand",
+  title: { absolute: "About SAHUMäRIO® | Independent Fragrance Brand" },
   description: "Learn about SAHUMäRIO®, an independent fragrance brand creating a focused Eau de Parfum collection.",
   alternates: { canonical: "/about" },
 };
