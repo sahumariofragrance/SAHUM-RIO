@@ -1,12 +1,10 @@
-// tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./public/index.html",          // optional but fine
-    "./src/**/*.{js,jsx,ts,tsx}",   // ← critical for CRA + JSX
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./components-next/**/*.{js,jsx,ts,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
-  theme: {
-    extend: {},
-  },
+  theme: { extend: {} },
   plugins: [],
-}
+};
