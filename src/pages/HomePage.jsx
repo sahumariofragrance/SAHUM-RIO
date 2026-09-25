@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import { ArrowRight } from "lucide-react";
 import ProductGrid from "../components/ProductGrid";
 import BrandMark from "../components/BrandMark";
+import SpaLink from "../components/SpaLink";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
@@ -16,11 +17,11 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
   return <>
     <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 md:px-12 md:py-28">
       <div className="glass-soft flex flex-col gap-5 rounded-[1.6rem] px-6 py-7 md:flex-row md:items-end md:justify-between md:px-8 md:py-8">
-        <div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">The collection</p><h2 className="mt-3 font-serif text-5xl font-normal tracking-[-0.025em] md:text-6xl">Eau de Parfum</h2></div>
+        <div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">The collection</p><h1 className="mt-3 font-serif text-5xl font-normal tracking-[-0.025em] md:text-6xl">Eau de Parfum</h1></div>
         <p className="max-w-md text-sm leading-7 text-[var(--color-muted)]">Explore the current SAHUMäRIO® collection.</p>
       </div>
       <div className="mt-10 md:mt-14"><ProductGrid products={products} loading={loading} onSelectProduct={onProductNavigate} onAddToCart={handleAdd} onUpdateQty={handleQty} /></div>
-      <div className="mt-14 text-center"><button onClick={() => setCurrentPage?.("perfumes")} className="group inline-flex items-center gap-3 border-b border-[var(--color-text)] pb-1 text-[10px] font-semibold uppercase tracking-[0.16em]">View the full collection<ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" /></button></div>
+      <div className="mt-14 text-center"><SpaLink href="/perfumes" onNavigate={() => setCurrentPage?.("perfumes")} className="group inline-flex items-center gap-3 border-b border-[var(--color-text)] pb-1 text-[10px] font-semibold uppercase tracking-[0.16em]">View the full collection<ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" /></SpaLink></div>
     </section>
 
     <section className="glass-quote-stage border-y border-[var(--color-border)] px-5 py-16 sm:px-8 md:py-24">
