@@ -83,7 +83,35 @@ export default function ProductPage({ slug, navigate }) {
       },
     });
 
-    return () => removeJsonLd("product");
+    setJsonLd("product-breadcrumb", {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: absoluteUrl("/"),
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Perfumes",
+          item: absoluteUrl("/perfumes"),
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: product.name,
+          item: absoluteUrl(`/product/${product.slug}`),
+        },
+      ],
+    });
+
+    return () => {
+      removeJsonLd("product");
+      removeJsonLd("product-breadcrumb");
+    };
   }, [product]);
 
   const quantity = product ? (items.find((item) => item.product_id === product.id)?.qty || 0) : 0;
