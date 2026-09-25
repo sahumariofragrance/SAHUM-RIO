@@ -55,5 +55,6 @@
       "destination": "/account/orders",
       "permanent": true
     }
-  ]
+  ],
+  "framework": "nextjs"
 }
