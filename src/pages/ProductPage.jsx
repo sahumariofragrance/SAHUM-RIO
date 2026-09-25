@@ -6,6 +6,7 @@ import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
 import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
+import { absoluteUrl, removeJsonLd, setJsonLd } from "../lib/seo";
 
 const MAX_PRODUCT_IMAGES = 5;
 
@@ -51,6 +52,39 @@ export default function ProductPage({ slug, navigate }) {
     () => galleryUrls.filter((url) => !failedImages.includes(url)),
     [galleryUrls, failedImages]
   );
+
+  useEffect(() => {
+    if (!product) {
+      removeJsonLd("product");
+      return;
+    }
+
+    setJsonLd("product", {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.name,
+      description: product.description,
+      image: [product.image].filter(Boolean),
+      sku: String(product.id),
+      category: "Eau de Parfum",
+      brand: {
+        "@type": "Brand",
+        name: "SAHUMäRIO®",
+      },
+      offers: {
+        "@type": "Offer",
+        url: absoluteUrl(`/product/${product.slug}`),
+        priceCurrency: "INR",
+        price: Number(product.price).toFixed(2),
+        seller: {
+          "@type": "Organization",
+          name: "SAHUMäRIO®",
+        },
+      },
+    });
+
+    return () => removeJsonLd("product");
+  }, [product]);
 
   const quantity = product ? (items.find((item) => item.product_id === product.id)?.qty || 0) : 0;
   const productDetails = product ? [
