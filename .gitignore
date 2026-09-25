@@ -23,3 +23,8 @@ yarn-debug.log*
 yarn-error.log*
 .vercel
 .env*
+
+# Local tool configuration (never commit)
+.claude/
+__pycache__/
+*.pyc

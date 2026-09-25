@@ -1,2 +1,0 @@
-Preview redeploy trigger after updating ORDER_EMAIL_FROM to SAHUMäRIO <hello@sahumario.com>.
-No production code changes.
