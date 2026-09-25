@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import ProductGrid from "../components/ProductGrid";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
+import { absoluteUrl, removeJsonLd, setJsonLd } from "../lib/seo";
 
 export default function PerfumesPage({ onProductNavigate }) {
   const { items, addToCart, updateQty } = useCart();
@@ -16,6 +17,27 @@ export default function PerfumesPage({ onProductNavigate }) {
     ...product,
     qty: itemQtyById[product.id] ?? 0,
   })), [catalogueProducts, itemQtyById]);
+
+  useEffect(() => {
+    if (loading || !catalogueProducts.length) {
+      removeJsonLd("collection");
+      return;
+    }
+
+    setJsonLd("collection", {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "SAHUMäRIO® Eau de Parfum Collection",
+      itemListElement: catalogueProducts.map((product, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: absoluteUrl(`/product/${product.slug}`),
+        name: product.name,
+      })),
+    });
+
+    return () => removeJsonLd("collection");
+  }, [catalogueProducts, loading]);
 
   const handleAddToCart = useCallback((product) => addToCart(product), [addToCart]);
   const handleUpdateQty = useCallback((productId, newQty) => updateQty(productId, newQty), [updateQty]);
