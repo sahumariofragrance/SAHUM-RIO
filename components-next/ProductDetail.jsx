@@ -6,6 +6,7 @@ import BrandMark from "../src/components/BrandMark";
 import SafeImage from "../src/components/SafeImage";
 import { formatINR } from "../src/utils/money";
 import { useCart } from "./cart";
+import ProductReviews from "./ProductReviews";
 
 export default function ProductDetail({ product, galleryUrls }) {
   const { items, addToCart, updateQty } = useCart();
@@ -84,6 +85,7 @@ export default function ProductDetail({ product, galleryUrls }) {
           </div>
         </div>
       </div>
+      <ProductReviews product={product} />
     </section>
   );
 }
