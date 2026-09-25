@@ -39,66 +39,21 @@
       ]
     }
   ],
-  "rewrites": [
+  "redirects": [
     {
-      "source": "/perfumes",
-      "destination": "/index.html"
+      "source": "/refund-policy",
+      "destination": "/refund-return-policy",
+      "permanent": true
     },
     {
-      "source": "/about",
-      "destination": "/index.html"
+      "source": "/terms",
+      "destination": "/terms-conditions",
+      "permanent": true
     },
     {
-      "source": "/cart",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/checkout",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/account",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/account/orders",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/admin",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/login",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/reset-password",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/bulk-orders",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/privacy-policy",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/refund-return-policy",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/shipping-policy",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/terms-conditions",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/product/:slug",
-      "destination": "/index.html"
+      "source": "/orders",
+      "destination": "/account/orders",
+      "permanent": true
     }
   ]
 }
