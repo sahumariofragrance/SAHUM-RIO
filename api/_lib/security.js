@@ -48,7 +48,8 @@ function clientIp(req) {
 }
 
 function hashRateKey(value) {
-  const pepper = process.env.RATE_LIMIT_PEPPER || process.env.SUPABASE_SERVICE_ROLE_KEY || "sahumario-rate-limit";
+  // Falls back to the service-role key; getServiceClient() guarantees one of them is set here.
+  const pepper = process.env.RATE_LIMIT_PEPPER || process.env.SUPABASE_SERVICE_ROLE_KEY;
   return crypto.createHash("sha256").update(String(pepper)).update("|").update(String(value)).digest("hex");
 }
 
@@ -61,7 +62,9 @@ async function enforceRateLimit(req, res, {
   const client = getServiceClient();
   if (!client) {
     // Fail open rather than blocking legitimate checkout if the rate-limit store
-    // itself is unavailable. Endpoint auth/validation remains in force.
+    // itself is unavailable. Endpoint auth/validation remains in force, but make
+    // the missing protection visible in the logs.
+    console.error(`[rate-limit] DISABLED for "${scope}": SUPABASE_SERVICE_ROLE_KEY is not configured`);
     return true;
   }
 
@@ -74,7 +77,7 @@ async function enforceRateLimit(req, res, {
   });
 
   if (error) {
-    console.error("[rate-limit]", error.message);
+    console.error(`[rate-limit] DISABLED for "${scope}" (failing open):`, error.message);
     return true;
   }
 

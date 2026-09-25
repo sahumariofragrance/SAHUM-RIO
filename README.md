@@ -29,10 +29,11 @@ A React-based e-commerce storefront for oil-based perfumes with Razorpay payment
 npm install
 ```
 
-Create a `.env` file in the project root:
+Create a `.env.local` file in the project root (see **Environment Variables** below for the full list):
 
 ```env
-REACT_APP_API_URL=http://your-backend-url:8000
+REACT_APP_SUPABASE_URL=https://your-project.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=your-anon-key
 REACT_APP_RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
 ```
 
@@ -101,22 +102,11 @@ src/
 
 ### Admin Page Access
 
-The admin panel is protected by a login wall backed by `AuthContext`:
-
-| Gate | How it works |
-|---|---|
-| **Link hidden by default** | The "Admin" link in the Footer only renders when `REACT_APP_ADMIN_ENABLED=true` |
-| **Route guard in `App.js`** | If `currentPage === "admin"` and `user` is `null`, the router renders `<LoginPage redirectAfterLogin="admin" />` instead of the admin panel |
-| **Token-based session** | `AuthContext` calls `POST /auth/login` (or `/auth/signup`) on the backend; the JWT is stored in `localStorage` under `sahu_token` and sent as `Authorization: Bearer` on every API request via `src/lib/api.jsx` |
-| **GitHub PAT required to publish** | "Commit to GitHub" also requires `REACT_APP_GITHUB_TOKEN` in `.env` — a second independent gate for the write operation |
-| **Logout button in admin header** | Shows the logged-in user's name/email; clicking Logout clears the token and redirects home |
-
-**Auth flow:**
-1. Unauthenticated user navigates to admin → sees Login form
-2. Enters credentials → `POST /auth/login` → receives JWT
-3. JWT stored in `localStorage`; user redirected to admin panel
-4. All subsequent API calls carry the token automatically
-5. On 401 response, token is cleared and user must re-authenticate
+- `/admin` renders the login form unless a signed-in (non-guest) Supabase user is present.
+- Admin rights are decided server-side by the `is_admin()` database function (`admin_users` table);
+  admin API routes call it via `api/_lib/adminAuth.js` and Row Level Security enforces it in the database.
+- Product images are uploaded to the Supabase Storage bucket `product-images`; products live in the
+  `products` table (no GitHub tokens in the browser).
 
 ---
 
@@ -200,43 +190,53 @@ Supabase dashboard → Authentication → Providers → Email → Enable.
 ## Architecture
 
 ### Routing
-Client-side only via `currentPage` state in `App.js`. No React Router dependency.
+Client-side via `route` state in `App.js` (no React Router). Every public URL is also listed in
+`vercel.json` rewrites so direct loads work; unknown URLs return a real 404.
 
 ### State Management
-Three independent Context providers:
-
-| Context | Persisted to | Purpose |
-|---|---|---|
-| CartContext | `sahumario_cart` | Cart items, counts, subtotal |
-| OrdersContext | `sahumario_orders` | Order history |
-| ThemeContext | `sahumario_theme` | Light / dark mode |
-
-AuthContext exists but is not integrated into the main routing yet.
+Context providers: `AuthContext` (Supabase auth, incl. guest sessions), `ProductsContext` (live
+catalogue from Supabase, falls back to `src/data/products.json`), `CartContext`, `OrdersContext`
+(Supabase, cached in localStorage), `ThemeContext`.
 
 ### Payment Flow
-1. User fills shipping form on `/checkout`
-2. `CheckoutPage` posts to `/api/payments/razorpay/order` to create an order
-3. Razorpay SDK is loaded on-demand and opened
-4. On payment success, cart is cleared
+1. `CheckoutPage` posts the cart to `/api/payments/razorpay/order`; the server prices it from the
+   `products` table and stores a `payment_intents` row.
+2. Razorpay Checkout opens with the server-created order.
+3. `/api/orders/complete` verifies the signature, re-fetches the payment/order from Razorpay,
+   matches it against the stored intent and finalizes the order.
+4. `/api/payments/razorpay/webhook` does the same independently, so orders are created even if the
+   browser closes mid-payment.
+
+### SEO
+- `src/seo/site.js` — single source of truth for page titles, descriptions, canonical paths,
+  Product / Breadcrumb / ItemList JSON-LD. Used by both the app and the middleware.
+- `src/seo/head.js` — updates `<head>` on client-side navigation.
+- `middleware.js` (Vercel Routing Middleware) — returns `index.html` with the correct
+  title, description, canonical, Open Graph/Twitter tags, JSON-LD and `<noscript>` summary for every
+  public page and product, so crawlers and link previews see real content in the first response.
+  Unknown product slugs return HTTP 404. It also serves a live `/sitemap.xml` including every active
+  product. On any failure it falls through to the static `index.html` / `public/sitemap.xml`.
+- Private pages (cart, checkout, account, admin, login) are `noindex` and disallowed in `robots.txt`.
+- When adding a new public page: add it to `PAGE_META` in `src/seo/site.js`, to the middleware
+  `matcher`, and to `vercel.json` rewrites.
 
 ### Environment Variables
 
-| Variable | Required | Description |
+| Variable | Where | Description |
 |---|---|---|
-| `REACT_APP_API_URL` | No | Backend base URL (defaults to dev IP) |
-| `REACT_APP_RAZORPAY_KEY_ID` | Yes (production) | Razorpay publishable key |
-| `REACT_APP_ADMIN_ENABLED` | No | Set to `true` to show Admin link in footer |
-| `REACT_APP_GITHUB_TOKEN` | Admin only | Fine-grained PAT — Contents: Read & write |
-| `REACT_APP_GITHUB_OWNER` | Admin only | GitHub repo owner (e.g. `dbhayani01`) |
-| `REACT_APP_GITHUB_REPO` | Admin only | GitHub repo name (e.g. `sahumario-app`) |
-| `REACT_APP_GITHUB_BRANCH` | No | Branch to commit to (default: `main`) |
-| `RAZORPAY_KEY_ID` | Yes (server) | Razorpay key ID — server-side only, never prefix with `REACT_APP_` |
-| `RAZORPAY_KEY_SECRET` | Yes (server) | Razorpay secret — **never expose to the browser** |
+| `REACT_APP_SUPABASE_URL` | Browser + server | Supabase project URL |
+| `REACT_APP_SUPABASE_ANON_KEY` | Browser + server | Supabase public anon key |
+| `REACT_APP_RAZORPAY_KEY_ID` | Browser | Razorpay publishable key |
+| `SUPABASE_URL` / `SUPABASE_ANON_KEY` | Server (optional) | Override the `REACT_APP_` values for API routes and middleware |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server only | Used for payment intents, orders, rate limiting — **never expose** |
+| `RAZORPAY_KEY_ID` | Server only | Razorpay key ID |
+| `RAZORPAY_KEY_SECRET` | Server only | Razorpay secret — **never expose** |
+| `RAZORPAY_WEBHOOK_SECRET` | Server only | Secret configured on the Razorpay webhook |
+| `RESEND_API_KEY` | Server only | Resend API key for order emails |
+| `ORDER_EMAIL_FROM` | Server only | Sender, e.g. `SAHUMäRIO <hello@sahumario.com>` |
+| `RATE_LIMIT_PEPPER` | Server (optional) | Secret used to hash rate-limit keys |
 
-> **Security:** `REACT_APP_GITHUB_TOKEN` is baked into the JS bundle at build time.
-> Use it **only** during local `npm start` sessions. Never build & deploy with this token set.
->
-> `RAZORPAY_KEY_SECRET` must only ever be set as a server-side environment variable (Vercel dashboard → Settings → Environment Variables).
+> Anything prefixed `REACT_APP_` is baked into the public JavaScript bundle. Never put secrets there.
 
 ---
 
