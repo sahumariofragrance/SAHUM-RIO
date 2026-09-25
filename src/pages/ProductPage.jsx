@@ -6,6 +6,8 @@ import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
 import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
+import { productJsonLd } from "../seo/site";
+import { setPageJsonLd } from "../seo/head";
 
 const MAX_PRODUCT_IMAGES = 5;
 
@@ -41,6 +43,15 @@ export default function ProductPage({ slug, navigate }) {
   const galleryUrls = useMemo(() => buildGalleryUrls(product), [product]);
   const [activeImage, setActiveImage] = useState("");
   const [failedImages, setFailedImages] = useState([]);
+  const [rating, setRating] = useState(null);
+
+  useEffect(() => { setRating(null); }, [product?.id]);
+
+  useEffect(() => {
+    if (!product) return undefined;
+    setPageJsonLd(productJsonLd(product, rating));
+    return () => setPageJsonLd(null);
+  }, [product, rating]);
 
   useEffect(() => {
     setActiveImage(product?.image || "");
@@ -162,7 +173,7 @@ export default function ProductPage({ slug, navigate }) {
         </div>
       </div>
 
-      <ProductReviews product={product} navigate={navigate} />
+      <ProductReviews product={product} navigate={navigate} onSummary={setRating} />
     </section>
   );
 }

@@ -3,8 +3,10 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /checkout
-Disallow: /orders
+Disallow: /cart
+Disallow: /account
+Disallow: /login
+Disallow: /reset-password
 Disallow: /api/
 
-# Sitemap
 Sitemap: https://www.sahumario.com/sitemap.xml

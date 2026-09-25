@@ -1,24 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-IN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- ── Primary SEO ───────────────────────────────────────────────────── -->
-    <title>SAHUMäRIO® — Eau de Parfum</title>
-    <meta name="description" content="Discover SAHUMäRIO®'s Eau de Parfum collection, with fragrances starting at ₹749 and free shipping across India." />
-    <meta name="keywords" content="eau de parfum, perfume, fragrance, Indian perfume, SAHUMäRIO®, buy perfume online India" />
+    <!-- Page-specific tags below are rewritten per route by /middleware.js
+         (server) and src/seo/head.js (client). Keep the attribute order. -->
+    <title>SAHUMäRIO® — Eau de Parfum | Buy Perfume Online in India</title>
+    <meta name="description" content="Shop SAHUMäRIO® Eau de Parfum online in India. A focused collection of long-lasting fragrances from ₹749, with free shipping across India." />
     <meta name="author" content="SAHUMäRIO®" />
-    <meta name="robots" content="index, follow" />
-    <meta name="googlebot" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
     <link rel="canonical" href="https://www.sahumario.com/" />
 
     <!-- ── Open Graph ────────────────────────────────────────────────────── -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="SAHUMäRIO®" />
     <meta property="og:url" content="https://www.sahumario.com/" />
-    <meta property="og:title" content="SAHUMäRIO® — Eau de Parfum" />
-    <meta property="og:description" content="Discover our Eau de Parfum collection, with fragrances starting at ₹749 and free shipping across India." />
+    <meta property="og:title" content="SAHUMäRIO® — Eau de Parfum | Buy Perfume Online in India" />
+    <meta property="og:description" content="Shop SAHUMäRIO® Eau de Parfum online in India. A focused collection of long-lasting fragrances from ₹749, with free shipping across India." />
     <meta property="og:image" content="https://www.sahumario.com/logo512.png" />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
@@ -26,31 +27,53 @@
 
     <!-- ── Twitter Card ──────────────────────────────────────────────────── -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="SAHUMäRIO® — Eau de Parfum" />
-    <meta name="twitter:description" content="Eau de Parfum fragrances starting at ₹749, with free shipping across India." />
+    <meta name="twitter:title" content="SAHUMäRIO® — Eau de Parfum | Buy Perfume Online in India" />
+    <meta name="twitter:description" content="Shop SAHUMäRIO® Eau de Parfum online in India. A focused collection of long-lasting fragrances from ₹749, with free shipping across India." />
     <meta name="twitter:image" content="https://www.sahumario.com/logo512.png" />
 
     <!-- ── Structured Data (JSON-LD) ─────────────────────────────────────── -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Store",
-      "name": "SAHUMäRIO®",
-      "url": "https://www.sahumario.com",
-      "logo": "https://www.sahumario.com/logo512.png",
-      "description": "A focused Eau de Parfum collection with free shipping across India.",
-      "email": "sahumariofragrance@gmail.com",
-      "telephone": "+91-9974599910",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Rajkot",
-        "addressRegion": "Gujarat",
-        "addressCountry": "IN"
-      },
-      "priceRange": "₹749",
-      "currenciesAccepted": "INR",
-      "paymentAccepted": "Credit Card, Debit Card, UPI",
-      "sameAs": []
+      "@graph": [
+        {
+          "@type": ["Organization", "Store"],
+          "@id": "https://www.sahumario.com/#organization",
+          "name": "SAHUMäRIO®",
+          "url": "https://www.sahumario.com/",
+          "logo": "https://www.sahumario.com/logo512.png",
+          "image": "https://www.sahumario.com/logo512.png",
+          "description": "A focused Eau de Parfum collection with free shipping across India.",
+          "email": "sahumariofragrance@gmail.com",
+          "telephone": "+91-9974599910",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Rajkot",
+            "addressRegion": "Gujarat",
+            "addressCountry": "IN"
+          },
+          "areaServed": "IN",
+          "priceRange": "₹749+",
+          "currenciesAccepted": "INR",
+          "paymentAccepted": "Credit Card, Debit Card, UPI",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "sahumariofragrance@gmail.com",
+            "telephone": "+91-9974599910",
+            "areaServed": "IN",
+            "availableLanguage": "en"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://www.sahumario.com/#website",
+          "url": "https://www.sahumario.com/",
+          "name": "SAHUMäRIO®",
+          "inLanguage": "en-IN",
+          "publisher": { "@id": "https://www.sahumario.com/#organization" }
+        }
+      ]
     }
     </script>
 
@@ -75,7 +98,7 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" crossorigin="use-credentials" />
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript><main><h1>SAHUMäRIO® — Eau de Parfum</h1><p>Shop SAHUMäRIO® Eau de Parfum online in India, with free shipping across India.</p><ul><li><a href="/perfumes">Shop all perfumes</a></li><li><a href="/about">About SAHUMäRIO</a></li><li><a href="/bulk-orders">Bulk orders &amp; corporate gifting</a></li><li><a href="/shipping-policy">Shipping policy</a></li></ul><p>Please enable JavaScript to shop at SAHUMäRIO®.</p></main></noscript>
     <!-- Skip-to-content link for screen readers / keyboard users -->
     <a
       href="#main-content"

@@ -42,7 +42,7 @@ function initials(name) {
     .join("") || "C";
 }
 
-export default function ProductReviews({ product }) {
+export default function ProductReviews({ product, onSummary }) {
   const { user, startGuestSession } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [reviews, setReviews] = useState([]);
@@ -62,6 +62,11 @@ export default function ProductReviews({ product }) {
     if (!reviews.length) return 0;
     return reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length;
   }, [reviews]);
+
+  useEffect(() => {
+    if (loading || !onSummary) return;
+    onSummary(reviews.length ? { average, count: reviews.length } : null);
+  }, [loading, reviews.length, average, onSummary]);
 
   const loadReviews = useCallback(async () => {
     if (!product?.id) return;

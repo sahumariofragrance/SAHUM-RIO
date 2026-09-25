@@ -37,6 +37,24 @@
           "value": "0"
         }
       ]
+    },
+    {
+      "source": "/(admin|checkout|cart|account|account/orders|login|reset-password)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     }
   ],
   "rewrites": [

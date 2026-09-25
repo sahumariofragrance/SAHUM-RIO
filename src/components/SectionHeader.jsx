@@ -1,9 +1,9 @@
 import React from 'react';
 
-const SectionHeader = React.memo(({ title, subtitle, className = '' }) => {
+const SectionHeader = React.memo(({ title, subtitle, className = '', as: Heading = 'h2' }) => {
   return (
     <div className={className}>
-      <h2 className="text-2xl md:text-3xl font-semibold">{title}</h2>
+      <Heading className="text-2xl md:text-3xl font-semibold">{title}</Heading>
       {subtitle && (
         <p className="mt-1 text-[var(--color-muted)]">{subtitle}</p>
       )}
