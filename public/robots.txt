@@ -2,9 +2,6 @@
 User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /checkout
-Disallow: /orders
 Disallow: /api/
 
-# Sitemap
-Sitemap: https://www.sahumario.com/sitemap.xml
+Sitemap: https://sahumario.com/sitemap.xml
