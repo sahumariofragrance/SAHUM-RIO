@@ -158,5 +158,22 @@
       "source": "/product/:slug",
       "destination": "/index.html"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/refund-policy",
+      "destination": "/refund-return-policy",
+      "permanent": true
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms-conditions",
+      "permanent": true
+    },
+    {
+      "source": "/orders",
+      "destination": "/account/orders",
+      "permanent": true
+    }
   ]
 }
