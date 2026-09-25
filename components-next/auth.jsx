@@ -80,7 +80,11 @@ export function AuthProvider({ children }) {
   }
 
   async function requestPasswordReset(email) {
-    const redirectTo = `${window.location.origin}/reset-password`;
+    const isVercelPreview = window.location.hostname.endsWith(".vercel.app");
+    const origin = isVercelPreview
+      ? "https://sahum-rio-git-migration-nextjs-preview-sahumarios-projects.vercel.app"
+      : window.location.origin;
+    const redirectTo = `${origin}/reset-password`;
     const { error } = await supabase.auth.resetPasswordForEmail(normalizeEmail(email), { redirectTo });
     if (error) throw new Error(error.message);
   }
