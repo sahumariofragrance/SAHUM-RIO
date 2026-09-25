@@ -41,7 +41,7 @@ export default function TermsPage() {
         </P>
         <P>
           This Terms of Service Agreement governs your use of{" "}
-          <strong>www.sahumario.com</strong> (SAHUMÄRIO) and your purchase of products
+          <strong>sahumario.com</strong> (SAHUMÄRIO) and your purchase of products
           available on this Website. SAHUMÄRIO reserves the right to change or revise the
           terms and conditions of this Agreement at any time by posting changes on this
           Website.
