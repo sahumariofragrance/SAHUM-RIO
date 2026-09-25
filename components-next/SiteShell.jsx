@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Menu, X, ShoppingBag } from "lucide-react";
+import { Menu, X, ShoppingBag, User } from "lucide-react";
 import BrandMark from "../src/components/BrandMark";
 import { CartProvider, useCart } from "./cart";
 import { ThemeProvider, useTheme } from "./theme";
+import { AuthProvider, useAuth } from "./auth";
 
 function Navbar() {
   const { count } = useCart();
   const { theme, toggleTheme } = useTheme();
+  const { user, isGuest } = useAuth();
   const [open, setOpen] = useState(false);
 
   useEffect(() => setOpen(false), []);
@@ -41,6 +43,9 @@ function Navbar() {
               <button onClick={toggleTheme} className="hidden p-2.5 text-sm opacity-70 transition hover:opacity-100 sm:block" aria-label="Toggle theme">
                 {theme === "light" ? "☾" : "☀"}
               </button>
+              <Link href={user && !isGuest ? "/account" : "/login"} className="p-2.5" aria-label={user && !isGuest ? "My account" : "Log in"}>
+                <User className="h-5 w-5" />
+              </Link>
               <Link href="/cart" className="relative p-2.5" aria-label="Cart">
                 <ShoppingBag className="h-5 w-5" />
                 {count > 0 && <span className="absolute right-1 top-1 min-w-4 rounded-full bg-[var(--color-text)] px-1 text-center text-[9px] text-[var(--color-bg)]">{count}</span>}
@@ -55,6 +60,7 @@ function Navbar() {
                 <Link href="/perfumes" onClick={() => setOpen(false)}>Perfumes</Link>
                 <Link href="/about" onClick={() => setOpen(false)}>The House</Link>
                 <Link href="/bulk-orders" onClick={() => setOpen(false)}>Bulk Orders</Link>
+                <Link href={user && !isGuest ? "/account" : "/login"} onClick={() => setOpen(false)}>{user && !isGuest ? "My Account" : "Log In"}</Link>
               </div>
             </nav>
           )}
@@ -73,7 +79,7 @@ function Footer() {
         </Link>
         <div className="mt-14 grid gap-12 border-t border-white/15 pt-10 md:grid-cols-[1.4fr_0.7fr_1fr_1fr]">
           <p className="max-w-sm text-sm leading-7 text-white/60">An independent Eau de Parfum collection built around distinct moods, names, and visual identities.</p>
-          <div><h3 className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">Shop</h3><div className="mt-5 space-y-3 text-sm text-white/65"><p><Link href="/perfumes">All Perfumes</Link></p><p><Link href="/cart">Cart</Link></p></div></div>
+          <div><h3 className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">Shop</h3><div className="mt-5 space-y-3 text-sm text-white/65"><p><Link href="/perfumes">All Perfumes</Link></p><p><Link href="/cart">Cart</Link></p><p><Link href="/account">My Account</Link></p><p><Link href="/account/orders">My Orders</Link></p></div></div>
           <div><h3 className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">Information</h3><div className="mt-5 space-y-3 text-sm text-white/65"><p><Link href="/about">About</Link></p><p><Link href="/bulk-orders">Bulk Orders & Corporate Gifting</Link></p><p><a href="https://sahumario.com/shipping-policy">Shipping Policy</a></p><p><a href="https://sahumario.com/refund-return-policy">Refund & Return Policy</a></p></div></div>
           <div><h3 className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">Contact</h3><div className="mt-5 space-y-3 text-sm text-white/65"><p><a href="mailto:sahumariofragrance@gmail.com">sahumariofragrance@gmail.com</a></p><p><a href="tel:+919974599910">+91 99745 99910</a></p></div></div>
         </div>
@@ -88,5 +94,5 @@ function Shell({ children }) {
 }
 
 export default function SiteShell({ children }) {
-  return <ThemeProvider><CartProvider><Shell>{children}</Shell></CartProvider></ThemeProvider>;
+  return <ThemeProvider><AuthProvider><CartProvider><Shell>{children}</Shell></CartProvider></AuthProvider></ThemeProvider>;
 }
