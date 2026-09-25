@@ -64,7 +64,7 @@ export function applySeo({
   ensureMeta("property", "og:image:alt").setAttribute("content", imageAlt);
   ensureMeta("property", "og:locale").setAttribute("content", "en_IN");
 
-  ensureMeta("name", "twitter:card").setAttribute("content", "summary_large_image");
+  ensureMeta("name", "twitter:card").setAttribute("content", image === "/logo512.png" ? "summary" : "summary_large_image");
   ensureMeta("name", "twitter:title").setAttribute("content", title);
   ensureMeta("name", "twitter:description").setAttribute("content", safeDescription);
   ensureMeta("name", "twitter:image").setAttribute("content", imageUrl);
