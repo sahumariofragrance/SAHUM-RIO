@@ -48,7 +48,7 @@ export default function PerfumesPage({ onProductNavigate }) {
         <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">SAHUMäRIO</p>
         <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.03em] md:text-7xl">All fragrances</h1>
         <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[var(--color-muted)]">
-          Eau de Parfum from the current collection.
+          Explore the current SAHUMäRIO® Eau de Parfum collection and open each fragrance for its description and product details.
         </p>
       </div>
 
