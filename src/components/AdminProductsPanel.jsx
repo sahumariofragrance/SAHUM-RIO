@@ -5,7 +5,7 @@ import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
 import { useProducts } from "../context/ProductsContext";
 
-const MAX_PRODUCT_IMAGES = 5;
+const MAX_PRODUCT_IMAGES = 6;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 
@@ -22,6 +22,7 @@ const emptyForm = {
   scent_profile: "",
   occasion: "",
   image_url: "",
+  gallery_urls: [],
   active: false,
   display_order: 0,
 };
@@ -103,6 +104,7 @@ export default function AdminProductsPanel() {
       price: String(product.price ?? ""), alt: product.alt || "", notes: product.notes || "", image_url: product.image_url || "",
       size_volume: product.size_volume || "", fragrance_family: product.fragrance_family || "",
       scent_profile: product.scent_profile || "", occasion: product.occasion || "",
+      gallery_urls: Array.isArray(product.gallery_urls) ? product.gallery_urls : [],
       active: Boolean(product.active), display_order: Number(product.display_order || 0),
     });
     setFiles([]); setThumbnailKey(""); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
@@ -115,7 +117,7 @@ export default function AdminProductsPanel() {
     if (selected.length > MAX_PRODUCT_IMAGES) {
       event.target.value = "";
       setFiles([]);
-      setError("Choose a maximum of 5 product images.");
+      setError(`Choose a maximum of ${MAX_PRODUCT_IMAGES} product images.`);
       return;
     }
 
@@ -163,43 +165,44 @@ export default function AdminProductsPanel() {
     });
   }
 
+  // Uploads the selected images into a new versioned folder. Nothing is
+  // deleted here: the old gallery is removed only after the product is saved.
   async function uploadGallery(productSlug) {
-    if (!files.length) return form.image_url;
-
     const selectedThumbnailKey = thumbnailKey || fileKey(files[0]);
     const thumbnailIndex = files.findIndex((file) => fileKey(file) === selectedThumbnailKey);
     const orderedFiles = thumbnailIndex > 0
       ? [files[thumbnailIndex], ...files.filter((_, index) => index !== thumbnailIndex)]
       : [...files];
 
-    const legacyPaths = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => galleryPath(productSlug, index));
-    const currentGalleryPaths = siblingGalleryPaths(form.image_url);
-    const cleanupPaths = [...new Set([...legacyPaths, ...currentGalleryPaths])];
-    if (cleanupPaths.length) {
-      const { error: cleanupError } = await supabase.storage.from("product-images").remove(cleanupPaths);
-      if (cleanupError) throw cleanupError;
-    }
-
     const version = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    let primaryUrl = "";
-
-    for (let index = 0; index < orderedFiles.length; index += 1) {
-      const file = orderedFiles[index];
-      const objectName = galleryPath(productSlug, index, version);
-      const { error: uploadError } = await supabase.storage
-        .from("product-images")
-        .upload(objectName, file, {
-          upsert: false,
-          contentType: file.type,
-          cacheControl: "31536000",
-        });
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage.from("product-images").getPublicUrl(objectName);
-      if (index === 0) primaryUrl = data.publicUrl;
+    const urls = [];
+    const paths = [];
+    try {
+      for (let index = 0; index < orderedFiles.length; index += 1) {
+        const file = orderedFiles[index];
+        const objectName = galleryPath(productSlug, index, version);
+        const { error: uploadError } = await supabase.storage
+          .from("product-images")
+          .upload(objectName, file, { upsert: false, contentType: file.type, cacheControl: "31536000" });
+        if (uploadError) throw uploadError;
+        paths.push(objectName);
+        urls.push(supabase.storage.from("product-images").getPublicUrl(objectName).data.publicUrl);
+      }
+    } catch (err) {
+      if (paths.length) await supabase.storage.from("product-images").remove(paths);
+      throw err;
     }
+    return { urls, paths };
+  }
 
-    return primaryUrl;
+  // Every storage object that may belong to a product's current gallery.
+  function galleryObjects(product) {
+    return [...new Set([
+      ...Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => galleryPath(product.slug, index)),
+      ...siblingGalleryPaths(product.image_url),
+      ...(product.gallery_urls || []).map(storageObjectPath),
+      storageObjectPath(product.image_url),
+    ].filter(Boolean))];
   }
 
   async function save(event) {
@@ -209,12 +212,14 @@ export default function AdminProductsPanel() {
       if (!name || !slug || !form.description.trim() || !Number.isFinite(price) || price <= 0) throw new Error("Name, description, slug, and a valid price are required.");
       if (!form.id && !files.length && !form.image_url) throw new Error("Please upload at least one product image.");
 
-      const imageUrl = await uploadGallery(slug);
+      const uploaded = files.length ? await uploadGallery(slug) : null;
+      const imageUrl = uploaded ? uploaded.urls[0] : form.image_url;
       if (!imageUrl) throw new Error("Please upload at least one product image.");
+      const galleryUrls = uploaded ? uploaded.urls : (form.gallery_urls?.length ? form.gallery_urls : [imageUrl]);
 
       const { data: userData } = await supabase.auth.getUser(); const user = userData?.user;
       const payload = {
-        name, slug, description: form.description.trim(), price, image_url: imageUrl,
+        name, slug, description: form.description.trim(), price, image_url: imageUrl, gallery_urls: galleryUrls,
         alt: form.alt.trim() || name + " Eau de Parfum bottle",
         notes: form.notes.trim() || null,
         size_volume: form.size_volume.trim() || null,
@@ -227,7 +232,21 @@ export default function AdminProductsPanel() {
       let result;
       if (form.id) result = await supabase.from("products").update(payload).eq("id", form.id).select("*").single();
       else result = await supabase.from("products").insert({ ...payload, created_by: user?.id || null }).select("*").single();
-      if (result.error) throw result.error;
+      if (result.error) {
+        // The product was not saved: remove the images just uploaded.
+        if (uploaded) await supabase.storage.from("product-images").remove(uploaded.paths);
+        throw result.error;
+      }
+
+      // Saved: now remove the previous gallery (never the images just uploaded).
+      if (uploaded && form.id) {
+        const keep = new Set(uploaded.paths);
+        const previous = galleryObjects({ slug: form.slug || slug, image_url: form.image_url, gallery_urls: form.gallery_urls }).filter((path) => !keep.has(path));
+        if (previous.length) {
+          const { error: cleanupError } = await supabase.storage.from("product-images").remove(previous);
+          if (cleanupError) console.warn("Old product images could not be removed", cleanupError.message);
+        }
+      }
 
       const savedProduct = result.data;
       const galleryMessage = files.length > 1 ? ` ${files.length} images saved.` : files.length === 1 ? " 1 image saved." : "";
@@ -258,14 +277,7 @@ export default function AdminProductsPanel() {
       const { error: deleteError } = await supabase.from("products").delete().eq("id", product.id);
       if (deleteError) throw deleteError;
 
-      const cleanupObjects = [
-        ...Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => galleryPath(product.slug, index)),
-        ...siblingGalleryPaths(product.image_url),
-      ];
-      const currentPrimaryObject = storageObjectPath(product.image_url);
-      if (currentPrimaryObject) cleanupObjects.push(currentPrimaryObject);
-
-      const uniqueObjects = [...new Set(cleanupObjects.filter(Boolean))];
+      const uniqueObjects = galleryObjects(product);
       if (uniqueObjects.length) {
         const { error: storageError } = await supabase.storage.from("product-images").remove(uniqueObjects);
         if (storageError) console.warn("Product image cleanup failed", storageError.message);
@@ -348,7 +360,7 @@ export default function AdminProductsPanel() {
             <h3 className={`${sectionTitle} mb-4`}>Images</h3>
             <label htmlFor="product-gallery-input" className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-7 text-center transition hover:border-[var(--color-text)]/40">
               <Upload className="h-5 w-5 text-[var(--color-muted)]" />
-              <span className="mt-2 text-sm font-semibold">{files.length ? `${files.length} image${files.length === 1 ? "" : "s"} selected — choose again to replace` : "Choose up to 5 images"}</span>
+              <span className="mt-2 text-sm font-semibold">{files.length ? `${files.length} image${files.length === 1 ? "" : "s"} selected — choose again to replace` : `Choose up to ${MAX_PRODUCT_IMAGES} images`}</span>
               <span className="mt-1 text-xs text-[var(--color-muted)]">JPG, PNG or WebP, up to 10 MB each. New images replace the current gallery.</span>
               <input id="product-gallery-input" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectImages} className="sr-only" />
             </label>
@@ -383,9 +395,15 @@ export default function AdminProductsPanel() {
             )}
 
             {form.image_url && files.length === 0 && (
-              <div className="mt-4 flex items-center gap-3">
-                <img src={form.image_url} alt="" className="h-20 w-16 rounded-lg object-cover" />
-                <p className="text-xs leading-5 text-[var(--color-muted)]">Current cover image.{form.id ? " Leave the picker empty to keep the existing gallery." : ""}</p>
+              <div className="mt-4">
+                <div className="flex flex-wrap gap-2">
+                  {(form.gallery_urls?.length ? form.gallery_urls : [form.image_url]).map((url, index) => (
+                    <img key={url} src={url} alt="" title={index === 0 ? "Cover" : `Image ${index + 1}`} className={`h-20 w-16 rounded-lg object-cover ${index === 0 ? "ring-2 ring-[var(--color-text)]/40" : ""}`} />
+                  ))}
+                </div>
+                <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">
+                  Current gallery ({form.gallery_urls?.length || 1} image{(form.gallery_urls?.length || 1) === 1 ? "" : "s"}, cover first).{form.id ? " Leave the picker empty to keep it." : ""}
+                </p>
               </div>
             )}
 

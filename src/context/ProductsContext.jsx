@@ -4,6 +4,8 @@ import fallbackProducts from "../data/products.json";
 
 const ProductsContext = createContext(null);
 
+const PRODUCT_FIELDS = "id,slug,name,description,price,image_url,alt,notes,size_volume,fragrance_family,scent_profile,occasion,active,display_order,updated_at";
+
 function withImageVersion(url, updatedAt) {
   const value = String(url || "");
   if (!value || !updatedAt) return value;
@@ -15,11 +17,19 @@ function normalizeProduct(product) {
   const alt = String(product.alt || `${product.name} Eau de Parfum bottle`)
     .replace(/oil-based perfume/gi, "Eau de Parfum");
 
+  const image = withImageVersion(product.image_url || product.image, product.updated_at);
+  const stored = Array.isArray(product.gallery_urls) ? product.gallery_urls.filter(Boolean) : [];
+  // gallery[0] is the cover; it uses the versioned URL so it matches `image`.
+  const gallery = stored.length
+    ? [image, ...stored.filter((url) => url !== product.image_url && url !== product.image)]
+    : [image].filter(Boolean);
+
   return {
     ...product,
     id: Number(product.id),
     price: Number(product.price),
-    image: withImageVersion(product.image_url || product.image, product.updated_at),
+    image,
+    gallery,
     alt,
   };
 }
@@ -32,12 +42,15 @@ export function ProductsProvider({ children }) {
   const refreshProducts = useCallback(async () => {
     setLoading(true);
     setError("");
-    const { data, error: queryError } = await supabase
+    const query = (fields) => supabase
       .from("products")
-      .select("id,slug,name,description,price,image_url,alt,notes,size_volume,fragrance_family,scent_profile,occasion,active,display_order,updated_at")
+      .select(fields)
       .eq("active", true)
       .order("display_order", { ascending: true })
       .order("id", { ascending: true });
+    let { data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls`);
+    // Before the gallery_urls migration runs, load without it rather than falling back.
+    if (queryError && /gallery_urls/.test(queryError.message || "")) ({ data, error: queryError } = await query(PRODUCT_FIELDS));
 
     if (queryError) {
       setError("Live catalogue could not be refreshed. Showing the saved collection.");

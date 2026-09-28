@@ -106,6 +106,14 @@ export function absoluteUrl(pathOrUrl) {
   return SITE_URL + (value.startsWith("/") ? value : `/${value}`);
 }
 
+/** All product image URLs, cover first, without duplicates or cache-busting query strings. */
+export function productImages(product) {
+  const urls = [product?.image_url, ...(Array.isArray(product?.gallery_urls) ? product.gallery_urls : [])]
+    .filter(Boolean)
+    .map((url) => String(url).split("?")[0]);
+  return [...new Set(urls)];
+}
+
 export function productPath(product) {
   return `/product/${product.slug}`;
 }
@@ -184,7 +192,9 @@ export function productJsonLd(product, rating) {
       },
     },
   };
-  if (image) productNode.image = [absoluteUrl(image)];
+  const gallery = productImages(product);
+  if (gallery.length) productNode.image = gallery.map(absoluteUrl);
+  else if (image) productNode.image = [absoluteUrl(image)];
   if (product.size_volume) productNode.size = String(product.size_volume);
   if (rating && rating.count > 0) {
     productNode.aggregateRating = {

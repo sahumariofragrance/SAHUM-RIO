@@ -4,43 +4,15 @@ import ProductReviews from "../components/ProductReviews";
 import BrandMark from "../components/BrandMark";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
-import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
 import { productJsonLd } from "../seo/site";
 import { setPageJsonLd } from "../seo/head";
-
-const MAX_PRODUCT_IMAGES = 5;
-
-function galleryObjectPath(publicUrl) {
-  const marker = "/storage/v1/object/public/product-images/";
-  const value = String(publicUrl || "");
-  if (!value.includes(marker)) return "";
-  return decodeURIComponent((value.split(marker)[1] || "").split("?")[0]);
-}
-
-function buildGalleryUrls(product) {
-  if (!product) return [];
-
-  const primaryObject = galleryObjectPath(product.image);
-  const slash = primaryObject.lastIndexOf("/");
-  const galleryParent = primaryObject.startsWith("gallery/") && slash > 0
-    ? primaryObject.slice(0, slash)
-    : `gallery/${product.slug}`;
-
-  const gallery = Array.from({ length: MAX_PRODUCT_IMAGES }, (_, index) => (
-    supabase.storage
-      .from("product-images")
-      .getPublicUrl(`${galleryParent}/${index + 1}`).data.publicUrl
-  ));
-
-  return [...new Set([product.image, ...gallery].filter(Boolean))];
-}
 
 export default function ProductPage({ slug, navigate }) {
   const { items, addToCart, updateQty } = useCart();
   const { bySlug, loading } = useProducts();
   const product = useMemo(() => bySlug.get(slug) || null, [bySlug, slug]);
-  const galleryUrls = useMemo(() => buildGalleryUrls(product), [product]);
+  const galleryUrls = useMemo(() => product?.gallery || [], [product]);
   const [activeImage, setActiveImage] = useState("");
   const [failedImages, setFailedImages] = useState([]);
   const [rating, setRating] = useState(null);
@@ -102,7 +74,7 @@ export default function ProductPage({ slug, navigate }) {
           </div>
 
           {visibleGallery.length > 1 && (
-            <div className="mt-3 grid grid-cols-5 gap-2" aria-label={product.name + " image gallery"}>
+            <div className="mt-3 grid grid-cols-6 gap-2" aria-label={product.name + " image gallery"}>
               {galleryUrls.map((url, index) => (
                 !failedImages.includes(url) && (
                   <button
@@ -125,13 +97,6 @@ export default function ProductPage({ slug, navigate }) {
             </div>
           )}
 
-          <div className="hidden">
-            {galleryUrls.map((url) => (
-              !failedImages.includes(url) && (
-                <img key={"probe-" + url} src={url} alt="" onError={() => markImageFailed(url)} />
-              )
-            ))}
-          </div>
         </div>
 
         <div className="flex flex-col justify-center lg:py-8">

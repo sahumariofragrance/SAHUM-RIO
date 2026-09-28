@@ -9,6 +9,7 @@ import {
   SITE_NAME,
   SITEMAP_PAGES,
   absoluteUrl,
+  productImages,
   productPath,
 } from "./site";
 
@@ -90,14 +91,12 @@ export function renderSitemap(products = []) {
   for (const product of products) {
     if (!product?.slug) continue;
     const lastmod = isoDate(product.updated_at);
-    const image = product.image_url || product.image;
+    const images = productImages(product);
     entries.push(
       `<url><loc>${escapeHtml(absoluteUrl(productPath(product)))}</loc>` +
         (lastmod ? `<lastmod>${lastmod}</lastmod>` : "") +
         "<changefreq>weekly</changefreq><priority>0.8</priority>" +
-        (image
-          ? `<image:image><image:loc>${escapeHtml(absoluteUrl(image))}</image:loc></image:image>`
-          : "") +
+        images.map((image) => `<image:image><image:loc>${escapeHtml(absoluteUrl(image))}</image:loc></image:image>`).join("") +
         "</url>"
     );
   }
