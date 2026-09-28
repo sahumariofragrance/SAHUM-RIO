@@ -317,3 +317,18 @@ body {
 :root[data-product-tone] body::before {
   opacity: 0.35;
 }
+
+/* Homepage hero: progress line under the current slide. */
+@keyframes hero-progress { from { width: 0; } to { width: 100%; } }
+.hero-progress { animation-name: hero-progress; animation-timing-function: linear; animation-fill-mode: forwards; }
+
+/* Homepage ribbon of perfume names. The row is rendered twice, so moving it
+   by half its width loops seamlessly. */
+@keyframes name-ribbon { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.name-ribbon { animation: name-ribbon 40s linear infinite; }
+.name-ribbon:hover { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-progress { animation: none; width: 100%; }
+  .name-ribbon { animation: none; }
+}
