@@ -1,3 +1,5 @@
+import { holdIdleTimer } from "./idleLogout";
+
 /**
  * Razorpay frontend SDK helpers.
  * Keeps all SDK-related logic in one place so CheckoutPage stays clean.
@@ -77,19 +79,26 @@ export function openRazorpayCheckout(options) {
       return;
     }
 
+    // Activity inside the payment window is not visible to this page, so the
+    // inactivity sign-out is paused until the window closes.
+    const releaseIdleTimer = holdIdleTimer();
+
     const rzp = new window.Razorpay({
       ...options,
       handler(response) {
+        releaseIdleTimer();
         resolve(response);
       },
       modal: {
         ondismiss() {
+          releaseIdleTimer();
           reject(new Error("CANCELLED"));
         },
       },
     });
 
     rzp.on("payment.failed", (response) => {
+      releaseIdleTimer();
       reject(
         new Error(
           response?.error?.description ||
