@@ -1,0 +1,48 @@
+name: Catalogue backup
+
+# Copies the live catalogue from Supabase into src/data/products.json once a
+# day (and on demand), so product details are versioned in this repository
+# and the site's backup catalogue stays current. Commits only when something
+# changed.
+on:
+  schedule:
+    - cron: "47 21 * * *" # 03:17 IST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: catalogue-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Export catalogue
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node scripts/export-catalogue.js
+
+      - name: Commit changes
+        run: |
+          if git diff --quiet -- src/data/products.json; then
+            echo "No catalogue changes."
+            exit 0
+          fi
+          git config user.name "catalogue-backup[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/products.json
+          git commit -m "Catalogue backup $(date -u +%Y-%m-%d)"
+          git push
