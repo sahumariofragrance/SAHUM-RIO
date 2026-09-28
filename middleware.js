@@ -11,22 +11,13 @@
  * Fail-safe: on any error it returns nothing, so Vercel continues with the
  * normal static response (index.html rewrite or public/sitemap.xml).
  */
-import { NOT_FOUND_META, PAGE_META, collectionJsonLd, productJsonLd, productMeta, productPath } from "./src/seo/site";
+import { NOT_FOUND_META, PAGE_META, PAGE_NOT_FOUND_META, collectionJsonLd, productJsonLd, productMeta, productPath } from "./src/seo/site";
 import { noscriptSummary, renderPage, renderSitemap } from "./src/seo/render";
 
 export const config = {
-  matcher: [
-    "/",
-    "/sitemap.xml",
-    "/perfumes",
-    "/about",
-    "/bulk-orders",
-    "/privacy-policy",
-    "/refund-return-policy",
-    "/shipping-policy",
-    "/terms-conditions",
-    "/product/:slug",
-  ],
+  // Every page path. Files (anything with a dot), /api and /static are left
+  // to Vercel; sitemap.xml is listed explicitly because it has a dot.
+  matcher: ["/sitemap.xml", "/((?!api/|static/|.*\\.).*)"],
 };
 
 const SUPABASE_TIMEOUT_MS = 2500;
@@ -42,9 +33,14 @@ const SECURITY_HEADERS = {
   "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
 };
 
-const PATH_TO_PAGE = Object.fromEntries(
-  Object.entries(PAGE_META).filter(([, meta]) => !meta.noindex).map(([page, meta]) => [meta.path, page])
-);
+const PATH_TO_PAGE = Object.fromEntries(Object.entries(PAGE_META).map(([page, meta]) => [meta.path, page]));
+
+// Short paths the app also accepts; send them to the canonical URL.
+const PATH_ALIASES = {
+  "/orders": "/account/orders",
+  "/refund-policy": "/refund-return-policy",
+  "/terms": "/terms-conditions",
+};
 
 async function fetchProducts(query) {
   const url = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
@@ -93,7 +89,7 @@ async function resolvePage(pathname) {
     if (!product) {
       return {
         status: 404,
-        meta: { ...NOT_FOUND_META, path: `/product/${slug}` },
+        meta: { ...NOT_FOUND_META, path: null },
         noscript: noscriptSummary({ heading: "Perfume not found", text: NOT_FOUND_META.description, links: [{ href: "/perfumes", label: "Shop all perfumes" }] }),
       };
     }
@@ -111,7 +107,13 @@ async function resolvePage(pathname) {
   }
 
   const page = PATH_TO_PAGE[pathname];
-  if (!page) return null;
+  if (!page) {
+    return {
+      status: 404,
+      meta: { ...PAGE_NOT_FOUND_META, path: null },
+      noscript: noscriptSummary({ heading: "Page not found", text: PAGE_NOT_FOUND_META.description, links: [{ href: "/perfumes", label: "Shop all perfumes" }] }),
+    };
+  }
   const meta = PAGE_META[page];
   let jsonLd = null;
   let links = [
@@ -143,6 +145,11 @@ export default async function middleware(request) {
 
     // Only rewrite HTML page loads, never prefetches of other asset types.
     if (request.method !== "GET" && request.method !== "HEAD") return undefined;
+
+    // One URL per page: lowercase product slugs and canonical paths for aliases.
+    const productCase = pathname.match(/^\/product\/([A-Za-z0-9-]+)$/);
+    const target = PATH_ALIASES[pathname] || (productCase && productCase[1] !== productCase[1].toLowerCase() ? pathname.toLowerCase() : null);
+    if (target) return Response.redirect(new URL(target + url.search, url), 308);
 
     const page = await resolvePage(pathname);
     if (!page) return undefined;

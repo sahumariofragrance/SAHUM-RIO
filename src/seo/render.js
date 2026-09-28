@@ -33,9 +33,10 @@ const MANAGED_TAGS = [
 /**
  * Returns index.html with page-specific head tags and a <noscript> body
  * summary. `meta`: { title, description, path, image?, type?, noindex? }.
+ * A `path` of null (error pages) omits the canonical and og:url tags.
  */
 export function renderPage(html, { meta, jsonLd, noscript }) {
-  const url = absoluteUrl(meta.path || "/");
+  const url = meta.path === null ? null : absoluteUrl(meta.path || "/");
   const image = absoluteUrl(meta.image || DEFAULT_IMAGE);
   const robots = meta.noindex ? PRIVATE_ROBOTS : INDEXABLE_ROBOTS;
   const title = escapeHtml(meta.title);
@@ -46,9 +47,9 @@ export function renderPage(html, { meta, jsonLd, noscript }) {
     `<meta name="description" content="${description}" />`,
     `<meta name="robots" content="${robots}" />`,
     `<meta name="googlebot" content="${robots}" />`,
-    `<link rel="canonical" href="${escapeHtml(url)}" />`,
+    ...(url ? [`<link rel="canonical" href="${escapeHtml(url)}" />`] : []),
     `<meta property="og:type" content="${escapeHtml(meta.type || "website")}" />`,
-    `<meta property="og:url" content="${escapeHtml(url)}" />`,
+    ...(url ? [`<meta property="og:url" content="${escapeHtml(url)}" />`] : []),
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:image" content="${escapeHtml(image)}" />`,

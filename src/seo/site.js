@@ -7,7 +7,7 @@
  * Keep this file free of React/browser APIs.
  */
 
-export const SITE_URL = "https://www.sahumario.com";
+export const SITE_URL = "https://sahumario.com";
 export const SITE_NAME = "SAHUMäRIO®";
 export const DEFAULT_IMAGE = `${SITE_URL}/logo512.png`;
 export const DEFAULT_DESCRIPTION =
@@ -87,6 +87,12 @@ export const PAGE_META = {
 export const NOT_FOUND_META = {
   title: "Perfume Not Found — SAHUMäRIO®",
   description: "This fragrance is no longer available. Explore the current SAHUMäRIO® Eau de Parfum collection.",
+  noindex: true,
+};
+
+export const PAGE_NOT_FOUND_META = {
+  title: "Page Not Found — SAHUMäRIO®",
+  description: "This page does not exist. Explore the SAHUMäRIO® Eau de Parfum collection.",
   noindex: true,
 };
 

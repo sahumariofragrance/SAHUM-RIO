@@ -9,4 +9,4 @@ Disallow: /login
 Disallow: /reset-password
 Disallow: /api/
 
-Sitemap: https://www.sahumario.com/sitemap.xml
+Sitemap: https://sahumario.com/sitemap.xml
