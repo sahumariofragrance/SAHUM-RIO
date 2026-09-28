@@ -48,6 +48,15 @@
       ]
     },
     {
+      "source": "/static/shell.html",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
       "source": "/static/(.*)",
       "headers": [
         {
