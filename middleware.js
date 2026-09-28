@@ -15,14 +15,25 @@ import { NOT_FOUND_META, PAGE_META, PAGE_NOT_FOUND_META, collectionJsonLd, produ
 import { noscriptSummary, renderPage, renderSitemap } from "./src/seo/render";
 
 export const config = {
-  // Everything except /api, build assets and the index.html shell (fetched
-  // below). Real files are passed straight through in the handler.
-  matcher: ["/((?!api/|static/|index\\.html).*)"],
+  // Everything except /api and build assets. Real files are passed straight
+  // through in the handler.
+  matcher: ["/((?!api/|static/).*)"],
 };
 
+// The page shell is read from a build-time copy (scripts/postbuild.js) under
+// /static/, which this middleware never touches, so /index.html can redirect.
+const SHELL_PATH = "/static/shell.html";
+// Fallback only: marks the middleware's own /index.html request so it is
+// served as-is instead of being redirected.
+const SHELL_HEADER = "x-sahumario-shell";
+
 const CANONICAL_ORIGIN = "https://sahumario.com";
-// The project's production *.vercel.app alias; preview deployments keep their own URLs.
-const PRODUCTION_ALIAS = "sahum-rio.vercel.app";
+// The project's production *.vercel.app aliases; preview deployments keep their own URLs.
+const PRODUCTION_ALIASES = new Set([
+  "sahum-rio.vercel.app",
+  "sahum-rio-sahumarios-projects.vercel.app",
+  "sahum-rio-git-main-sahumarios-projects.vercel.app",
+]);
 
 // File types served from /public. Other dotted paths (old .html/.php URLs,
 // scanner probes) get the 404 page instead of a 200 copy of the homepage.
@@ -147,16 +158,41 @@ async function resolvePage(pathname) {
   };
 }
 
+// redirect: "manual" so a redirected shell request can never loop back
+// through this middleware.
+async function fetchShell(url, path, headers = {}) {
+  const res = await fetch(new URL(path, url), { headers: { accept: "text/html", ...headers }, redirect: "manual" });
+  if (!res.ok) return null;
+  const html = await res.text();
+  return /<\/head>/i.test(html) ? html : null;
+}
+
+async function loadShell(url) {
+  const shell = await fetchShell(url, SHELL_PATH);
+  if (shell) return shell;
+  console.error(`[seo-middleware] ${SHELL_PATH} unavailable; falling back to /index.html`);
+  const fallback = await fetchShell(url, "/index.html", { [SHELL_HEADER]: "1" });
+  if (!fallback) console.error("[seo-middleware] page shell unavailable; serving pages without SEO tags");
+  return fallback;
+}
+
 export default async function middleware(request) {
   try {
     const url = new URL(request.url);
-    if (url.hostname === PRODUCTION_ALIAS) {
+    if (PRODUCTION_ALIASES.has(url.hostname)) {
       return Response.redirect(`${CANONICAL_ORIGIN}${url.pathname}${url.search}`, 308);
     }
 
     const pathname = url.pathname === "/" ? "/" : url.pathname.replace(/\/+$/, "");
 
     if (pathname === "/sitemap.xml") return await sitemapResponse();
+
+    if (pathname === "/index.html") {
+      if (request.headers.get(SHELL_HEADER)) return undefined;
+      const home = new URL(url);
+      home.pathname = "/";
+      return Response.redirect(home, 308);
+    }
 
     const extension = pathname.match(/\.([a-z0-9]+)$/i)?.[1].toLowerCase();
     if (extension && ASSET_EXTENSIONS.has(extension)) return undefined;
@@ -181,9 +217,9 @@ export default async function middleware(request) {
     const page = await resolvePage(pathname);
     if (!page) return undefined;
 
-    const shell = await fetch(new URL("/index.html", url), { headers: { accept: "text/html" } });
-    if (!shell.ok) return undefined;
-    const html = renderPage(await shell.text(), page);
+    const shell = await loadShell(url);
+    if (!shell) return undefined;
+    const html = renderPage(shell, page);
 
     return new Response(request.method === "HEAD" ? null : html, {
       status: page.status,
