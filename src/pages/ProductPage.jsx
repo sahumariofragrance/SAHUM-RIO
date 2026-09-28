@@ -7,11 +7,35 @@ import { useProducts } from "../context/ProductsContext";
 import { formatINR } from "../utils/money";
 import { productJsonLd } from "../seo/site";
 import { setPageJsonLd } from "../seo/head";
+import { useTheme } from "../context/ThemeContext";
+import { loadImageHue, tonePalette } from "../utils/imageTone";
 
 export default function ProductPage({ slug, navigate }) {
   const { items, addToCart, updateQty } = useCart();
   const { bySlug, loading } = useProducts();
   const product = useMemo(() => bySlug.get(slug) || null, [bySlug, slug]);
+  const { theme } = useTheme();
+
+  // Tint the whole page with the dominant colour of the perfume's photo.
+  const toneImage = product?.image_url || product?.image;
+  useEffect(() => {
+    if (!toneImage) return undefined;
+    let cancelled = false;
+    const root = document.documentElement;
+    let applied = [];
+    loadImageHue(toneImage).then((hue) => {
+      if (cancelled || !hue) return;
+      const palette = tonePalette(hue, theme);
+      Object.entries(palette).forEach(([name, value]) => root.style.setProperty(name, value));
+      applied = Object.keys(palette);
+      root.setAttribute("data-product-tone", "");
+    });
+    return () => {
+      cancelled = true;
+      applied.forEach((name) => root.style.removeProperty(name));
+      root.removeAttribute("data-product-tone");
+    };
+  }, [toneImage, theme]);
   const galleryUrls = useMemo(() => product?.gallery || [], [product]);
   const [activeImage, setActiveImage] = useState("");
   const [failedImages, setFailedImages] = useState([]);

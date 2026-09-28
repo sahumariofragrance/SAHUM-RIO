@@ -300,3 +300,20 @@ body::before {
 :root[data-theme="dark"] .tone-green { --tone: #86EFAC; }
 :root[data-theme="dark"] .tone-red { --tone: #FCA5A5; }
 :root[data-theme="dark"] .tone-stone { --tone: #D6D3D1; }
+
+/* ── Product pages: page tinted with the perfume's colour ───────────────
+   ProductPage sets data-product-tone and the --color-* / --tone-glow values
+   from the product photo (src/utils/imageTone.js). */
+body {
+  transition: background-color 0.7s ease;
+}
+:root[data-product-tone] body {
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(ellipse at 18% 12%, var(--tone-glow) 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 88%, var(--tone-glow) 0%, transparent 50%);
+  background-size: 100% 100%;
+}
+:root[data-product-tone] body::before {
+  opacity: 0.35;
+}
