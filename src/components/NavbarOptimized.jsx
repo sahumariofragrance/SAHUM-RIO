@@ -1,11 +1,46 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Menu, X, ShoppingBag, User, LogOut, Package, ShieldCheck } from "lucide-react";
+import { Menu, X, ShoppingBag, User, LogOut, Package, ShieldCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCart } from "../context/cartContext";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 import BrandMark from "./BrandMark";
 import SpaLink from "./SpaLink";
+
+const ANNOUNCEMENTS = [
+  "Complimentary delivery across India",
+  "Delivered in 3–7 business days",
+  "Secure payments by Razorpay",
+];
+
+/** The thin bar above the header; moves through the messages on its own or by arrow. */
+function AnnouncementBar() {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    if (paused || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return undefined;
+    const timer = setTimeout(() => setIndex((i) => (i + 1) % ANNOUNCEMENTS.length), 5000);
+    return () => clearTimeout(timer);
+  }, [index, paused]);
+  const step = (delta) => setIndex((i) => (i + delta + ANNOUNCEMENTS.length) % ANNOUNCEMENTS.length);
+  const arrow = "flex h-8 w-8 shrink-0 items-center justify-center opacity-70 transition-opacity hover:opacity-100";
+
+  return (
+    <div
+      className="bg-[#1a1a1a] text-white"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div className="mx-auto flex h-9 max-w-3xl items-center justify-between px-3">
+        <button type="button" onClick={() => step(-1)} className={arrow} aria-label="Previous message"><ChevronLeft className="h-4 w-4" /></button>
+        <p key={index} aria-live="polite" className="announce-in truncate text-center text-[10px] font-semibold uppercase tracking-[0.18em]">
+          {ANNOUNCEMENTS[index]}
+        </p>
+        <button type="button" onClick={() => step(1)} className={arrow} aria-label="Next message"><ChevronRight className="h-4 w-4" /></button>
+      </div>
+    </div>
+  );
+}
 
 const PAGE_HREFS = {
   home: "/",
@@ -74,9 +109,7 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
 
   return (
     <>
-      <div className="border-b border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-2 text-center text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-        Complimentary delivery across India
-      </div>
+      <AnnouncementBar />
 
       <header className="glass-surface sticky top-0 z-40 border-b">
         <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-10">
