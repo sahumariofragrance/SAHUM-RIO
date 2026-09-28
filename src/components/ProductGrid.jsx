@@ -14,8 +14,9 @@ const ProductGrid = React.memo(({
       <div className="grid grid-cols-1 gap-x-7 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-20" aria-label="Loading products">
         {[1, 2, 3].map((item) => (
           <div key={item} className="animate-pulse">
-            <div className="aspect-[4/5] rounded-[1.6rem] bg-[var(--color-surface-muted)]" />
-            <div className="mx-3 -mt-10 h-28 rounded-[1.15rem] border border-[var(--color-border)] bg-[var(--color-surface)] opacity-80" />
+            <div className="aspect-[4/5] bg-[var(--color-surface-muted)]" />
+            <div className="mt-5 h-7 w-2/5 bg-[var(--color-surface-muted)]" />
+            <div className="mt-3 h-2.5 w-1/4 bg-[var(--color-surface-muted)]" />
           </div>
         ))}
       </div>
