@@ -15,10 +15,14 @@ import { NOT_FOUND_META, PAGE_META, PAGE_NOT_FOUND_META, collectionJsonLd, produ
 import { noscriptSummary, renderPage, renderSitemap } from "./src/seo/render";
 
 export const config = {
-  // Everything except /api, build assets and the index.html shell (fetched
-  // below). Real files are passed straight through in the handler.
-  matcher: ["/((?!api/|static/|index\\.html).*)"],
+  // Everything except /api and build assets. Real files are passed straight
+  // through in the handler.
+  matcher: ["/((?!api/|static/).*)"],
 };
+
+// Marks the middleware's own request for the index.html shell, which must be
+// served as-is; everyone else is redirected from /index.html to /.
+const SHELL_HEADER = "x-sahumario-shell";
 
 const CANONICAL_ORIGIN = "https://sahumario.com";
 // The project's production *.vercel.app alias; preview deployments keep their own URLs.
@@ -158,6 +162,13 @@ export default async function middleware(request) {
 
     if (pathname === "/sitemap.xml") return await sitemapResponse();
 
+    if (pathname === "/index.html") {
+      if (request.headers.get(SHELL_HEADER)) return undefined;
+      const home = new URL(url);
+      home.pathname = "/";
+      return Response.redirect(home, 308);
+    }
+
     const extension = pathname.match(/\.([a-z0-9]+)$/i)?.[1].toLowerCase();
     if (extension && ASSET_EXTENSIONS.has(extension)) return undefined;
 
@@ -181,7 +192,13 @@ export default async function middleware(request) {
     const page = await resolvePage(pathname);
     if (!page) return undefined;
 
-    const shell = await fetch(new URL("/index.html", url), { headers: { accept: "text/html" } });
+    // redirect: "manual" — if the header were ever dropped, the 308 is not
+    // followed (that would loop through this middleware); !shell.ok below then
+    // falls back to Vercel's normal response.
+    const shell = await fetch(new URL("/index.html", url), {
+      headers: { accept: "text/html", [SHELL_HEADER]: "1" },
+      redirect: "manual",
+    });
     if (!shell.ok) return undefined;
     const html = renderPage(await shell.text(), page);
 
