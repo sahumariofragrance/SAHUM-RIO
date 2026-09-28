@@ -231,13 +231,16 @@ export default function AdminProductsPanel() {
 
       const savedProduct = result.data;
       const galleryMessage = files.length > 1 ? ` ${files.length} images saved.` : files.length === 1 ? " 1 image saved." : "";
-      setMessage(form.id ? `Product updated. ID: ${savedProduct.id}.${galleryMessage}` : `Product added to the catalogue with ID ${savedProduct.id}.${galleryMessage}`);
+      const visibility = savedProduct.active ? "" : " It is hidden from the store until you make it visible.";
+      setMessage(form.id ? `${savedProduct.name} updated.${galleryMessage}${visibility}` : `${savedProduct.name} added to the catalogue.${galleryMessage}${visibility}`);
       setFiles([]);
       setThumbnailKey("");
       await load();
       await refreshProducts();
-      if (!form.id) setForm({ ...emptyForm, display_order: nextOrder + 10 });
-      else setForm((current) => ({ ...current, image_url: savedProduct.image_url }));
+      // Back to a blank "Add a perfume" form; display_order 0 lets the effect
+      // above fill in the next order from the refreshed catalogue.
+      setForm({ ...emptyForm });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) { setError(err?.message || "Unable to save product."); }
     finally { setSaving(false); }
   }
