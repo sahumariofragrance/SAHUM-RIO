@@ -53,6 +53,8 @@ const SECURITY_HEADERS = {
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=(), usb=(), browsing-topics=()",
   "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+  // Keep in sync with vercel.json.
+  "Content-Security-Policy": "default-src 'self'; script-src 'self' https://*.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.razorpay.com; frame-src https://*.razorpay.com; form-action 'self' https://*.razorpay.com; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests",
 };
 
 const PATH_TO_PAGE = Object.fromEntries(Object.entries(PAGE_META).map(([page, meta]) => [meta.path, page]));
