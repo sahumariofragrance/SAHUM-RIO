@@ -16,7 +16,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
   return <>
     <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 md:px-12 md:py-28">
       <div className="glass-soft flex flex-col gap-5 rounded-[1.6rem] px-6 py-7 md:flex-row md:items-end md:justify-between md:px-8 md:py-8">
-        <div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">The collection</p><h2 className="mt-3 font-serif text-5xl font-normal tracking-[-0.025em] md:text-6xl">Eau de Parfum</h2></div>
+        <div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">The collection</p><h1 className="mt-3 font-serif text-5xl font-normal tracking-[-0.025em] md:text-6xl"><span className="sr-only">SAHUMäRIO® </span>Eau de Parfum</h1></div>
         <p className="max-w-md text-sm leading-7 text-[var(--color-muted)]">Explore the current SAHUMäRIO® collection.</p>
       </div>
       <div className="mt-10 md:mt-14"><ProductGrid products={products} loading={loading} onSelectProduct={onProductNavigate} onAddToCart={handleAdd} onUpdateQty={handleQty} /></div>

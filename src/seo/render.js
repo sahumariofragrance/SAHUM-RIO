@@ -54,7 +54,7 @@ export function renderPage(html, { meta, jsonLd, noscript }) {
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:image" content="${escapeHtml(image)}" />`,
     ...(image === DEFAULT_IMAGE
-      ? ['<meta property="og:image:width" content="512" />', '<meta property="og:image:height" content="512" />']
+      ? ['<meta property="og:image:width" content="1200" />', '<meta property="og:image:height" content="630" />']
       : []),
     `<meta name="twitter:title" content="${title}" />`,
     `<meta name="twitter:description" content="${description}" />`,
