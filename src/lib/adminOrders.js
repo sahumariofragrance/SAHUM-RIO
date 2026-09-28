@@ -32,5 +32,6 @@ export async function updateAdminOrder(orderId, values) {
     body: JSON.stringify({ order_id: orderId, ...values }),
   });
   const payload = await parseResponse(response);
-  return payload.order;
+  // email: { sent, reason } — whether the customer was notified of a status change.
+  return { order: payload.order, email: payload.email || null };
 }

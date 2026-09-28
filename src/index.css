@@ -278,3 +278,25 @@ body::before {
   background: #F4EFE8;
   color: #171310;
 }
+
+/* ── Admin: status tones (readable in light and dark themes) ─────────── */
+.admin-tone {
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 11%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 28%, transparent);
+}
+.admin-tone-dot { background: var(--tone); }
+.tone-amber { --tone: #B45309; }
+.tone-sky { --tone: #0369A1; }
+.tone-violet { --tone: #6D28D9; }
+.tone-indigo { --tone: #4338CA; }
+.tone-green { --tone: #15803D; }
+.tone-red { --tone: #B91C1C; }
+.tone-stone { --tone: #78716C; }
+:root[data-theme="dark"] .tone-amber { --tone: #FBBF24; }
+:root[data-theme="dark"] .tone-sky { --tone: #7DD3FC; }
+:root[data-theme="dark"] .tone-violet { --tone: #C4B5FD; }
+:root[data-theme="dark"] .tone-indigo { --tone: #A5B4FC; }
+:root[data-theme="dark"] .tone-green { --tone: #86EFAC; }
+:root[data-theme="dark"] .tone-red { --tone: #FCA5A5; }
+:root[data-theme="dark"] .tone-stone { --tone: #D6D3D1; }
