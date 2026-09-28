@@ -13,7 +13,7 @@
     "slug": "dew-drop",
     "name": "Dew Drop",
     "description": "Clean, soft musk with subtle floral notes.",
-    "price": 750,
+    "price": 749,
     "image": "/products/dew_drop.jpg",
     "alt": "SAHUMäRIO Dew Drop Eau de Parfum bottle"
   },
@@ -49,7 +49,7 @@
     "slug": "blix",
     "name": "Blix",
     "description": "Cool, Fresh, Fruity",
-    "price": 750,
+    "price": 749,
     "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/blix-1789976292293.png",
     "alt": "Blix perfume bottle"
   }

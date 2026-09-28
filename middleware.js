@@ -15,10 +15,21 @@ import { NOT_FOUND_META, PAGE_META, PAGE_NOT_FOUND_META, collectionJsonLd, produ
 import { noscriptSummary, renderPage, renderSitemap } from "./src/seo/render";
 
 export const config = {
-  // Every page path. Files (anything with a dot), /api and /static are left
-  // to Vercel; sitemap.xml is listed explicitly because it has a dot.
-  matcher: ["/sitemap.xml", "/((?!api/|static/|.*\\.).*)"],
+  // Everything except /api, build assets and the index.html shell (fetched
+  // below). Real files are passed straight through in the handler.
+  matcher: ["/((?!api/|static/|index\\.html).*)"],
 };
+
+const CANONICAL_ORIGIN = "https://sahumario.com";
+// The project's production *.vercel.app alias; preview deployments keep their own URLs.
+const PRODUCTION_ALIAS = "sahum-rio.vercel.app";
+
+// File types served from /public. Other dotted paths (old .html/.php URLs,
+// scanner probes) get the 404 page instead of a 200 copy of the homepage.
+const ASSET_EXTENSIONS = new Set([
+  "png", "jpg", "jpeg", "gif", "webp", "avif", "svg", "ico", "js", "mjs", "css", "map",
+  "json", "txt", "xml", "webmanifest", "woff", "woff2", "ttf", "otf", "pdf", "mp4", "webm",
+]);
 
 const SUPABASE_TIMEOUT_MS = 2500;
 const PRODUCT_FIELDS = "id,slug,name,description,price,image_url,size_volume,updated_at";
@@ -139,17 +150,33 @@ async function resolvePage(pathname) {
 export default async function middleware(request) {
   try {
     const url = new URL(request.url);
+    if (url.hostname === PRODUCTION_ALIAS) {
+      return Response.redirect(`${CANONICAL_ORIGIN}${url.pathname}${url.search}`, 308);
+    }
+
     const pathname = url.pathname === "/" ? "/" : url.pathname.replace(/\/+$/, "");
 
     if (pathname === "/sitemap.xml") return await sitemapResponse();
 
+    const extension = pathname.match(/\.([a-z0-9]+)$/i)?.[1].toLowerCase();
+    if (extension && ASSET_EXTENSIONS.has(extension)) return undefined;
+
     // Only rewrite HTML page loads, never prefetches of other asset types.
     if (request.method !== "GET" && request.method !== "HEAD") return undefined;
 
-    // One URL per page: lowercase product slugs and canonical paths for aliases.
+    // One URL per page: no trailing slash, lowercase product slugs, and
+    // canonical paths for aliases.
     const productCase = pathname.match(/^\/product\/([A-Za-z0-9-]+)$/);
-    const target = PATH_ALIASES[pathname] || (productCase && productCase[1] !== productCase[1].toLowerCase() ? pathname.toLowerCase() : null);
-    if (target) return Response.redirect(new URL(target + url.search, url), 308);
+    const target =
+      PATH_ALIASES[pathname] ||
+      (productCase && productCase[1] !== productCase[1].toLowerCase() ? pathname.toLowerCase() : null) ||
+      (pathname !== url.pathname ? pathname : null);
+    if (target) {
+      // Set only the path so the redirect can never leave this host (e.g. "//evil.com/").
+      const next = new URL(url);
+      next.pathname = target;
+      return Response.redirect(next, 308);
+    }
 
     const page = await resolvePage(pathname);
     if (!page) return undefined;

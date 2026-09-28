@@ -26,8 +26,9 @@ function upsertLink(rel, href) {
   el.setAttribute("href", href);
 }
 
+/** A `path` of null (error pages) removes the canonical and og:url tags. */
 export function applyPageMeta({ title, description, path = "/", image, type = "website", noindex = false }) {
-  const url = absoluteUrl(path);
+  const url = path === null ? null : absoluteUrl(path);
   const imageUrl = absoluteUrl(image || DEFAULT_IMAGE);
   const robots = noindex ? PRIVATE_ROBOTS : INDEXABLE_ROBOTS;
 
@@ -35,11 +36,13 @@ export function applyPageMeta({ title, description, path = "/", image, type = "w
   upsertMeta("name", "description", description);
   upsertMeta("name", "robots", robots);
   upsertMeta("name", "googlebot", robots);
-  upsertLink("canonical", url);
+  if (url) upsertLink("canonical", url);
+  else document.head.querySelector('link[rel="canonical"]')?.remove();
 
   upsertMeta("property", "og:type", type);
   upsertMeta("property", "og:site_name", SITE_NAME);
-  upsertMeta("property", "og:url", url);
+  if (url) upsertMeta("property", "og:url", url);
+  else document.head.querySelector('meta[property="og:url"]')?.remove();
   upsertMeta("property", "og:title", title);
   upsertMeta("property", "og:description", description);
   upsertMeta("property", "og:image", imageUrl);
@@ -48,7 +51,7 @@ export function applyPageMeta({ title, description, path = "/", image, type = "w
   upsertMeta("name", "twitter:description", description);
   upsertMeta("name", "twitter:image", imageUrl);
 
-  // Square logo dimensions are only valid for the default image.
+  // The 1200×630 dimensions are only valid for the default image.
   if (imageUrl !== DEFAULT_IMAGE) {
     document.head.querySelectorAll('meta[property="og:image:width"], meta[property="og:image:height"]').forEach((el) => el.remove());
   }

@@ -1,12 +1,8 @@
 # robots.txt — sahumario.com
+# Cart, checkout, account, login and admin pages are not blocked here: they
+# send "noindex", which search engines can only see if they may crawl them.
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /checkout
-Disallow: /cart
-Disallow: /account
-Disallow: /login
-Disallow: /reset-password
 Disallow: /api/
 
 Sitemap: https://sahumario.com/sitemap.xml

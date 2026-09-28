@@ -92,7 +92,7 @@ export default function BulkOrdersPage() {
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-300">Bulk orders · Corporate gifting</p>
               <h1 className="mt-5 max-w-4xl font-serif text-[clamp(3.6rem,8vw,7rem)] font-semibold leading-[0.86] tracking-[-0.045em]">
-                Fragrance,
+                Fragrance,{" "}
                 <span className="block italic font-medium text-stone-300">at scale.</span>
               </h1>
             </div>

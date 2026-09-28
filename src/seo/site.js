@@ -9,7 +9,8 @@
 
 export const SITE_URL = "https://sahumario.com";
 export const SITE_NAME = "SAHUMäRIO®";
-export const DEFAULT_IMAGE = `${SITE_URL}/logo512.png`;
+// 1200×630 social preview (logo on the brand background).
+export const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 export const DEFAULT_DESCRIPTION =
   "Shop SAHUMäRIO® Eau de Parfum online in India. A focused collection of long-lasting fragrances from ₹749, with free shipping across India.";
 
@@ -164,6 +165,22 @@ export function productJsonLd(product, rating) {
         "@type": "OfferShippingDetails",
         shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "INR" },
         shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
+        // Shipping policy: delivery in 3 to 7 business days, Monday to Saturday.
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          businessDays: {
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day) => `https://schema.org/${day}`),
+          },
+          handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 0, unitCode: "DAY" },
+          transitTime: { "@type": "QuantitativeValue", minValue: 3, maxValue: 7, unitCode: "DAY" },
+        },
+      },
+      // Refund & return policy: delivered items cannot be returned.
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "IN",
+        returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
       },
     },
   };
