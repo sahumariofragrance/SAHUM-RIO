@@ -5,8 +5,13 @@
     "name": "Bloom",
     "description": "Warm, resinous amber with smoky oud base.",
     "price": 749,
-    "image": "/products/bloom.jpg",
-    "alt": "Bottle of Amber Oud perfume"
+    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/bloom-1789976722009.png",
+    "gallery_urls": [
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/bloom-1789976722009.png"
+    ],
+    "alt": "Bottle of Amber Oud perfume",
+    "display_order": 10,
+    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/bloom-1789976722009.png"
   },
   {
     "id": 2,
@@ -14,8 +19,13 @@
     "name": "Dew Drop",
     "description": "Clean, soft musk with subtle floral notes.",
     "price": 749,
-    "image": "/products/dew_drop.jpg",
-    "alt": "SAHUMäRIO Dew Drop Eau de Parfum bottle"
+    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/dew-drop-1789976693532.png",
+    "gallery_urls": [
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/dew-drop-1789976693532.png"
+    ],
+    "alt": "SAHUMäRIO Dew Drop oil-based perfume bottle",
+    "display_order": 20,
+    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/dew-drop-1789976693532.png"
   },
   {
     "id": 3,
@@ -23,8 +33,13 @@
     "name": "Lemon Breeze",
     "description": "Clean, soft musk with subtle floral notes.",
     "price": 749,
-    "image": "/products/lemon_breeze.jpg",
-    "alt": "Bottle of White Musk perfume"
+    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/lemon-breeze-1789976672708.png",
+    "gallery_urls": [
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/lemon-breeze-1789976672708.png"
+    ],
+    "alt": "Bottle of White Musk perfume",
+    "display_order": 30,
+    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/lemon-breeze-1789976672708.png"
   },
   {
     "id": 4,
@@ -32,8 +47,14 @@
     "name": "Morning Dew",
     "description": "Clean, soft musk with subtle floral notes.",
     "price": 749,
-    "image": "/products/morning_dew.jpg",
-    "alt": "Bottle of White Musk perfume"
+    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/morning-dew/mucv6b98-1hq8li/1",
+    "gallery_urls": [
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/morning-dew/mucv6b98-1hq8li/1",
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/morning-dew/mucv6b98-1hq8li/2"
+    ],
+    "alt": "Bottle of White Musk perfume",
+    "display_order": 40,
+    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/morning-dew/mucv6b98-1hq8li/1"
   },
   {
     "id": 5,
@@ -41,16 +62,29 @@
     "name": "Night Queen",
     "description": "Clean, soft musk with subtle floral notes.",
     "price": 749,
-    "image": "/products/night_queen.jpg",
-    "alt": "Bottle of White Musk perfume"
+    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/night-queen/mucv7dlz-gbhi6r/1",
+    "gallery_urls": [
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/night-queen/mucv7dlz-gbhi6r/1",
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/night-queen/mucv7dlz-gbhi6r/2"
+    ],
+    "alt": "Bottle of White Musk perfume",
+    "display_order": 50,
+    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/night-queen/mucv7dlz-gbhi6r/1"
   },
   {
     "id": 9,
     "slug": "blix",
     "name": "Blix",
-    "description": "Cool, Fresh, Fruity",
+    "description": "Cool,Fresh,Fruity",
     "price": 749,
-    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/blix-1789976292293.png",
-    "alt": "Blix perfume bottle"
+    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/blix/mucv854l-8gwsiw/1",
+    "gallery_urls": [
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/blix/mucv854l-8gwsiw/1",
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/blix/mucv854l-8gwsiw/2"
+    ],
+    "alt": "Blix perfume bottle",
+    "notes": "Lemone,Pinapple,Peach,Green Apple",
+    "display_order": 60,
+    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/blix/mucv854l-8gwsiw/1"
   }
 ]
