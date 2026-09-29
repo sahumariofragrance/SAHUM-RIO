@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from "react";
-import { AlertCircle, Check, CheckCircle2, ChevronDown, Copy, Loader2, Mail, MessageCircle, Phone, Truck, XCircle } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, ChevronDown, Copy, Download, Loader2, Mail, MessageCircle, Phone, RotateCcw, Trash2, Truck, XCircle } from "lucide-react";
 import { updateAdminOrder } from "../../lib/adminOrders";
 import { formatINR } from "../../utils/money";
 import { AdminButton, Field, Notice, ORDER_FLOW, ORDER_STATUSES, StatusPill, inputClass } from "./AdminUI";
@@ -59,7 +59,8 @@ function ProgressSteps({ status }) {
   );
 }
 
-export default function OrderCard({ order, onSaved, defaultOpen = false }) {
+// onTrashAction(action, order): "trash" | "restore" | "purge"; the dashboard confirms and runs it.
+export default function OrderCard({ order, onSaved, defaultOpen = false, selected = false, onToggleSelect, onTrashAction, onDownload, inTrash = false }) {
   const uid = useId();
   const courierRef = useRef(null);
   const [open, setOpen] = useState(defaultOpen);
@@ -133,13 +134,25 @@ export default function OrderCard({ order, onSaved, defaultOpen = false }) {
   }
 
   return (
-    <article className={`overflow-hidden rounded-2xl border bg-[var(--color-surface)] transition ${open ? "border-[var(--color-text)]/25 shadow-[0_18px_50px_-30px_rgba(0,0,0,0.45)]" : "border-[var(--color-border)] hover:border-[var(--color-text)]/25"}`}>
+    <article className={`overflow-hidden rounded-2xl border bg-[var(--color-surface)] transition ${selected ? "border-[var(--color-text)]/60" : open ? "border-[var(--color-text)]/25 shadow-[0_18px_50px_-30px_rgba(0,0,0,0.45)]" : "border-[var(--color-border)] hover:border-[var(--color-text)]/25"}`}>
+      <div className="flex items-stretch">
+      {onToggleSelect && (
+        <label className="flex shrink-0 cursor-pointer items-center pl-4 pr-1" title="Select order">
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={() => onToggleSelect(order.id)}
+            aria-label={`Select order ${shortId(order.id)}`}
+            className="h-4 w-4 cursor-pointer accent-[var(--color-text)]"
+          />
+        </label>
+      )}
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-controls={`${uid}-details`}
-        className="grid w-full grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-4 text-left md:grid-cols-[7.5rem_minmax(0,1.3fr)_minmax(0,1fr)_6.5rem_1.25rem]"
+        className="grid min-w-0 flex-1 grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-4 text-left md:grid-cols-[7.5rem_minmax(0,1.3fr)_minmax(0,1fr)_6.5rem_1.25rem]"
       >
         <div className="md:order-none"><StatusPill status={status} /></div>
         <div className="col-span-2 min-w-0 md:col-span-1">
@@ -158,6 +171,7 @@ export default function OrderCard({ order, onSaved, defaultOpen = false }) {
         </div>
         <ChevronDown className={`hidden h-5 w-5 text-[var(--color-muted)] transition md:block ${open ? "rotate-180" : ""}`} />
       </button>
+      </div>
 
       {open && (
         <div id={`${uid}-details`} className="border-t border-[var(--color-border)]">
@@ -218,6 +232,9 @@ export default function OrderCard({ order, onSaved, defaultOpen = false }) {
                 {result && <Notice tone={result.tone} icon={result.tone === "green" ? CheckCircle2 : AlertCircle}>{result.text}</Notice>}
               </div>
 
+              {inTrash ? (
+                <p className="mt-4 text-xs text-[var(--color-muted)]">Restore this order to change its status or tracking details.</p>
+              ) : (<>
               <div className="mt-4 flex flex-wrap gap-2">
                 {(NEXT_ACTIONS[status] || []).map((action) => {
                   const Icon = action.icon;
@@ -250,7 +267,33 @@ export default function OrderCard({ order, onSaved, defaultOpen = false }) {
                   </AdminButton>
                 </div>
               </details>
+              </>)}
             </section>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3">
+            {onDownload && (
+              <AdminButton size="sm" variant="ghost" onClick={() => onDownload(order)}>
+                <Download className="h-3.5 w-3.5" />Download PDF
+              </AdminButton>
+            )}
+            {onTrashAction && (inTrash ? (
+              <>
+                <span className="mr-auto text-xs text-[var(--color-muted)]">
+                  In the trash since {order.deleted_at ? new Date(order.deleted_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—"}
+                </span>
+                <AdminButton size="sm" variant="secondary" onClick={() => onTrashAction("restore", order)}>
+                  <RotateCcw className="h-3.5 w-3.5" />Restore order
+                </AdminButton>
+                <AdminButton size="sm" variant="danger" onClick={() => onTrashAction("purge", order)}>
+                  <Trash2 className="h-3.5 w-3.5" />Delete forever
+                </AdminButton>
+              </>
+            ) : (
+              <AdminButton size="sm" variant="danger" className="ml-auto" onClick={() => onTrashAction("trash", order)}>
+                <Trash2 className="h-3.5 w-3.5" />Move to trash
+              </AdminButton>
+            ))}
           </div>
         </div>
       )}
