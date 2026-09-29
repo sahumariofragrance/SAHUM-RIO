@@ -53,6 +53,7 @@ const ProductDetailModal = React.memo(({
             <SafeImage
               src={product.image}
               alt={product.alt || product.name}
+              sizes="(min-width: 768px) 50vw, 100vw"
               className="w-full h-full object-cover"
             />
           </div>

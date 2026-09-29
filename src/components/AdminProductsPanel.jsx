@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, ImagePlus, Loader2, Pencil, Plus, RefreshCw, Star, Trash2, Upload } from "lucide-react";
 import { AdminButton, Field, Notice, inputClass } from "./admin/AdminUI";
+import SafeImage from "./SafeImage";
+import { compressImage } from "../utils/compressImage";
 import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
 import { useProducts } from "../context/ProductsContext";
@@ -179,7 +181,7 @@ export default function AdminProductsPanel() {
     const paths = [];
     try {
       for (let index = 0; index < orderedFiles.length; index += 1) {
-        const file = orderedFiles[index];
+        const file = await compressImage(orderedFiles[index]);
         const objectName = galleryPath(productSlug, index, version);
         const { error: uploadError } = await supabase.storage
           .from("product-images")
@@ -361,7 +363,7 @@ export default function AdminProductsPanel() {
             <label htmlFor="product-gallery-input" className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-7 text-center transition hover:border-[var(--color-text)]/40">
               <Upload className="h-5 w-5 text-[var(--color-muted)]" />
               <span className="mt-2 text-sm font-semibold">{files.length ? `${files.length} image${files.length === 1 ? "" : "s"} selected — choose again to replace` : `Choose up to ${MAX_PRODUCT_IMAGES} images`}</span>
-              <span className="mt-1 text-xs text-[var(--color-muted)]">JPG, PNG or WebP, up to 10 MB each. New images replace the current gallery.</span>
+              <span className="mt-1 text-xs text-[var(--color-muted)]">JPG, PNG or WebP, up to 10 MB each; photos are resized and compressed automatically. New images replace the current gallery.</span>
               <input id="product-gallery-input" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectImages} className="sr-only" />
             </label>
 
@@ -398,7 +400,7 @@ export default function AdminProductsPanel() {
               <div className="mt-4">
                 <div className="flex flex-wrap gap-2">
                   {(form.gallery_urls?.length ? form.gallery_urls : [form.image_url]).map((url, index) => (
-                    <img key={url} src={url} alt="" title={index === 0 ? "Cover" : `Image ${index + 1}`} className={`h-20 w-16 rounded-lg object-cover ${index === 0 ? "ring-2 ring-[var(--color-text)]/40" : ""}`} />
+                    <SafeImage key={url} src={url} alt="" sizes="64px" maxWidth={320} title={index === 0 ? "Cover" : `Image ${index + 1}`} className={`h-20 w-16 rounded-lg object-cover ${index === 0 ? "ring-2 ring-[var(--color-text)]/40" : ""}`} />
                   ))}
                 </div>
                 <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">
@@ -447,7 +449,7 @@ export default function AdminProductsPanel() {
           <div className="mt-5 space-y-3">
             {products.map((product) => (
               <article key={product.id} className={`group flex gap-4 rounded-2xl border bg-[var(--color-surface)] p-3 transition ${form.id === product.id ? "border-[var(--color-text)]/40" : "border-[var(--color-border)] hover:border-[var(--color-text)]/25"}`}>
-                <img src={product.image_url} alt={product.alt || product.name} className={`h-28 w-[5.5rem] shrink-0 rounded-xl object-cover ${product.active ? "" : "opacity-50 grayscale"}`} />
+                <SafeImage src={product.image_url} alt={product.alt || product.name} sizes="88px" maxWidth={320} className={`h-28 w-[5.5rem] shrink-0 rounded-xl object-cover ${product.active ? "" : "opacity-50 grayscale"}`} />
                 <div className="flex min-w-0 flex-1 flex-col py-1">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">

@@ -25,6 +25,7 @@ const PerfumeCardOptimized = React.memo(({
             alt={alt || name}
             className="h-full w-full object-cover transition duration-[1100ms] ease-out group-hover:scale-[1.012]"
             priority={priority}
+            sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 92vw"
           />
         </div>
       </SpaLink>
