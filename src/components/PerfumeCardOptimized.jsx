@@ -1,8 +1,16 @@
 import React from "react";
+import { Minus, Plus } from "lucide-react";
 import SafeImage from "./SafeImage";
 import SpaLink from "./SpaLink";
 import { formatINR } from "../utils/money";
+import { bottleCutout } from "../data/bottleCutouts";
 
+const roundButton = "flex h-9 w-9 items-center justify-center rounded-full transition-opacity hover:opacity-60";
+
+/**
+ * Product tile: the bottle alone on a soft, even backdrop. On hover it steps
+ * into its own world: the full product photo fades in and settles.
+ */
 const PerfumeCardOptimized = React.memo(({
   product,
   quantity = 0,
@@ -11,62 +19,71 @@ const PerfumeCardOptimized = React.memo(({
   onUpdateQty,
   priority = false,
 }) => {
-  const { id, name, price, image, alt, size_volume: size } = product;
-  const hoverImage = Array.isArray(product.gallery) && product.gallery.length > 1 ? product.gallery[1] : null;
-
+  const { id, name, price, image, alt } = product;
+  const cutout = bottleCutout(product.slug);
   const href = `/product/${product.slug}`;
 
   return (
     <article className="group">
-      {/* Real links so search engines can discover every product page. */}
-      <SpaLink href={href} onNavigate={onClickCard} tabIndex={-1} aria-hidden="true" className="block">
-        <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-surface-muted)]">
-          <SafeImage
-            src={image}
-            alt={alt || name}
-            className="h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.035]"
-            priority={priority}
-          />
-          {hoverImage && (
-            <img
-              src={hoverImage}
-              alt=""
-              loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-700 ease-out group-hover:opacity-100"
+      <div className="product-tile relative aspect-[4/5] overflow-hidden">
+        {/* Real links so search engines can discover every product page. */}
+        <SpaLink href={href} onNavigate={onClickCard} tabIndex={-1} aria-hidden="true" className="absolute inset-0 block">
+          {cutout ? (
+            <>
+              <span className="absolute bottom-[13%] left-1/2 h-4 w-[46%] -translate-x-1/2 rounded-[50%] bg-black/30 blur-md transition-opacity duration-700 group-hover:opacity-0" aria-hidden="true" />
+              <img
+                src={cutout}
+                alt={alt || name}
+                width="480"
+                height="860"
+                loading={priority ? "eager" : "lazy"}
+                decoding="async"
+                className="absolute bottom-[15%] left-1/2 h-[64%] w-auto max-w-none -translate-x-1/2 transition duration-700 ease-out group-hover:scale-95 group-hover:opacity-0"
+              />
+              <img
+                src={image}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full scale-[1.08] object-cover opacity-0 transition duration-[1200ms] ease-out group-hover:scale-100 group-hover:opacity-100"
+              />
+            </>
+          ) : (
+            <SafeImage
+              src={image}
+              alt={alt || name}
+              priority={priority}
+              className="h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.035]"
             />
           )}
-        </div>
-      </SpaLink>
+        </SpaLink>
 
-      <div className="pt-5">
-        <div className="flex items-baseline justify-between gap-5">
-          <h3 className="min-w-0 font-serif text-[1.7rem] font-normal leading-tight tracking-[-0.01em]">
-            <SpaLink href={href} onNavigate={onClickCard} className="bg-[length:0%_1px] bg-left-bottom bg-no-repeat bg-gradient-to-r from-current to-current transition-[background-size] duration-500 hover:bg-[length:100%_1px]">
-              {name}
-            </SpaLink>
-          </h3>
-          <div className="shrink-0 text-sm tabular-nums">{formatINR(price)}</div>
+        <div className="absolute bottom-3 right-3 z-10">
+          {quantity > 0 ? (
+            <div className="flex items-center rounded-full bg-[var(--color-bg)] text-[var(--color-text)] shadow-sm">
+              <button onClick={() => onUpdateQty(id, quantity - 1)} className={roundButton} aria-label={"Decrease " + name}><Minus className="h-3.5 w-3.5" /></button>
+              <span className="min-w-[1.25rem] text-center text-xs tabular-nums" aria-label={`${quantity} in bag`}>{quantity}</span>
+              <button onClick={() => onUpdateQty(id, quantity + 1)} className={roundButton} aria-label={"Increase " + name}><Plus className="h-3.5 w-3.5" /></button>
+            </div>
+          ) : (
+            <button
+              onClick={() => onAdd(product)}
+              aria-label={"Add " + name + " to bag"}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-bg)] text-[var(--color-text)] shadow-sm transition duration-300 hover:scale-110 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          )}
         </div>
-        <p className="mt-1.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">
-          Eau de Parfum{size ? ` · ${size}` : ""}
-        </p>
+      </div>
 
-        {quantity > 0 ? (
-          <div className="mt-5 grid h-10 grid-cols-[2.5rem_1fr_2.5rem] border-y border-[var(--color-border)]">
-            <button onClick={() => onUpdateQty(id, quantity - 1)} className="text-lg transition-opacity hover:opacity-50" aria-label={"Decrease " + name}>−</button>
-            <span className="flex items-center justify-center text-[9px] font-semibold uppercase tracking-[0.16em]">{quantity} in bag</span>
-            <button onClick={() => onUpdateQty(id, quantity + 1)} className="text-lg transition-opacity hover:opacity-50" aria-label={"Increase " + name}>+</button>
-          </div>
-        ) : (
-          <button
-            onClick={() => onAdd(product)}
-            aria-label={"Add " + name + " to bag"}
-            className="mt-5 flex h-10 w-full items-center justify-between border-y border-[var(--color-border)] text-[9px] font-semibold uppercase tracking-[0.2em] transition-colors hover:border-[var(--color-text)]"
-          >
-            <span>Add to bag</span>
-            <span aria-hidden="true" className="transition-transform duration-300 group-hover:rotate-90">+</span>
-          </button>
-        )}
+      <div className="pt-4">
+        <h3 className="font-serif text-[1.2rem] font-normal leading-snug">
+          <SpaLink href={href} onNavigate={onClickCard} className="bg-[length:0%_1px] bg-left-bottom bg-no-repeat bg-gradient-to-r from-current to-current transition-[background-size] duration-500 hover:bg-[length:100%_1px]">
+            {name}
+          </SpaLink>
+        </h3>
+        <p className="mt-1 text-[13px] tabular-nums text-[var(--color-muted)]">{formatINR(price)}</p>
       </div>
     </article>
   );

@@ -11,12 +11,12 @@ const ProductGrid = React.memo(({
 }) => {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 gap-x-7 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-20" aria-label="Loading products">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-16" aria-label="Loading products">
         {[1, 2, 3].map((item) => (
           <div key={item} className="animate-pulse">
             <div className="aspect-[4/5] bg-[var(--color-surface-muted)]" />
-            <div className="mt-5 h-7 w-2/5 bg-[var(--color-surface-muted)]" />
-            <div className="mt-3 h-2.5 w-1/4 bg-[var(--color-surface-muted)]" />
+            <div className="mt-4 h-5 w-2/5 bg-[var(--color-surface-muted)]" />
+            <div className="mt-2 h-3 w-1/5 bg-[var(--color-surface-muted)]" />
           </div>
         ))}
       </div>
@@ -32,7 +32,7 @@ const ProductGrid = React.memo(({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-x-7 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-20">
+    <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-16">
       {products.map((product, index) => (
         <PerfumeCardOptimized
           key={product.id}

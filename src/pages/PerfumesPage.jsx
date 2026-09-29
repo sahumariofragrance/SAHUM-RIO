@@ -22,7 +22,7 @@ export default function PerfumesPage({ onProductNavigate }) {
 
   return (
     <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 md:px-12 md:py-20">
-      <div className="border-b border-[var(--color-border)] pb-9 text-center md:pb-12">
+      <div className="pb-6 text-center md:pb-8">
         <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">SAHUMäRIO</p>
         <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.03em] md:text-7xl">All fragrances</h1>
         <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[var(--color-muted)]">
