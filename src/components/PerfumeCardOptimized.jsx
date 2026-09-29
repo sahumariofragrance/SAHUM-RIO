@@ -3,13 +3,12 @@ import { Minus, Plus } from "lucide-react";
 import SafeImage from "./SafeImage";
 import SpaLink from "./SpaLink";
 import { formatINR } from "../utils/money";
-import { bottleCutout } from "../data/bottleCutouts";
 
 const roundButton = "flex h-9 w-9 items-center justify-center rounded-full transition-opacity hover:opacity-60";
 
 /**
- * Product tile: the bottle alone on a soft, even backdrop. On hover it steps
- * into its own world: the full product photo fades in and settles.
+ * Product tile: the full product photo with no frame; it slowly zooms on
+ * hover, or fades to the second gallery photo when there is one.
  */
 const PerfumeCardOptimized = React.memo(({
   product,
@@ -20,40 +19,27 @@ const PerfumeCardOptimized = React.memo(({
   priority = false,
 }) => {
   const { id, name, price, image, alt } = product;
-  const cutout = bottleCutout(product.slug);
+  const hoverImage = Array.isArray(product.gallery) && product.gallery.length > 1 ? product.gallery[1] : null;
   const href = `/product/${product.slug}`;
 
   return (
     <article className="group">
-      <div className="product-tile relative aspect-[4/5] overflow-hidden">
+      <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-surface-muted)]">
         {/* Real links so search engines can discover every product page. */}
         <SpaLink href={href} onNavigate={onClickCard} tabIndex={-1} aria-hidden="true" className="absolute inset-0 block">
-          {cutout ? (
-            <>
-              <span className="absolute bottom-[13%] left-1/2 h-4 w-[46%] -translate-x-1/2 rounded-[50%] bg-black/30 blur-md transition-opacity duration-700 group-hover:opacity-0" aria-hidden="true" />
-              <img
-                src={cutout}
-                alt={alt || name}
-                width="480"
-                height="860"
-                loading={priority ? "eager" : "lazy"}
-                decoding="async"
-                className="absolute bottom-[15%] left-1/2 h-[64%] w-auto max-w-none -translate-x-1/2 transition duration-700 ease-out group-hover:scale-95 group-hover:opacity-0"
-              />
-              <img
-                src={image}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full scale-[1.08] object-cover opacity-0 transition duration-[1200ms] ease-out group-hover:scale-100 group-hover:opacity-100"
-              />
-            </>
-          ) : (
-            <SafeImage
-              src={image}
-              alt={alt || name}
-              priority={priority}
-              className="h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.035]"
+          <SafeImage
+            src={image}
+            alt={alt || name}
+            priority={priority}
+            className="h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.04]"
+          />
+          {hoverImage && (
+            <img
+              src={hoverImage}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-700 ease-out group-hover:opacity-100"
             />
           )}
         </SpaLink>

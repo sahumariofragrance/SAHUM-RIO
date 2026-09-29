@@ -317,16 +317,3 @@ body {
 :root[data-product-tone] body::before {
   opacity: 0.35;
 }
-
-/* Product tile: one soft, even backdrop for every bottle, lit from above. */
-.product-tile {
-  background:
-    radial-gradient(ellipse 70% 60% at 50% 38%, var(--tile-light), transparent 72%),
-    var(--tile-bg);
-  --tile-bg: #E7E2DA;
-  --tile-light: rgba(255, 255, 255, 0.7);
-}
-:root[data-theme="dark"] .product-tile {
-  --tile-bg: #1F1B18;
-  --tile-light: rgba(255, 244, 230, 0.075);
-}
