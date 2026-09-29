@@ -35,3 +35,14 @@ export async function updateAdminOrder(orderId, values) {
   // email: { sent, reason } — whether the customer was notified of a status change.
   return { order: payload.order, email: payload.email || null };
 }
+
+/** action: "trash" | "restore" | "purge" (purge only removes orders already in the trash). */
+export async function changeOrdersTrash(action, orderIds) {
+  const response = await fetch("/api/admin/orders/trash", {
+    method: "POST",
+    headers: await authHeaders(),
+    body: JSON.stringify({ action, order_ids: orderIds }),
+  });
+  const payload = await parseResponse(response);
+  return payload.affected || 0;
+}
