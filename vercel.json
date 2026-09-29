@@ -1,5 +1,29 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "images": {
+    "sizes": [
+      320,
+      480,
+      640,
+      960,
+      1280,
+      1600
+    ],
+    "qualities": [
+      75
+    ],
+    "formats": [
+      "image/webp"
+    ],
+    "minimumCacheTTL": 2678400,
+    "remotePatterns": [
+      {
+        "protocol": "https",
+        "hostname": "itcyhcmjaotlrhfbsrkv.supabase.co",
+        "pathname": "^/storage/v1/object/public/product-images/.*$"
+      }
+    ]
+  },
   "headers": [
     {
       "source": "/(.*)",

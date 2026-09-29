@@ -24,7 +24,7 @@ const CartSummary = React.memo(
             <li key={item.product_id} className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
                 {item.image ? (
-                  <SafeImage src={item.image} alt={item.alt || item.name} className="h-12 w-10 shrink-0 rounded-lg object-cover" />
+                  <SafeImage src={item.image} alt={item.alt || item.name} sizes="40px" maxWidth={320} className="h-12 w-10 shrink-0 rounded-lg object-cover" />
                 ) : (
                   <div className="flex h-12 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600" aria-hidden="true">
                     <Sparkles className="h-5 w-5" />
