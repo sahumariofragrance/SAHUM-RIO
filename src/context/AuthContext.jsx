@@ -137,6 +137,19 @@ export function AuthProvider({ children }) {
       throw new Error("OTP verification did not create a login session. Please try again.");
     }
 
+    // Admin accounts must sign in with their password; the database also
+    // withholds admin rights from OTP sessions (see is_admin()). Users can
+    // only read their own admin_users row, so this reveals nothing to others.
+    const { data: adminRow } = await supabase
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", data.user.id)
+      .maybeSingle();
+    if (adminRow) {
+      await supabase.auth.signOut();
+      throw new Error("This is an admin account. Please sign in with your password.");
+    }
+
     markActivity({ force: true });
     setIdleSignedOut(false);
     setUser(data.user);
