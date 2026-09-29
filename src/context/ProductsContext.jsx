@@ -31,6 +31,8 @@ function normalizeProduct(product) {
     image,
     gallery,
     alt,
+    // Every perfume is a 50 ml bottle unless the catalogue says otherwise.
+    size_volume: String(product.size_volume || "").trim() || "50 ml",
   };
 }
 

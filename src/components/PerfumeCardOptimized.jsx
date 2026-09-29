@@ -71,7 +71,7 @@ const PerfumeCardOptimized = React.memo(({
             {name}
           </SpaLink>
         </h3>
-        <p className="mt-1 text-[13px] tabular-nums text-[var(--color-muted)]">{formatINR(price)}</p>
+        <p className="mt-1 text-[13px] tabular-nums text-[var(--color-muted)]">{formatINR(price)}{product.size_volume ? ` · ${product.size_volume}` : ""}</p>
       </div>
     </article>
   );

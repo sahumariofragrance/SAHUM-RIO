@@ -131,7 +131,18 @@ export default function ProductPage({ slug, navigate }) {
         <div className="flex flex-col justify-center lg:py-8">
           <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]"><BrandMark /> · Eau de Parfum</p>
           <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.025em] sm:text-6xl">{product.name}</h1>
-          <p className="mt-4 text-base">{formatINR(product.price)}</p>
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+            <p className="text-base tabular-nums">{formatINR(product.price)} <span className="text-sm text-[var(--color-muted)]">· {product.size_volume}</span></p>
+            <a
+              href="#reviews"
+              onClick={(event) => { event.preventDefault(); document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              className="inline-flex items-center gap-1.5 text-xs text-[var(--color-muted)] underline-offset-4 transition-colors hover:text-[var(--color-text)] hover:underline"
+            >
+              {rating ? (
+                <><span className="text-[var(--color-kesar)]" aria-hidden="true">★</span> {rating.average.toFixed(1)} · {rating.count} review{rating.count === 1 ? "" : "s"}</>
+              ) : "Write the first review"}
+            </a>
+          </div>
           <p className="mt-7 max-w-xl text-sm leading-7 text-[var(--color-muted)]">{product.description}</p>
 
           <div className="mt-9 border-t border-[var(--color-border)] pt-6">
