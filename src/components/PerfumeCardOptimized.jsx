@@ -3,6 +3,7 @@ import { Minus, Plus } from "lucide-react";
 import SafeImage from "./SafeImage";
 import SpaLink from "./SpaLink";
 import { formatINR } from "../utils/money";
+import { gujaratiName } from "../data/gujaratiNames";
 
 // Tiles are two columns on phones, three from 1024px.
 const TILE_SIZES = "(min-width: 1024px) 30vw, 48vw";
@@ -23,6 +24,7 @@ const PerfumeCardOptimized = React.memo(({
   const { id, name, price, image, alt } = product;
   const hoverImage = Array.isArray(product.gallery) && product.gallery.length > 1 ? product.gallery[1] : null;
   const href = `/product/${product.slug}`;
+  const gujarati = gujaratiName(product.slug);
 
   return (
     <article className="group">
@@ -57,7 +59,7 @@ const PerfumeCardOptimized = React.memo(({
             <button
               onClick={() => onAdd(product)}
               aria-label={"Add " + name + " to bag"}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-bg)] text-[var(--color-text)] shadow-sm transition duration-300 hover:scale-110 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-bg)] text-[var(--color-text)] shadow-sm transition duration-300 hover:scale-110 hover:bg-[var(--color-kesar)] hover:text-[#FFF8EF] md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -71,6 +73,7 @@ const PerfumeCardOptimized = React.memo(({
             {name}
           </SpaLink>
         </h3>
+        {gujarati && <p lang="gu" className="font-gujarati text-[13px] leading-6 text-[var(--color-kesar)]">{gujarati}</p>}
         <p className="mt-1 text-[13px] tabular-nums text-[var(--color-muted)]">{formatINR(price)}</p>
       </div>
     </article>

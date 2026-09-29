@@ -25,6 +25,7 @@ export default function PerfumesPage({ onProductNavigate }) {
       <div className="pb-6 text-center md:pb-8">
         <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">SAHUMäRIO</p>
         <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.03em] md:text-7xl">All fragrances</h1>
+        <div className="motif-patola mx-auto mt-6 w-36 opacity-70" aria-hidden="true" />
         <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[var(--color-muted)]">
           Eau de Parfum from the current collection.
         </p>

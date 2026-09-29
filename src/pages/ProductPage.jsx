@@ -10,6 +10,7 @@ import { setPageJsonLd } from "../seo/head";
 import { useTheme } from "../context/ThemeContext";
 import { loadImageHue, tonePalette } from "../utils/imageTone";
 import { optimizedSrc } from "../utils/optimizedImage";
+import { gujaratiName } from "../data/gujaratiNames";
 
 export default function ProductPage({ slug, navigate }) {
   const { items, addToCart, updateQty } = useCart();
@@ -131,6 +132,9 @@ export default function ProductPage({ slug, navigate }) {
         <div className="flex flex-col justify-center lg:py-8">
           <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]"><BrandMark /> · Eau de Parfum</p>
           <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.025em] sm:text-6xl">{product.name}</h1>
+          {gujaratiName(product.slug) && (
+            <p lang="gu" className="font-gujarati mt-2 text-lg text-[var(--color-kesar)]">{gujaratiName(product.slug)}</p>
+          )}
           <p className="mt-4 text-base">{formatINR(product.price)}</p>
           <p className="mt-7 max-w-xl text-sm leading-7 text-[var(--color-muted)]">{product.description}</p>
 

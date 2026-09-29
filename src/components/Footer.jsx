@@ -17,7 +17,8 @@ const Footer = React.memo(({ setCurrentPage }) => {
   const nav = useCallback((page) => setCurrentPage?.(page), [setCurrentPage]);
 
   return (
-    <footer className="bg-[#11110f] text-white">
+    <footer className="bg-[#120e0b] text-white">
+      <div className="motif-patola !bg-[#D98A3D] opacity-50" aria-hidden="true" />
       <div className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 md:px-12 md:py-20">
         <SpaLink href="/" onNavigate={() => nav("home")} className="block text-left" aria-label="SAHUMäRIO registered trademark home">
           <BrandMark className="font-serif text-[clamp(2.5rem,5.25vw,5.25rem)] font-normal leading-[0.95] tracking-[-0.018em]" registeredClassName="!ml-[0.1em] !text-[0.27em] !font-normal" />

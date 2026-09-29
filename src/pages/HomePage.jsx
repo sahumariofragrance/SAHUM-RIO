@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import ProductGrid from "../components/ProductGrid";
 import SpaLink from "../components/SpaLink";
 import IndiaFlag from "../components/IndiaFlag";
+import { GUJARATI_TAGLINE } from "../data/gujaratiNames";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
@@ -28,11 +29,14 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
 
   return <>
     <div className="mx-auto max-w-[1440px] px-5 sm:px-8 md:px-12">
-      <div className="pb-10 pt-14 text-center md:pb-14 md:pt-20">
+      <div className="relative isolate pb-10 pt-14 text-center md:pb-14 md:pt-20">
+        <div className="motif-jaali" aria-hidden="true" />
         <h1 className="font-serif text-[clamp(2.25rem,4vw,3.5rem)] font-normal leading-none tracking-[-0.02em]">
           <span className="sr-only">SAHUMäRIO® </span>Eau de Parfum
         </h1>
-        <p className="mt-4 inline-flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">
+        <p lang="gu" className="font-gujarati mt-3 text-base text-[var(--color-kesar)] md:text-lg">{GUJARATI_TAGLINE}</p>
+        <div className="motif-patola mx-auto mt-5 w-36 opacity-70" aria-hidden="true" />
+        <p className="mt-5 inline-flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">
           <IndiaFlag />
           Made in India
         </p>
