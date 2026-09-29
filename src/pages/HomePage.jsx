@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import ProductGrid from "../components/ProductGrid";
 import SpaLink from "../components/SpaLink";
 import IndiaFlag from "../components/IndiaFlag";
-import { GUJARATI_TAGLINE } from "../data/gujaratiNames";
+import { GUJARATI_TAGLINE } from "../data/gujaratiTagline";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
