@@ -18,16 +18,16 @@ const SORTS = {
 const BANNER_BOTTLES = new Set(["bloom", "dew-drop", "lemon-breeze", "morning-dew", "night-queen", "blix"]);
 
 /**
- * Collection banner: every bottle standing together on one lit studio
- * backdrop, with the title above. Each bottle links to its perfume page.
+ * Collection line-up: every bottle standing together on the page itself,
+ * with the title above. Each bottle links to its perfume page.
  */
 function Banner({ products, onProductNavigate }) {
   const lineup = products.filter((product) => BANNER_BOTTLES.has(product.slug));
   return (
-    <section className="studio-backdrop relative isolate overflow-hidden text-white">
+    <section className="relative isolate overflow-hidden">
       <div className="mx-auto flex max-w-[1440px] flex-col px-5 pb-10 pt-10 sm:px-8 md:min-h-[min(64svh,580px)] md:px-12 md:pb-14 md:pt-12">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/60">SAHUMäRIO®</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[var(--color-muted)]">SAHUMäRIO®</p>
           <h1 className="mt-2 text-[clamp(2.25rem,4.5vw,3.75rem)] font-semibold uppercase leading-none tracking-[-0.01em]">
             <span className="sr-only">SAHUMäRIO® </span>Eau de Parfum
           </h1>
@@ -53,7 +53,7 @@ function Banner({ products, onProductNavigate }) {
                   decoding="async"
                   className="bottle-reflect h-auto w-full"
                 />
-                <span className="absolute inset-x-0 top-full mt-3 block whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-[0.22em] text-white/0 transition-colors duration-500 group-hover:text-white/80 group-focus-visible:text-white/80">
+                <span className="absolute inset-x-0 top-full mt-3 block whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-[0.22em] text-transparent transition-colors duration-500 group-hover:text-[var(--color-text)] group-focus-visible:text-[var(--color-text)]">
                   {product.name}
                 </span>
               </SpaLink>
