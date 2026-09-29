@@ -318,12 +318,6 @@ body {
   opacity: 0.35;
 }
 
-/* A faint reflection of each bottle on the floor (Chromium and Safari). */
-.bottle-reflect {
-  -webkit-box-reflect: below 2px linear-gradient(transparent 78%, rgba(255, 255, 255, 0.22));
-}
-
-
 /* Product tile: one soft, even backdrop for every bottle, lit from above. */
 .product-tile {
   background:
