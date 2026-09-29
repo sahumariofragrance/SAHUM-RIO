@@ -4,6 +4,8 @@ import SafeImage from "./SafeImage";
 import SpaLink from "./SpaLink";
 import { formatINR } from "../utils/money";
 
+// Tiles are two columns on phones, three from 1024px.
+const TILE_SIZES = "(min-width: 1024px) 30vw, 48vw";
 const roundButton = "flex h-9 w-9 items-center justify-center rounded-full transition-opacity hover:opacity-60";
 
 /**
@@ -32,13 +34,13 @@ const PerfumeCardOptimized = React.memo(({
             alt={alt || name}
             priority={priority}
             className="h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.04]"
+            sizes={TILE_SIZES}
           />
           {hoverImage && (
-            <img
+            <SafeImage
               src={hoverImage}
               alt=""
-              loading="lazy"
-              decoding="async"
+              sizes={TILE_SIZES}
               className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-700 ease-out group-hover:opacity-100"
             />
           )}

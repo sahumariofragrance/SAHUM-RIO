@@ -45,7 +45,7 @@ export default function CartPage({ setCurrentPage }) {
           {detailedItems.map((item) => (
             <article key={item.product_id} className="grid grid-cols-[5rem_1fr] gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:grid-cols-[6rem_1fr_auto] sm:items-center sm:gap-5">
               <div className="aspect-[4/5] overflow-hidden rounded-xl bg-[var(--color-surface-muted)]">
-                <SafeImage src={item.image} alt={item.alt} className="h-full w-full object-cover" />
+                <SafeImage src={item.image} alt={item.alt} sizes="96px" maxWidth={320} className="h-full w-full object-cover" />
               </div>
 
               <div className="min-w-0">

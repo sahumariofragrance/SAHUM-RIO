@@ -15,9 +15,10 @@ import { NOT_FOUND_META, PAGE_META, PAGE_NOT_FOUND_META, collectionJsonLd, produ
 import { noscriptSummary, renderPage, renderSitemap } from "./src/seo/render";
 
 export const config = {
-  // Everything except /api and build assets. Real files are passed straight
+  // Everything except /api, build assets and Vercel's image optimizer
+  // (/_vercel/image). Real files are passed straight
   // through in the handler.
-  matcher: ["/((?!api/|static/).*)"],
+  matcher: ["/((?!api/|static/|_vercel/).*)"],
 };
 
 // The page shell is read from a build-time copy (scripts/postbuild.js) under

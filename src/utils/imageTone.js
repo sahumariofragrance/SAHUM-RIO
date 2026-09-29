@@ -1,6 +1,8 @@
 // Picks the dominant colour of a product photo and turns it into a page
 // palette, so each perfume page takes on the colour of its bottle/photo.
 
+import { optimizedSrc } from "./optimizedImage";
+
 const cache = new Map();
 
 function rgbToHsl(r, g, b) {
@@ -63,24 +65,35 @@ function dominantHue(image) {
   return { h: Math.round(h), s: Math.min(1, s) };
 }
 
-/** Resolves to the dominant { h, s } of the image at `url`, or null. */
-export function loadImageHue(url) {
-  if (!url) return Promise.resolve(null);
-  if (cache.has(url)) return cache.get(url);
-  const promise = new Promise((resolve) => {
+function sampleHue(src) {
+  return new Promise((resolve) => {
     const image = new Image();
     image.crossOrigin = "anonymous";
     image.decoding = "async";
     image.onload = () => {
       try {
-        resolve(dominantHue(image));
+        resolve({ hue: dominantHue(image) });
       } catch {
-        resolve(null); // e.g. the image host does not allow cross-origin reads
+        resolve({ hue: null }); // e.g. the image host does not allow cross-origin reads
       }
     };
-    image.onerror = () => resolve(null);
-    image.src = url;
+    image.onerror = () => resolve({ failed: true });
+    image.src = src;
   });
+}
+
+/**
+ * Resolves to the dominant { h, s } of the image at `url`, or null. Samples a
+ * small resized copy (the colour is the same, the download far smaller) and
+ * falls back to the original if the resized copy cannot be loaded.
+ */
+export function loadImageHue(url) {
+  if (!url) return Promise.resolve(null);
+  if (cache.has(url)) return cache.get(url);
+  const small = optimizedSrc(url, 320);
+  const promise = sampleHue(small).then((result) => (
+    result.failed && small !== url ? sampleHue(url) : result
+  )).then((result) => result.hue || null);
   cache.set(url, promise);
   return promise;
 }

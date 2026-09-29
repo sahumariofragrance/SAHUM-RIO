@@ -9,6 +9,7 @@ import { productJsonLd } from "../seo/site";
 import { setPageJsonLd } from "../seo/head";
 import { useTheme } from "../context/ThemeContext";
 import { loadImageHue, tonePalette } from "../utils/imageTone";
+import { optimizedSrc } from "../utils/optimizedImage";
 
 export default function ProductPage({ slug, navigate }) {
   const { items, addToCart, updateQty } = useCart();
@@ -94,7 +95,7 @@ export default function ProductPage({ slug, navigate }) {
       <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
         <div>
           <div className="min-h-[560px] overflow-hidden bg-[var(--color-surface-muted)]">
-            <SafeImage src={activeImage || product.image} alt={product.alt || product.name} className="h-full w-full object-cover" priority />
+            <SafeImage src={activeImage || product.image} alt={product.alt || product.name} sizes="(min-width: 1024px) 55vw, 100vw" className="h-full w-full object-cover" priority />
           </div>
 
           {visibleGallery.length > 1 && (
@@ -109,9 +110,13 @@ export default function ProductPage({ slug, navigate }) {
                     aria-label={`View ${product.name} image ${index + 1}`}
                   >
                     <img
-                      src={url}
+                      src={optimizedSrc(url, 320)}
                       alt=""
-                      onError={() => markImageFailed(url)}
+                      onError={(event) => {
+                        // Optimized copy failed: try the original before hiding the thumbnail.
+                        if (event.currentTarget.getAttribute("src") !== url) event.currentTarget.src = url;
+                        else markImageFailed(url);
+                      }}
                       className="h-full w-full object-cover"
                       loading={index === 0 ? "eager" : "lazy"}
                     />
