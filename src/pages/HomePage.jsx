@@ -12,16 +12,21 @@ const SORTS = {
   name: { label: "Name: A to Z", compare: (a, b) => a.name.localeCompare(b.name) },
 };
 
+// Bottles cut out of their product photos (public/banner/<slug>.webp), all
+// scaled to the same bottle width so they stand together as one line-up.
+// A perfume without a cut-out simply does not appear in the banner.
+const BANNER_BOTTLES = new Set(["bloom", "dew-drop", "lemon-breeze", "morning-dew", "night-queen", "blix"]);
+
 /**
- * Collection banner: the bottles lined up on a lit studio backdrop with the
- * title in the corner. Each bottle links to its perfume page.
+ * Collection banner: every bottle standing together on one lit studio
+ * backdrop, with the title above. Each bottle links to its perfume page.
  */
 function Banner({ products, onProductNavigate }) {
-  const lineup = products.filter((product) => product.image).slice(0, 3);
+  const lineup = products.filter((product) => BANNER_BOTTLES.has(product.slug));
   return (
     <section className="studio-backdrop relative isolate overflow-hidden text-white">
-      <div className="mx-auto flex min-h-[420px] max-w-[1440px] flex-col justify-end px-5 pb-8 pt-10 sm:px-8 md:h-[min(62svh,560px)] md:flex-row md:items-end md:justify-between md:px-12 md:pb-10 md:pt-12">
-        <div className="order-2 mt-8 md:order-1 md:mt-0 md:pb-2">
+      <div className="mx-auto flex max-w-[1440px] flex-col px-5 pb-10 pt-10 sm:px-8 md:min-h-[min(64svh,580px)] md:px-12 md:pb-14 md:pt-12">
+        <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/60">SAHUMäRIO®</p>
           <h1 className="mt-2 text-[clamp(2.25rem,4.5vw,3.75rem)] font-semibold uppercase leading-none tracking-[-0.01em]">
             <span className="sr-only">SAHUMäRIO® </span>Eau de Parfum
@@ -29,23 +34,28 @@ function Banner({ products, onProductNavigate }) {
         </div>
 
         {lineup.length > 0 && (
-          <div className="order-1 flex h-[240px] items-end justify-center gap-3 sm:h-[300px] sm:gap-4 md:order-2 md:mr-[6%] md:h-[82%] md:gap-5">
+          <div className="mt-10 flex flex-1 items-end justify-center gap-[clamp(0.75rem,2.2vw,2rem)] pb-[clamp(2.5rem,5vw,4.5rem)]">
             {lineup.map((product, index) => (
               <SpaLink
                 key={product.id}
                 href={`/product/${product.slug}`}
                 onNavigate={() => onProductNavigate(product)}
                 aria-label={product.name}
-                className="bottle-reflect group relative block h-full aspect-[3/4] overflow-hidden shadow-[0_30px_50px_-25px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out hover:-translate-y-2"
+                className={`group relative w-[clamp(5.5rem,10.5vw,10.5rem)] shrink-0 transition-transform duration-700 ease-out hover:-translate-y-3 ${index >= 3 ? "hidden sm:block" : "block"}`}
               >
                 <img
-                  src={product.image}
+                  src={`/banner/${product.slug}.webp`}
                   alt={product.alt || product.name}
+                  width="480"
+                  height="860"
                   loading="eager"
                   fetchpriority={index === 0 ? "high" : "auto"}
                   decoding="async"
-                  className="h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.05]"
+                  className="bottle-reflect h-auto w-full"
                 />
+                <span className="absolute inset-x-0 top-full mt-3 block whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-[0.22em] text-white/0 transition-colors duration-500 group-hover:text-white/80 group-focus-visible:text-white/80">
+                  {product.name}
+                </span>
               </SpaLink>
             ))}
           </div>
