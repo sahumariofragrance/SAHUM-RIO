@@ -1,23 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500;600&family=Noto+Serif+Gujarati:wght@400;500&display=swap');
 
+/* Palette drawn from Indian materials: chandan (sandalwood) grounds,
+   kesar (saffron) and indigo accents. */
 :root {
-  --color-bg: #F5F3EF;
-  --color-text: #171614;
-  --color-surface: #FBFAF7;
-  --color-surface-muted: #E9E5DE;
-  --color-border: #D5D0C8;
-  --color-muted: #716C64;
+  --color-bg: #F4EBDD;
+  --color-text: #1E1914;
+  --color-surface: #FAF5EC;
+  --color-surface-muted: #EADFCC;
+  --color-border: #DBCCB3;
+  --color-muted: #6B5F50;
+  --color-kesar: #A24B14;
+  --color-indigo: #27336B;
   --color-sage: #8D927C;
   --color-hero-overlay: rgba(23, 22, 20, 0.14);
 }
 
 :root[data-theme="dark"] {
-  --color-bg: #151210;
-  --color-text: #F4EFE8;
-  --color-surface: #1D1917;
-  --color-surface-muted: #28221F;
-  --color-border: rgba(244, 239, 232, 0.14);
-  --color-muted: #B9AEA5;
+  --color-bg: #17120E;
+  --color-text: #F5ECDF;
+  --color-surface: #1F1813;
+  --color-surface-muted: #2B221A;
+  --color-border: rgba(245, 236, 223, 0.14);
+  --color-muted: #C1B19C;
+  --color-kesar: #E3964A;
+  --color-indigo: #9AA8E6;
   --color-sage: #A7AE9A;
   --color-hero-overlay: rgba(0, 0, 0, 0.38);
 }
@@ -80,8 +86,12 @@ footer {
 }
 
 ::selection {
-  background: #171614;
-  color: #F5F3EF;
+  background: var(--color-kesar);
+  color: #FFF8EF;
+}
+
+.font-gujarati {
+  font-family: 'Noto Serif Gujarati', 'Cormorant Garamond', Georgia, serif;
 }
 
 
@@ -107,7 +117,7 @@ footer {
    with background-attachment: fixed, which made the browser repaint the
    whole screen on every scroll frame. */
 body {
-  background-color: #f3efe8;
+  background-color: #F2E8D8;
 }
 
 body::after {
@@ -118,12 +128,12 @@ body::after {
   pointer-events: none;
   transform: translateZ(0);
   background-image:
-    radial-gradient(ellipse at 4% 8%, rgba(190, 202, 180, 0.34) 0%, rgba(190, 202, 180, 0.16) 18%, transparent 43%),
-    radial-gradient(ellipse at 96% 22%, rgba(229, 203, 181, 0.34) 0%, rgba(229, 203, 181, 0.15) 20%, transparent 45%),
-    radial-gradient(ellipse at 52% 52%, rgba(255, 252, 245, 0.88) 0%, rgba(255, 252, 245, 0.42) 24%, transparent 56%),
-    radial-gradient(ellipse at 18% 86%, rgba(205, 214, 199, 0.26) 0%, rgba(205, 214, 199, 0.10) 20%, transparent 44%),
-    radial-gradient(ellipse at 88% 92%, rgba(220, 196, 176, 0.20) 0%, rgba(220, 196, 176, 0.08) 18%, transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,0.32), rgba(245,240,231,0.08));
+    radial-gradient(ellipse at 4% 8%, rgba(92, 108, 170, 0.10) 0%, rgba(92, 108, 170, 0.04) 18%, transparent 43%),
+    radial-gradient(ellipse at 96% 18%, rgba(226, 140, 60, 0.20) 0%, rgba(226, 140, 60, 0.08) 20%, transparent 45%),
+    radial-gradient(ellipse at 52% 52%, rgba(255, 250, 240, 0.85) 0%, rgba(255, 250, 240, 0.40) 24%, transparent 56%),
+    radial-gradient(ellipse at 18% 86%, rgba(214, 176, 120, 0.20) 0%, rgba(214, 176, 120, 0.08) 20%, transparent 44%),
+    radial-gradient(ellipse at 88% 92%, rgba(232, 164, 70, 0.14) 0%, rgba(232, 164, 70, 0.05) 18%, transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,0.28), rgba(244,235,221,0.08));
   background-size: 125% 125%, 120% 120%, 145% 145%, 120% 120%, 120% 120%, 100% 100%;
   background-position: center top;
 }
@@ -147,12 +157,12 @@ body::before {
 
 :root[data-theme="dark"] body::after {
   background-image:
-    radial-gradient(ellipse at 7% 8%, rgba(116, 128, 100, 0.24) 0%, rgba(116, 128, 100, 0.10) 18%, transparent 42%),
-    radial-gradient(ellipse at 94% 18%, rgba(153, 104, 79, 0.24) 0%, rgba(153, 104, 79, 0.09) 19%, transparent 43%),
-    radial-gradient(ellipse at 52% 46%, rgba(203, 180, 158, 0.08) 0%, rgba(203, 180, 158, 0.025) 30%, transparent 56%),
-    radial-gradient(ellipse at 18% 84%, rgba(86, 102, 82, 0.17) 0%, rgba(86, 102, 82, 0.05) 20%, transparent 46%),
-    radial-gradient(ellipse at 86% 90%, rgba(132, 87, 69, 0.14) 0%, transparent 43%),
-    linear-gradient(155deg, #12100f 0%, #191411 44%, #211a17 72%, #131110 100%);
+    radial-gradient(ellipse at 7% 8%, rgba(74, 88, 160, 0.16) 0%, rgba(74, 88, 160, 0.06) 18%, transparent 42%),
+    radial-gradient(ellipse at 94% 18%, rgba(200, 112, 40, 0.20) 0%, rgba(200, 112, 40, 0.07) 19%, transparent 43%),
+    radial-gradient(ellipse at 52% 46%, rgba(214, 170, 118, 0.07) 0%, rgba(214, 170, 118, 0.02) 30%, transparent 56%),
+    radial-gradient(ellipse at 18% 84%, rgba(150, 96, 40, 0.14) 0%, rgba(150, 96, 40, 0.04) 20%, transparent 46%),
+    radial-gradient(ellipse at 86% 90%, rgba(60, 72, 140, 0.12) 0%, transparent 43%),
+    linear-gradient(155deg, #120e0b 0%, #1a140f 44%, #221a12 72%, #130f0c 100%);
   background-size: 125% 125%, 120% 120%, 145% 145%, 125% 125%, 120% 120%, 100% 100%;
 }
 
@@ -291,8 +301,8 @@ body::before {
 }
 
 :root[data-theme="dark"] ::selection {
-  background: #F4EFE8;
-  color: #171310;
+  background: var(--color-kesar);
+  color: #17120E;
 }
 
 /* ── Admin: status tones (readable in light and dark themes) ─────────── */
@@ -334,4 +344,38 @@ body {
 }
 :root[data-product-tone] body::before {
   opacity: 0.35;
+}
+
+/* ── Indian motifs ─────────────────────────────────────────────────────
+   Drawn as masks so they take their colour from --color-kesar. */
+
+/* Patola: a row of diamonds with dots, after Gujarat's double-ikat weave. */
+.motif-patola {
+  height: 12px;
+  background-color: var(--color-kesar);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12' viewBox='0 0 24 12'%3E%3Cpath d='M12 1.2 17.6 6 12 10.8 6.4 6z' fill='none' stroke='%23000' stroke-width='1.1'/%3E%3Ccircle cx='12' cy='6' r='1.4'/%3E%3Ccircle cx='0' cy='6' r='1'/%3E%3Ccircle cx='24' cy='6' r='1'/%3E%3C/svg%3E") repeat-x left center / 24px 12px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12' viewBox='0 0 24 12'%3E%3Cpath d='M12 1.2 17.6 6 12 10.8 6.4 6z' fill='none' stroke='%23000' stroke-width='1.1'/%3E%3Ccircle cx='12' cy='6' r='1.4'/%3E%3Ccircle cx='0' cy='6' r='1'/%3E%3Ccircle cx='24' cy='6' r='1'/%3E%3C/svg%3E") repeat-x left center / 24px 12px;
+}
+
+/* Jaali: a faint carved-screen lattice of interlocking circles, fading out
+   from the centre. Place inside a relatively positioned, isolated box. */
+.motif-jaali {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 50%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(ellipse 60% 70% at 50% 50%, #000 0%, transparent 72%);
+}
+.motif-jaali::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-kesar);
+  opacity: 0.14;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='%23000' stroke-width='0.9'%3E%3Ccircle cx='22' cy='22' r='22'/%3E%3Ccircle cx='0' cy='0' r='22'/%3E%3Ccircle cx='44' cy='0' r='22'/%3E%3Ccircle cx='0' cy='44' r='22'/%3E%3Ccircle cx='44' cy='44' r='22'/%3E%3C/g%3E%3C/svg%3E") repeat center / 44px 44px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='%23000' stroke-width='0.9'%3E%3Ccircle cx='22' cy='22' r='22'/%3E%3Ccircle cx='0' cy='0' r='22'/%3E%3Ccircle cx='44' cy='0' r='22'/%3E%3Ccircle cx='0' cy='44' r='22'/%3E%3Ccircle cx='44' cy='44' r='22'/%3E%3C/g%3E%3C/svg%3E") repeat center / 44px 44px;
+}
+:root[data-theme="dark"] .motif-jaali::before {
+  opacity: 0.12;
 }

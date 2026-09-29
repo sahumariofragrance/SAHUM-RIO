@@ -1,8 +1,17 @@
 import React from "react";
+import { Minus, Plus } from "lucide-react";
 import SafeImage from "./SafeImage";
 import SpaLink from "./SpaLink";
 import { formatINR } from "../utils/money";
 
+// Tiles are two columns on phones, three from 1024px.
+const TILE_SIZES = "(min-width: 1024px) 30vw, 48vw";
+const roundButton = "flex h-9 w-9 items-center justify-center rounded-full transition-opacity hover:opacity-60";
+
+/**
+ * Product tile: the full product photo with no frame; it slowly zooms on
+ * hover, or fades to the second gallery photo when there is one.
+ */
 const PerfumeCardOptimized = React.memo(({
   product,
   quantity = 0,
@@ -12,63 +21,57 @@ const PerfumeCardOptimized = React.memo(({
   priority = false,
 }) => {
   const { id, name, price, image, alt } = product;
-
+  const hoverImage = Array.isArray(product.gallery) && product.gallery.length > 1 ? product.gallery[1] : null;
   const href = `/product/${product.slug}`;
 
   return (
     <article className="group">
-      {/* Real links so search engines can discover every product page. */}
-      <SpaLink href={href} onNavigate={onClickCard} tabIndex={-1} aria-hidden="true" className="block">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-[1.6rem] bg-[var(--color-surface-muted)] shadow-[0_16px_42px_rgba(55,45,36,0.10)]">
+      <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-surface-muted)]">
+        {/* Real links so search engines can discover every product page. */}
+        <SpaLink href={href} onNavigate={onClickCard} tabIndex={-1} aria-hidden="true" className="absolute inset-0 block">
           <SafeImage
             src={image}
             alt={alt || name}
-            className="h-full w-full object-cover transition duration-[1100ms] ease-out group-hover:scale-[1.012]"
             priority={priority}
-            sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 92vw"
+            className="h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.04]"
+            sizes={TILE_SIZES}
           />
-        </div>
-      </SpaLink>
+          {hoverImage && (
+            <SafeImage
+              src={hoverImage}
+              alt=""
+              sizes={TILE_SIZES}
+              className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-700 ease-out group-hover:opacity-100"
+            />
+          )}
+        </SpaLink>
 
-      <div className="glass-card-meta relative z-10">
-        <div className="flex items-start justify-between gap-5">
-          <div className="min-w-0">
-            <h3 className="font-serif text-[1.65rem] font-normal leading-tight">
-              <SpaLink href={href} onNavigate={onClickCard} className="hover:underline hover:underline-offset-4">{name}</SpaLink>
-            </h3>
-            <p className="mt-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">Eau de Parfum</p>
-          </div>
-          <div className="shrink-0 pt-1 text-sm">{formatINR(price)}</div>
+        <div className="absolute bottom-3 right-3 z-10">
+          {quantity > 0 ? (
+            <div className="flex items-center rounded-full bg-[var(--color-bg)] text-[var(--color-text)] shadow-sm">
+              <button onClick={() => onUpdateQty(id, quantity - 1)} className={roundButton} aria-label={"Decrease " + name}><Minus className="h-3.5 w-3.5" /></button>
+              <span className="min-w-[1.25rem] text-center text-xs tabular-nums" aria-label={`${quantity} in bag`}>{quantity}</span>
+              <button onClick={() => onUpdateQty(id, quantity + 1)} className={roundButton} aria-label={"Increase " + name}><Plus className="h-3.5 w-3.5" /></button>
+            </div>
+          ) : (
+            <button
+              onClick={() => onAdd(product)}
+              aria-label={"Add " + name + " to bag"}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-bg)] text-[var(--color-text)] shadow-sm transition duration-300 hover:scale-110 hover:bg-[var(--color-kesar)] hover:text-[#FFF8EF] md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          )}
         </div>
+      </div>
 
-        {quantity > 0 ? (
-          <div className="mt-4 grid h-10 grid-cols-[2.5rem_1fr_2.5rem] border-t border-[var(--color-border)]">
-            <button
-              onClick={() => onUpdateQty(id, quantity - 1)}
-              className="text-lg transition-opacity hover:opacity-50"
-              aria-label={"Decrease " + name}
-            >
-              −
-            </button>
-            <span className="flex items-center justify-center text-[9px] font-semibold uppercase tracking-[0.12em]">{quantity} in bag</span>
-            <button
-              onClick={() => onUpdateQty(id, quantity + 1)}
-              className="text-lg transition-opacity hover:opacity-50"
-              aria-label={"Increase " + name}
-            >
-              +
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => onAdd(product)}
-            aria-label={"Add " + name + " to bag"}
-            className="mt-4 flex h-10 w-full items-center justify-between border-t border-[var(--color-border)] text-[9px] font-semibold uppercase tracking-[0.15em] transition-opacity hover:opacity-50"
-          >
-            <span>Add to bag</span>
-            <span aria-hidden="true">+</span>
-          </button>
-        )}
+      <div className="pt-4">
+        <h3 className="font-serif text-[1.2rem] font-normal leading-snug">
+          <SpaLink href={href} onNavigate={onClickCard} className="bg-[length:0%_1px] bg-left-bottom bg-no-repeat bg-gradient-to-r from-current to-current transition-[background-size] duration-500 hover:bg-[length:100%_1px]">
+            {name}
+          </SpaLink>
+        </h3>
+        <p className="mt-1 text-[13px] tabular-nums text-[var(--color-muted)]">{formatINR(price)}{product.size_volume ? ` · ${product.size_volume}` : ""}</p>
       </div>
     </article>
   );
