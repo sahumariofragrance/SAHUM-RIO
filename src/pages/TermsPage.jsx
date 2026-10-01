@@ -149,14 +149,11 @@ export default function TermsPage() {
         <P>
           In case any issue arises, SAHUMÄRIO has a Dispute Resolution process to resolve
           disputes amicably between buyers and SAHUMÄRIO. You can register your grievance
-          at customer care or write to us at{" "}
-          <a
-            href="mailto:sahumariofragrance@gmail.com"
-            className="text-amber-600 hover:underline"
-          >
-            sahumariofragrance@gmail.com
-          </a>
-          . SAHUMÄRIO will make its best possible effort to settle the issue amicably
+          with customer care on{" "}
+          <a href="tel:+919974599910" className="text-amber-600 hover:underline">
+            +91-99745 99910
+          </a>{" "}
+          (call or WhatsApp). SAHUMÄRIO will make its best possible effort to settle the issue amicably
           before taking any legal recourse.
         </P>
       </Section>
@@ -173,12 +170,9 @@ export default function TermsPage() {
         <P>
           In accordance with the provisions of Rule 3(11) of the Information Technology
           (Intermediaries Guidelines) Rules, 2011, any user who suffers as a result of a
-          violation may notify their complaints to us at{" "}
-          <a
-            href="mailto:sahumariofragrance@gmail.com"
-            className="text-amber-600 hover:underline"
-          >
-            sahumariofragrance@gmail.com
+          violation may notify their complaints to us on{" "}
+          <a href="tel:+919974599910" className="text-amber-600 hover:underline">
+            +91-99745 99910
           </a>
           . The Grievance Officer shall acknowledge your communication within 36 hours and
           the complaint shall be redressed within 1 month from the date of receipt.

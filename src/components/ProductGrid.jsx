@@ -44,6 +44,9 @@ const ProductGrid = React.memo(({
           priority={index === 0}
         />
       ))}
+      <p className="col-span-full text-center text-xs text-[var(--color-muted)]">
+        Every bottle shown is our real bottle; the backgrounds and scenes in the photos are AI-generated.
+      </p>
     </div>
   );
 });

@@ -110,10 +110,10 @@ export default function PrivacyPolicyPage() {
 
       <Section heading="Contact Us">
         <P>
-          For privacy questions or requests, contact us at{" "}
-          <a href="mailto:sahumariofragrance@gmail.com" className="text-amber-600 hover:underline">
-            sahumariofragrance@gmail.com
-          </a>.
+          For privacy questions or requests, contact us on{" "}
+          <a href="tel:+919974599910" className="text-amber-600 hover:underline">
+            +91-99745 99910
+          </a> (call or WhatsApp).
         </P>
       </Section>
     </section>
