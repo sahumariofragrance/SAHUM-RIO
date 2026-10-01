@@ -1,7 +1,6 @@
 import React, { useCallback } from "react";
 import BrandMark from "./BrandMark";
 import SpaLink from "./SpaLink";
-import { GUJARATI_TAGLINE } from "../data/gujaratiTagline";
 
 const FooterLink = React.memo(({ onClick, href, children }) => (
   <SpaLink
@@ -24,8 +23,7 @@ const Footer = React.memo(({ setCurrentPage }) => {
         <SpaLink href="/" onNavigate={() => nav("home")} className="block text-left" aria-label="SAHUMäRIO registered trademark home">
           <BrandMark className="font-serif text-[clamp(2.5rem,5.25vw,5.25rem)] font-normal leading-[0.95] tracking-[-0.018em]" registeredClassName="!ml-[0.1em] !text-[0.27em] !font-normal" />
         </SpaLink>
-        {/* "Khushboo Gujarat ni" in Gujarati script */}
-        <p lang="gu" className="font-gujarati mt-4 text-lg text-[#E3A15C] md:text-xl">{GUJARATI_TAGLINE}</p>
+        <p className="mt-4 font-serif text-lg italic text-[#E3A15C] md:text-xl">Khushboo Gujarat ni</p>
 
         <div className="mt-14 grid gap-12 border-t border-white/15 pt-10 md:grid-cols-[1.4fr_0.7fr_1fr_1fr]">
           <div>
