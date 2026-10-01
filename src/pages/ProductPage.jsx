@@ -90,7 +90,7 @@ export default function ProductPage({ slug, navigate }) {
 
   return (
     <section className="mx-auto max-w-[1440px] px-5 py-8 sm:px-8 md:px-12 md:py-12">
-      <button onClick={() => navigate("perfumes")} className="mb-8 text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)] transition hover:text-[var(--color-text)]" aria-label="Back to perfume collection">← All fragrances</button>
+      <button onClick={() => navigate("perfumes")} className="mb-8 text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)] transition hover:text-[var(--color-text)]" aria-label="Back to perfume collection">← The Collection</button>
 
       <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
         <div>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500;600&family=Noto+Serif+Gujarati:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 /* Palette drawn from Indian materials: chandan (sandalwood) grounds,
    kesar (saffron) and indigo accents. */
@@ -90,9 +90,6 @@ footer {
   color: #FFF8EF;
 }
 
-.font-gujarati {
-  font-family: 'Noto Serif Gujarati', 'Cormorant Garamond', Georgia, serif;
-}
 
 
 /* ── Frosted crystal system ─────────────────────────────────────────────── */
