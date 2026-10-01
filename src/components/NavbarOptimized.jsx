@@ -100,6 +100,7 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
 
             <SpaLink href="/" onNavigate={() => nav("home")} className="justify-self-center px-4 text-center" aria-label="SAHUMäRIO registered trademark home">
               <BrandMark className="block font-serif text-[27px] font-medium leading-none tracking-[0.075em]" />
+              <span className="mt-1 block font-serif text-[13px] italic leading-none text-[var(--color-kesar)]">Khushboo Gujarat ni</span>
             </SpaLink>
 
             <div className="flex items-center justify-end gap-0.5">
