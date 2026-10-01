@@ -57,7 +57,6 @@ const Footer = React.memo(({ setCurrentPage }) => {
           <div>
             <h3 className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">Contact</h3>
             <div className="mt-5 space-y-3 text-sm text-white/65">
-              <p><a href="mailto:sahumariofragrance@gmail.com" className="transition hover:text-white">sahumariofragrance@gmail.com</a></p>
               <p><a href="tel:+919974599910" className="transition hover:text-white">+91 99745 99910</a></p>
             </div>
           </div>

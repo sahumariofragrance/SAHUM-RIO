@@ -67,14 +67,7 @@ export default function ShippingPolicyPage() {
           <a href="tel:+919974599910" className="text-amber-600 hover:underline">
             +91-99745 99910
           </a>{" "}
-          or{" "}
-          <a
-            href="mailto:sahumariofragrance@gmail.com"
-            className="text-amber-600 hover:underline"
-          >
-            sahumariofragrance@gmail.com
-          </a>
-          .
+          (call or WhatsApp).
         </P>
       </Section>
     </section>

@@ -41,18 +41,11 @@ export default function RefundPolicyPage() {
           missing items, leakage, breakage, damage, or incorrect product.
         </P>
         <P>
-          To claim a refund, contact our customer care at{" "}
+          To claim a refund, contact our customer care on{" "}
           <a href="tel:+919974599910" className="text-amber-600 hover:underline">
             +91-99745 99910
           </a>{" "}
-          or write to us at{" "}
-          <a
-            href="mailto:sahumariofragrance@gmail.com"
-            className="text-amber-600 hover:underline"
-          >
-            sahumariofragrance@gmail.com
-          </a>{" "}
-          with the necessary images and videos and subject line "Refund For —".
+          (call or WhatsApp) and share the necessary images and videos of the product.
         </P>
         <P>
           If a package is tampered, damaged, or defective, please refuse to accept the
@@ -128,14 +121,7 @@ export default function RefundPolicyPage() {
           <a href="tel:+919974599910" className="text-amber-600 hover:underline">
             +91-99745 99910
           </a>{" "}
-          or{" "}
-          <a
-            href="mailto:sahumariofragrance@gmail.com"
-            className="text-amber-600 hover:underline"
-          >
-            sahumariofragrance@gmail.com
-          </a>
-          .
+          (call or WhatsApp).
         </P>
       </Section>
     </section>
