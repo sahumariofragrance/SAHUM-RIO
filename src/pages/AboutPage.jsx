@@ -22,14 +22,20 @@ export default function AboutPage() {
     <section className="mx-auto max-w-5xl px-4 py-12">
       <SectionHeader as="h1" title="About SAHUMäRIO" />
       
-      <p className="mt-3 text-[var(--color-text)] leading-relaxed">
-        SAHUMäRIO is an independent fragrance brand creating a focused collection of
-        Eau de Parfum fragrances from Rajkot, Gujarat, shipped free across India. Each fragrance is given its own name, character, and visual identity.
-      </p>
-      <p className="mt-2 text-[var(--color-text)] leading-relaxed">
-        We are still growing, and we believe clear information matters. Product details are
-        added only when they have been confirmed, so customers can choose without unsupported claims.
-      </p>
+      <div className="mt-4 max-w-3xl space-y-4 leading-relaxed text-[var(--color-text)]">
+        <p className="font-serif text-2xl">Welcome to SAHUMäRIO.</p>
+        <p>
+          We're an independent fragrance brand from Rajkot, Gujarat, with a focused collection of
+          Eau de Parfum fragrances. Each one has its own name, its own character, and its own look,
+          because we want every fragrance to stand on its own.
+        </p>
+        <p>
+          We're still growing, and we'd rather tell you a little less than tell you something we're
+          not sure of. So every product detail you see here has been confirmed first. No guesswork,
+          no exaggerated claims.
+        </p>
+        <p>We ship free across India. Thank you for being here.</p>
+      </div>
 
       <h2 className="mt-8 text-xl font-semibold">Our Founders</h2>
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-6">
