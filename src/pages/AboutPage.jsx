@@ -59,6 +59,7 @@ export default function AboutPage() {
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-6">
         <FounderCard
           initials="HM"
+          photo="/team/harsh-maradiya.jpg"
           name="Harsh Maradiya"
           role="Co-Founder"
           description="Focused on developing the fragrances and growing the collection in India."
