@@ -191,6 +191,8 @@ async function sendShipped(order) {
 const SANS = "font-family:Arial,Helvetica,sans-serif;";
 const BRAND_PHONE = "+91 99745 99910";
 const BRAND_PHONE_LINK = "+919974599910";
+const INSTAGRAM_URL = "https://www.instagram.com/sahumario_fragrance/";
+const INSTAGRAM_HANDLE = "@sahumario_fragrance";
 const BULK_INBOX = "sahumariofragrance@gmail.com";
 
 function shortReference(id) {
@@ -329,7 +331,7 @@ async function sendBulkEnquiryEmails(enquiry) {
       intro: customerIntro,
       preheader: `Your enquiry #${ref} is with our team.`,
       bodyHtml: cardRow(detailsCard(`YOUR ENQUIRY #${ref}`, customerRows))
-        + cardRow(`              <p style="margin:0;${SANS}font-size:14px;line-height:22px;color:#625b52;">Questions in the meantime? Call or WhatsApp us on ${link(`tel:${BRAND_PHONE_LINK}`, BRAND_PHONE)}.</p>`, { top: 12 }),
+        + cardRow(`              <p style="margin:0;${SANS}font-size:14px;line-height:22px;color:#625b52;">Questions in the meantime? Call or WhatsApp us on ${link(`tel:${BRAND_PHONE_LINK}`, BRAND_PHONE)}, or message us on Instagram ${link(INSTAGRAM_URL, INSTAGRAM_HANDLE)}.</p>`, { top: 12 }),
       footerHtml: footerLines([
         "Thank you for choosing SAHUMäRIO.",
         `Please keep your reference #${ref} for any follow-up.`,
@@ -345,7 +347,7 @@ async function sendBulkEnquiryEmails(enquiry) {
       `Bottles: ${quantityText}`,
       notes && `Notes: ${notes}`,
       "",
-      `Questions in the meantime? Call or WhatsApp us on ${BRAND_PHONE}.`,
+      `Questions in the meantime? Call or WhatsApp us on ${BRAND_PHONE}, or message us on Instagram ${INSTAGRAM_HANDLE} (${INSTAGRAM_URL}).`,
       "",
       "SAHUMäRIO",
     ].filter((line) => line !== null && line !== undefined && line !== false).join("\n"),
