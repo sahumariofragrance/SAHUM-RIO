@@ -35,6 +35,13 @@ export default function AboutPage() {
           no exaggerated claims.
         </p>
         <p>We ship free across India. Thank you for being here.</p>
+        <p>
+          Follow us on Instagram{" "}
+          <a href="https://www.instagram.com/sahumario_fragrance/" target="_blank" rel="noopener noreferrer" className="font-medium text-[var(--color-kesar)] underline-offset-4 hover:underline">
+            @sahumario_fragrance
+          </a>
+          .
+        </p>
       </div>
 
       <h2 className="mt-8 text-xl font-semibold">Our Founders</h2>
