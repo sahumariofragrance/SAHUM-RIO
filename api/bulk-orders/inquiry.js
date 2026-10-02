@@ -3,6 +3,7 @@
 const { createClient } = require("@supabase/supabase-js");
 const { setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../_lib/security");
 const { rejectBots } = require("../_lib/botCheck");
+const { sendBulkEnquiryEmails } = require("../_lib/email");
 
 function clean(value, max = 300) {
   return String(value ?? "")
@@ -18,44 +19,6 @@ function getServiceClient() {
   return createClient(url, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-}
-
-async function sendEmail({ to, subject, text, html }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.ORDER_EMAIL_FROM;
-  if (!apiKey || !from || !to) return { sent: false, reason: "not_configured" };
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: Array.isArray(to) ? to : [to],
-      subject,
-      text,
-      html,
-    }),
-  });
-
-  if (!response.ok) {
-    const responseText = await response.text();
-    throw new Error(`Email provider rejected request: ${response.status} ${responseText.slice(0, 250)}`);
-  }
-
-  return response.json().catch(() => ({}));
-}
-
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;",
-  }[char]));
 }
 
 module.exports = async (req, res) => {
@@ -126,51 +89,19 @@ module.exports = async (req, res) => {
 
     if (error) throw error;
 
-    const valueText = `₹${estimatedOrderValue.toLocaleString("en-IN")}`;
-    const internalText = [
-      "New SAHUMäRIO bulk order enquiry",
-      "",
-      `Reference: ${data.id}`,
-      `Name: ${name}`,
-      `Company: ${company || "—"}`,
-      `Email: ${email}`,
-      `Phone: ${phone}`,
-      `Product / requirement: ${itemName}`,
-      `Quantity: ${quantity}`,
-      `Estimated order value: ${valueText}`,
-      `Additional information: ${additionalInformation || "—"}`,
-    ].join("\n");
-
     try {
-      await Promise.all([
-        sendEmail({
-          to: "sahumariofragrance@gmail.com",
-          subject: `Bulk order enquiry — ${name}`,
-          text: internalText,
-          html: `<h2>New bulk order enquiry</h2>
-            <p><strong>Reference:</strong> ${escapeHtml(data.id)}</p>
-            <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-            <p><strong>Company:</strong> ${escapeHtml(company || "—")}</p>
-            <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-            <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
-            <p><strong>Product / requirement:</strong> ${escapeHtml(itemName)}</p>
-            <p><strong>Quantity:</strong> ${quantity}</p>
-            <p><strong>Estimated order value:</strong> ${escapeHtml(valueText)}</p>
-            <p><strong>Additional information:</strong> ${escapeHtml(additionalInformation || "—")}</p>`,
-        }),
-        sendEmail({
-          to: email,
-          subject: "We received your SAHUMäRIO bulk order enquiry",
-          text: `Thank you for contacting SAHUMäRIO about a bulk order. We have received your enquiry (reference ${data.id}). Our team will review your requirements and contact you to discuss availability, pricing, delivery, and payment details.\n\nSAHUMäRIO`,
-          html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#2b211a">
-            <h2 style="font-family:Georgia,serif">Thank you for your enquiry.</h2>
-            <p>We have received your SAHUMäRIO bulk order request.</p>
-            <p><strong>Reference:</strong> ${escapeHtml(data.id)}</p>
-            <p>Our team will review your requirements and contact you to discuss availability, pricing, delivery, and payment details.</p>
-            <p>SAHUMäRIO</p>
-          </div>`,
-        }),
-      ]);
+      await sendBulkEnquiryEmails({
+        id: data.id,
+        created_at: data.created_at,
+        name,
+        company,
+        email,
+        phone,
+        item_name: itemName,
+        quantity,
+        estimated_order_value: estimatedOrderValue,
+        additional_information: additionalInformation,
+      });
     } catch (emailError) {
       console.error("[bulk-orders/inquiry] notification email failed", emailError.message);
     }

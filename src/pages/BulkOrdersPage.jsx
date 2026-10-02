@@ -118,7 +118,7 @@ export default function BulkOrdersPage() {
                 <h3 className="font-serif text-2xl font-semibold">Enquiry received.</h3>
               </div>
               <p className="mt-3 text-sm leading-6">We’ll review your requirement and get in touch with you.</p>
-              {success.reference && <p className="mt-2 font-mono text-xs">Reference: {success.reference}</p>}
+              {success.reference && <p className="mt-2 font-mono text-xs">Reference: #{String(success.reference).split("-")[0].toUpperCase()}</p>}
               <button type="button" onClick={() => setSuccess(null)} className="mt-5 text-sm font-semibold underline underline-offset-4">
                 Submit another enquiry
               </button>
