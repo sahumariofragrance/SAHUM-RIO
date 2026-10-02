@@ -12,6 +12,24 @@ function clean(value, max = 300) {
     .slice(0, max);
 }
 
+// Bulk orders start at this value. Customers give a number of bottles; the
+// minimum is worked out at the lowest catalogue price (as on the form).
+const MIN_ORDER_VALUE = 10000;
+const FALLBACK_PRICE = 749;
+
+async function lowestPrice(client) {
+  const { data, error } = await client
+    .from("products")
+    .select("price")
+    .eq("active", true)
+    .gt("price", 0)
+    .order("price", { ascending: true })
+    .limit(1);
+  const price = Number(data?.[0]?.price);
+  if (error || !Number.isFinite(price) || price <= 0) return FALLBACK_PRICE;
+  return price;
+}
+
 function getServiceClient() {
   const url = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -43,7 +61,6 @@ module.exports = async (req, res) => {
     const phone = clean(body.phone, 30);
     const itemName = clean(body.item_name, 300);
     const quantity = Number(body.quantity);
-    const estimatedOrderValue = Number(body.estimated_order_value);
     const additionalInformation = clean(body.additional_information, 2000) || null;
     const acceptedTerms = body.accepted_terms === true;
 
@@ -60,9 +77,6 @@ module.exports = async (req, res) => {
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100000) {
       return res.status(400).json({ message: "Please enter a valid quantity." });
     }
-    if (!Number.isFinite(estimatedOrderValue) || estimatedOrderValue < 10000) {
-      return res.status(400).json({ message: "Bulk order enquiries must have an estimated order value of at least ₹10,000." });
-    }
     if (!acceptedTerms) {
       return res.status(400).json({ message: "Please accept the bulk order terms and conditions." });
     }
@@ -71,6 +85,14 @@ module.exports = async (req, res) => {
     if (!serviceClient) {
       return res.status(503).json({ message: "Bulk enquiry service is temporarily unavailable." });
     }
+
+    const price = await lowestPrice(serviceClient);
+    const minQuantity = Math.ceil(MIN_ORDER_VALUE / price);
+    if (quantity < minQuantity) {
+      return res.status(400).json({ message: `Bulk orders start at ₹10,000, which is at least ${minQuantity} bottles.` });
+    }
+    // Kept for the records: the order's value at catalogue price.
+    const estimatedOrderValue = quantity * price;
 
     const { data, error } = await serviceClient
       .from("bulk_order_inquiries")
@@ -99,7 +121,6 @@ module.exports = async (req, res) => {
         phone,
         item_name: itemName,
         quantity,
-        estimated_order_value: estimatedOrderValue,
         additional_information: additionalInformation,
       });
     } catch (emailError) {

@@ -234,19 +234,6 @@ function detailsCard(heading, rows) {
               </table>`;
 }
 
-// Two big figures side by side: quantity and estimated value.
-function figuresCard(figures) {
-  const cells = figures.map(([label, value], index) => `
-                  <td width="50%" valign="top" style="width:50%;${index ? "border-left:1px solid #e9e1d5;" : ""}padding-top:18px;padding-right:18px;padding-bottom:18px;padding-left:18px;">
-                    <p style="margin:0;${SANS}font-size:11px;line-height:16px;letter-spacing:1.5px;color:#8a8176;">${escapeHtml(label)}</p>
-                    <p style="margin-top:6px;margin-right:0;margin-bottom:0;margin-left:0;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:32px;color:#241f1a;">${escapeHtml(value)}</p>
-                  </td>`).join("");
-  return `              <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#fffdf9;border:1px solid #e9e1d5;border-collapse:collapse;">
-                <tr>${cells}
-                </tr>
-              </table>`;
-}
-
 function buttons(links) {
   const cells = links.map(([href, label, primary]) => `
                   <td style="padding-right:10px;padding-bottom:8px;">
@@ -269,9 +256,8 @@ function link(href, text) {
 
 /** Notifies SAHUMäRIO of a new bulk enquiry and confirms it to the customer. */
 async function sendBulkEnquiryEmails(enquiry) {
-  const { id, created_at: createdAt, name, company, email, phone, item_name: itemName, quantity, estimated_order_value: value, additional_information: notes } = enquiry;
+  const { id, created_at: createdAt, name, company, email, phone, item_name: itemName, quantity, additional_information: notes } = enquiry;
   const ref = shortReference(id);
-  const valueText = money(value);
   const quantityText = Number(quantity).toLocaleString("en-IN");
   const received = istDateTime(createdAt);
   const firstName = String(name || "").trim().split(/\s+/)[0] || "there";
@@ -281,6 +267,7 @@ async function sendBulkEnquiryEmails(enquiry) {
   // To SAHUMäRIO: everything needed to reply, with the customer as reply-to.
   const internalRows = [
     ["Product", escapeHtml(itemName)],
+    ["Bottles", escapeHtml(quantityText)],
     ["Name", escapeHtml(name)],
     company && ["Company", escapeHtml(company)],
     ["Email", link(`mailto:${email}`, email)],
@@ -292,14 +279,13 @@ async function sendBulkEnquiryEmails(enquiry) {
   const internal = sendEmail({
     to: BULK_INBOX,
     replyTo: email,
-    subject: `Bulk enquiry #${ref} — ${name}, ${quantityText} pcs, ${valueText}`,
+    subject: `Bulk enquiry #${ref} — ${name}, ${quantityText} bottles`,
     html: layout({
       eyebrow: "NEW BULK ENQUIRY",
       title: "New bulk order enquiry",
       intro: internalIntro,
-      preheader: `${itemName} · ${quantityText} pcs · ${valueText}`,
-      bodyHtml: cardRow(figuresCard([["QUANTITY", quantityText], ["EST. VALUE", valueText]]))
-        + cardRow(detailsCard(`ENQUIRY #${ref}`, internalRows), { top: 12 })
+      preheader: `${itemName} · ${quantityText} bottles`,
+      bodyHtml: cardRow(detailsCard(`ENQUIRY #${ref}`, internalRows))
         + cardRow(buttons([
           [`mailto:${email}?subject=${encodeURIComponent(replySubject)}`, "Reply by email", true],
           [`https://wa.me/${wa}`, "WhatsApp", false],
@@ -314,9 +300,8 @@ async function sendBulkEnquiryEmails(enquiry) {
       "",
       internalIntro,
       "",
-      `Quantity: ${quantityText}`,
-      `Estimated value: ${valueText}`,
       `Product / requirement: ${itemName}`,
+      `Bottles: ${quantityText}`,
       `Name: ${name}`,
       company && `Company: ${company}`,
       `Email: ${email}`,
@@ -331,8 +316,7 @@ async function sendBulkEnquiryEmails(enquiry) {
   // To the customer: a warm confirmation with a summary of what they sent.
   const customerRows = [
     ["Product", escapeHtml(itemName)],
-    ["Quantity", escapeHtml(quantityText)],
-    ["Estimated value", escapeHtml(valueText)],
+    ["Bottles", escapeHtml(quantityText)],
     notes && ["Notes", escapeHtml(notes)],
   ].filter(Boolean);
   const customerIntro = "We’ve received your bulk order enquiry. Our team will review your requirements and get in touch to discuss availability, pricing, delivery and payment.";
@@ -358,8 +342,7 @@ async function sendBulkEnquiryEmails(enquiry) {
       "",
       `Your enquiry #${ref}`,
       `Product / requirement: ${itemName}`,
-      `Quantity: ${quantityText}`,
-      `Estimated value: ${valueText}`,
+      `Bottles: ${quantityText}`,
       notes && `Notes: ${notes}`,
       "",
       `Questions in the meantime? Call or WhatsApp us on ${BRAND_PHONE}.`,
