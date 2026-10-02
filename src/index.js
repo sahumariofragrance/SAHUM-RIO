@@ -8,8 +8,10 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ProductsProvider } from "./context/ProductsContext";
 import { startBotProtection } from "./lib/botProtection";
+import { startLiveVisitors } from "./lib/liveVisitors";
 
 startBotProtection();
+startLiveVisitors();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

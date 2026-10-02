@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import { useProducts } from "../context/ProductsContext";
 import { supabase } from "../lib/supabase";
 import { completeVerifiedOrder } from "../lib/completeOrder";
+import { trackEvent } from "../lib/analytics";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
 
@@ -113,6 +114,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       paymentLog("info", "ORDER_SAVED", { order_id: completed.id });
       if (!usingGuestCheckout && saveToProfile) await saveAddress(shippingAddress);
       if (!usingGuestCheckout && checkoutUser?.id) await refreshOrders(checkoutUser.id);
+      trackEvent("purchase", { value: subtotal });
       clearCart(); setConfirmedOrderId(completed.id); setGuestCheckout(usingGuestCheckout); setSuccess(true);
     } catch (err) {
       const msg = friendlyPaymentError(err) || err?.message || "Checkout failed. Please try again.";
