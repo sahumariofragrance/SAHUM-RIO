@@ -6,6 +6,7 @@ import React, {
   useState,
   useEffect,
 } from "react";
+import { trackEvent } from "../lib/analytics";
 
 const CartCtx = createContext(null);
 const CART_STORAGE_KEY = "sahumario_cart";
@@ -67,6 +68,7 @@ export function CartProvider({ children }) {
       console.warn("CartContext: addToCart called with invalid product", product);
       return;
     }
+    trackEvent("add_to_cart", { product: product.slug });
     setItems((prev) => {
       const existing = prev.find((item) => item.product_id === product.id);
       if (existing) {

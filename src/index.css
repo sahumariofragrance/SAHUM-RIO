@@ -10,6 +10,8 @@
   --color-border: #DBCCB3;
   --color-muted: #6B5F50;
   --color-kesar: #A24B14;
+  /* Chart marks (validated vs --color-surface: lightness band, 3:1 contrast). */
+  --color-chart: #A24B14;
   --color-indigo: #27336B;
   --color-sage: #8D927C;
   --color-hero-overlay: rgba(23, 22, 20, 0.14);
@@ -23,6 +25,7 @@
   --color-border: rgba(245, 236, 223, 0.14);
   --color-muted: #C1B19C;
   --color-kesar: #E3964A;
+  --color-chart: #CF7F36;
   --color-indigo: #9AA8E6;
   --color-sage: #A7AE9A;
   --color-hero-overlay: rgba(0, 0, 0, 0.38);

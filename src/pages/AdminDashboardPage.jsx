@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Download, Loader2, LogOut, Package, RefreshCw, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
+import { AlertCircle, BarChart3, CheckCircle2, Download, Loader2, LogOut, Package, RefreshCw, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
 import AdminProductsPanel from "../components/AdminProductsPanel";
 import OrderCard from "../components/admin/OrderCard";
 import LiveVisitorsPanel from "../components/admin/LiveVisitorsPanel";
+import AdminAnalyticsPanel from "../components/admin/AdminAnalyticsPanel";
+import { ignoreThisDevice } from "../lib/analytics";
 import { AdminButton, Notice, ORDER_STATUSES, STATUS_TONES, StatTile, inputClass } from "../components/admin/AdminUI";
 import { changeOrdersTrash, fetchAdminOrders } from "../lib/adminOrders";
 import { downloadOrdersPdf } from "../lib/orderPdf";
@@ -29,6 +31,11 @@ export default function AdminDashboardPage({ setCurrentPage }) {
   const [filter, setFilter] = useState("All");
   const [query, setQuery] = useState("");
   const [section, setSection] = useState("orders");
+
+  // The owner's own browsing shouldn't count as visits in Analytics.
+  useEffect(() => {
+    ignoreThisDevice();
+  }, []);
   const [selected, setSelected] = useState(() => new Set());
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState(null);
@@ -176,7 +183,7 @@ export default function AdminDashboardPage({ setCurrentPage }) {
         </div>
       </header>
 
-      <LiveVisitorsPanel />
+      <LiveVisitorsPanel onOpenAnalytics={() => setSection("analytics")} />
 
       <nav className="mt-10 flex gap-8 border-b border-[var(--color-border)]" aria-label="Admin sections">
         <button type="button" onClick={() => setSection("orders")} className={tabClass(section === "orders")} aria-current={section === "orders" ? "page" : undefined}>
@@ -186,9 +193,14 @@ export default function AdminDashboardPage({ setCurrentPage }) {
         <button type="button" onClick={() => setSection("products")} className={tabClass(section === "products")} aria-current={section === "products" ? "page" : undefined}>
           <Sparkles className="h-4 w-4" />Catalogue
         </button>
+        <button type="button" onClick={() => setSection("analytics")} className={tabClass(section === "analytics")} aria-current={section === "analytics" ? "page" : undefined}>
+          <BarChart3 className="h-4 w-4" />Analytics
+        </button>
       </nav>
 
-      {section === "products" ? (
+      {section === "analytics" ? (
+        <div className="mt-8"><AdminAnalyticsPanel /></div>
+      ) : section === "products" ? (
         <div className="mt-8"><AdminProductsPanel /></div>
       ) : (
         <>

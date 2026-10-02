@@ -1,39 +1,16 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useProducts } from "../../context/ProductsContext";
+import { pageName } from "./pageNames";
 
 const REFRESH_MS = 15 * 1000;
-const ANALYTICS_URL = "https://vercel.com/sahumarios-projects/sahum-rio/analytics";
-
-const PAGE_NAMES = {
-  "/": "Home",
-  "/perfumes": "The Collection",
-  "/about": "About",
-  "/bulk-orders": "Bulk orders",
-  "/cart": "Bag",
-  "/checkout": "Checkout",
-  "/login": "Log in",
-  "/account": "Account",
-  "/account/orders": "My orders",
-  "/reset-password": "Reset password",
-  "/privacy-policy": "Privacy policy",
-  "/refund-return-policy": "Refund policy",
-  "/shipping-policy": "Shipping policy",
-  "/terms-conditions": "Terms",
-};
 
 // Pages where someone is close to buying.
 const BUYING = new Set(["/cart", "/checkout"]);
 
-function pageName(path, bySlug) {
-  const slug = path.match(/^\/product\/([a-z0-9-]+)$/i)?.[1];
-  if (slug) return bySlug.get(slug.toLowerCase())?.name || slug;
-  return PAGE_NAMES[path.replace(/\/+$/, "") || "/"] || path;
-}
-
 /** Visitors on the shop right now, by page. Refreshes every 15 seconds. */
-export default function LiveVisitorsPanel() {
+export default function LiveVisitorsPanel({ onOpenAnalytics }) {
   const { bySlug } = useProducts();
   const [rows, setRows] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ready | missing | error
@@ -106,14 +83,15 @@ export default function LiveVisitorsPanel() {
             ))}
           </ul>
         )}
-        <a
-          href={ANALYTICS_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-muted)] underline-offset-4 hover:text-[var(--color-text)] hover:underline"
-        >
-          Daily visitors & top pages <ArrowUpRight className="h-3.5 w-3.5" />
-        </a>
+        {onOpenAnalytics && (
+          <button
+            type="button"
+            onClick={onOpenAnalytics}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-muted)] underline-offset-4 hover:text-[var(--color-text)] hover:underline"
+          >
+            Daily visitors & top pages <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
     </div>
   );

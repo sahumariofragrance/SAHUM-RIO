@@ -57,6 +57,17 @@ export default function PrivacyPolicyPage() {
         </P>
       </Section>
 
+      <Section heading="Website Analytics">
+        <P>
+          To understand how our website is used, we record page visits and shop actions
+          (such as adding a perfume to the bag or completing a payment), the website or
+          app that referred you, whether you use a phone or a computer, and your approximate
+          city and country. We do not use cookies for this and do not store your IP address
+          or link this information to your name or account. Visits are counted with a code
+          that changes every day, and this information is deleted after 13 months.
+        </P>
+      </Section>
+
       <Section heading="Service Providers">
         <P>
           We use third-party service providers for website hosting, authentication and
