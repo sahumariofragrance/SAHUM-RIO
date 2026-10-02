@@ -1,5 +1,11 @@
 import React, { useState } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { useProducts } from "../context/ProductsContext";
+
+// Bulk orders start at this value; the form turns it into a minimum number of
+// bottles at the lowest catalogue price. The server applies the same rule.
+const MIN_ORDER_VALUE = 10000;
+const FALLBACK_PRICE = 749;
 
 const TERMS = [
   {
@@ -39,13 +45,16 @@ const initialForm = {
   phone: "",
   item_name: "",
   quantity: "",
-  estimated_order_value: "",
   additional_information: "",
   accepted_terms: false,
   website: "",
 };
 
 export default function BulkOrdersPage() {
+  const { products } = useProducts();
+  const prices = products.map((product) => product.price).filter((price) => price > 0);
+  const lowestPrice = prices.length ? Math.min(...prices) : FALLBACK_PRICE;
+  const minQuantity = Math.ceil(MIN_ORDER_VALUE / lowestPrice);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -58,6 +67,10 @@ export default function BulkOrdersPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (Number(form.quantity) < minQuantity) {
+      setError(`Bulk orders start at ₹10,000, which is at least ${minQuantity} bottles.`);
+      return;
+    }
     setSubmitting(true);
     setError("");
     setSuccess(null);
@@ -69,7 +82,6 @@ export default function BulkOrdersPage() {
         body: JSON.stringify({
           ...form,
           quantity: Number(form.quantity),
-          estimated_order_value: Number(form.estimated_order_value),
         }),
       });
       const payload = await response.json().catch(() => ({}));
@@ -108,7 +120,7 @@ export default function BulkOrdersPage() {
           <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-700">Enquiry form</p>
           <h2 className="mt-3 font-serif text-3xl font-semibold md:text-4xl">Tell us about your requirement.</h2>
           <p className="mt-4 max-w-xl text-sm leading-7 text-[var(--color-muted)]">
-            Bulk enquiries start at ₹10,000. Share an estimated order value so we can route your request correctly.
+            Bulk orders start at ₹10,000, which is at least {minQuantity} bottles. Tell us what you need and we’ll come back to you with pricing.
           </p>
 
           {success ? (
@@ -118,7 +130,7 @@ export default function BulkOrdersPage() {
                 <h3 className="font-serif text-2xl font-semibold">Enquiry received.</h3>
               </div>
               <p className="mt-3 text-sm leading-6">We’ll review your requirement and get in touch with you.</p>
-              {success.reference && <p className="mt-2 font-mono text-xs">Reference: {success.reference}</p>}
+              {success.reference && <p className="mt-2 font-mono text-xs">Reference: #{String(success.reference).split("-")[0].toUpperCase()}</p>}
               <button type="button" onClick={() => setSuccess(null)} className="mt-5 text-sm font-semibold underline underline-offset-4">
                 Submit another enquiry
               </button>
@@ -143,16 +155,12 @@ export default function BulkOrdersPage() {
                 </label>
               </div>
 
-              <label className="block text-sm font-medium">Product / requirement *
-                <input required maxLength={300} value={form.item_name} onChange={(e) => update("item_name", e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500" placeholder="Perfume names, gift requirement, assortment, etc." />
-              </label>
-
-              <div className="grid gap-5 sm:grid-cols-2">
-                <label className="text-sm font-medium">Quantity *
-                  <input required type="number" min="1" max="100000" value={form.quantity} onChange={(e) => update("quantity", e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500" placeholder="No. of items" />
+              <div className="grid gap-5 sm:grid-cols-[1fr_11rem]">
+                <label className="text-sm font-medium">Product / requirement *
+                  <input required maxLength={300} value={form.item_name} onChange={(e) => update("item_name", e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500" placeholder="Perfume names, gift requirement, assortment, etc." />
                 </label>
-                <label className="text-sm font-medium">Estimated order value (₹) *
-                  <input required type="number" min="10000" step="1" value={form.estimated_order_value} onChange={(e) => update("estimated_order_value", e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500" placeholder="Minimum 10000" />
+                <label className="text-sm font-medium">Bottles *
+                  <input required type="number" min={minQuantity} max="100000" value={form.quantity} onChange={(e) => update("quantity", e.target.value)} className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500" placeholder={`Min. ${minQuantity}`} />
                 </label>
               </div>
 
