@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Download, Loader2, LogOut, Package, RefreshCw, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
 import AdminProductsPanel from "../components/AdminProductsPanel";
 import OrderCard from "../components/admin/OrderCard";
+import LiveVisitorsPanel from "../components/admin/LiveVisitorsPanel";
 import { AdminButton, Notice, ORDER_STATUSES, STATUS_TONES, StatTile, inputClass } from "../components/admin/AdminUI";
 import { changeOrdersTrash, fetchAdminOrders } from "../lib/adminOrders";
 import { downloadOrdersPdf } from "../lib/orderPdf";
@@ -174,6 +175,8 @@ export default function AdminDashboardPage({ setCurrentPage }) {
           </AdminButton>
         </div>
       </header>
+
+      <LiveVisitorsPanel />
 
       <nav className="mt-10 flex gap-8 border-b border-[var(--color-border)]" aria-label="Admin sections">
         <button type="button" onClick={() => setSection("orders")} className={tabClass(section === "orders")} aria-current={section === "orders" ? "page" : undefined}>
