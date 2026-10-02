@@ -4,6 +4,7 @@ const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { requireCustomer } = require("../../_lib/customerAuth");
 const { getServiceClient, setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../../_lib/security");
+const { rejectBots } = require("../../_lib/botCheck");
 
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
@@ -45,6 +46,7 @@ function safeAddress(address, user) {
 module.exports = async (req, res) => {
   setSecurityHeaders(res);
   if (!enforceJsonRequest(req, res, { methods: ["POST"], maxBytes: 24 * 1024 })) return;
+  if (!(await rejectBots(req, res))) return;
 
   try {
     const { user, serverClient } = await requireCustomer(req);

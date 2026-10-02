@@ -15,10 +15,10 @@ import { NOT_FOUND_META, PAGE_META, PAGE_NOT_FOUND_META, collectionJsonLd, produ
 import { noscriptSummary, renderPage, renderSitemap } from "./src/seo/render";
 
 export const config = {
-  // Everything except /api, build assets and Vercel's image optimizer
-  // (/_vercel/image). Real files are passed straight
-  // through in the handler.
-  matcher: ["/((?!api/|static/|_vercel/).*)"],
+  // Everything except /api, build assets, Vercel's image optimizer
+  // (/_vercel/image) and the BotID challenge proxy (vercel.json). Real files
+  // are passed straight through in the handler.
+  matcher: ["/((?!api/|static/|_vercel/|149e9513-01fa-4fb0-aad4-566afd725d1b/).*)"],
 };
 
 // The page shell is read from a build-time copy (scripts/postbuild.js) under
@@ -55,7 +55,7 @@ const SECURITY_HEADERS = {
   "Permissions-Policy": "camera=(), microphone=(), geolocation=(), usb=(), browsing-topics=()",
   "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
   // Keep in sync with vercel.json.
-  "Content-Security-Policy": "default-src 'self'; script-src 'self' https://*.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.razorpay.com; frame-src https://*.razorpay.com; form-action 'self' https://*.razorpay.com; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests",
+  "Content-Security-Policy": "default-src 'self'; script-src 'self' https://*.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.razorpay.com; frame-src 'self' https://*.razorpay.com; form-action 'self' https://*.razorpay.com; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests",
 };
 
 const PATH_TO_PAGE = Object.fromEntries(Object.entries(PAGE_META).map(([page, meta]) => [meta.path, page]));

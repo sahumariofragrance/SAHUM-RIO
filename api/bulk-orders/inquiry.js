@@ -2,6 +2,7 @@
 
 const { createClient } = require("@supabase/supabase-js");
 const { setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../_lib/security");
+const { rejectBots } = require("../_lib/botCheck");
 
 function clean(value, max = 300) {
   return String(value ?? "")
@@ -60,6 +61,7 @@ function escapeHtml(value) {
 module.exports = async (req, res) => {
   setJsonSecurityHeaders(res);
   if (!enforceJsonRequest(req, res, { methods: ["POST"], maxBytes: 16 * 1024 })) return;
+  if (!(await rejectBots(req, res))) return;
   if (!(await enforceRateLimit(req, res, {
     scope: "bulk-inquiry",
     limit: 5,

@@ -8,6 +8,7 @@ const {
   isPlainObject,
   safeString,
 } = require("../_lib/security");
+const { rejectBots } = require("../_lib/botCheck");
 
 function safeInt(value) {
   const number = Number(value);
@@ -17,6 +18,7 @@ function safeInt(value) {
 module.exports = async (req, res) => {
   setJsonSecurityHeaders(res);
   if (!enforceJsonRequest(req, res, { methods: ["POST"], maxBytes: 8 * 1024 })) return;
+  if (!(await rejectBots(req, res))) return;
 
   try {
     const { user, serverClient } = await requireCustomer(req);
