@@ -2,12 +2,23 @@ import React from 'react';
 import SectionHeader from '../components/SectionHeader';
 import { Card } from '../components/ui';
 
-const FounderCard = React.memo(({ initials, name, role, description }) => (
+const FounderCard = React.memo(({ initials, photo, name, role, description }) => (
   <Card>
     <div className="flex flex-col items-center text-center">
-      <div className="h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-lg">
-        {initials}
-      </div>
+      {photo ? (
+        <img
+          src={photo}
+          alt={name}
+          width="96"
+          height="96"
+          loading="lazy"
+          className="h-24 w-24 rounded-full object-cover ring-1 ring-[var(--color-border)]"
+        />
+      ) : (
+        <div className="h-24 w-24 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-xl">
+          {initials}
+        </div>
+      )}
       <h3 className="mt-3 text-lg font-medium">{name}</h3>
       <p className="text-sm text-[var(--color-muted)]">{role}</p>
       <p className="mt-2 text-[var(--color-text)] text-sm">{description}</p>
@@ -54,6 +65,7 @@ export default function AboutPage() {
         />
         <FounderCard
           initials="NM"
+          photo="/team/neel-maradiya.jpg"
           name="Neel Maradiya"
           role="Co-Founder"
           description="Focused on the brand, digital storefront, and customer experience."
