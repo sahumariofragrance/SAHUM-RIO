@@ -1,5 +1,9 @@
 "use strict";
 
+// Customer support inbox: the reply-to address of every customer email, and
+// where bulk-order enquiries are delivered.
+const SUPPORT_EMAIL = "caresahumario@gmail.com";
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
 }
@@ -94,7 +98,7 @@ function template({ eyebrow = "ORDER UPDATE", title, intro, order, extraHtml = "
           ${extraHtml ? `<tr><td style="padding-top:12px;padding-right:32px;padding-bottom:8px;padding-left:32px;">${extraHtml}</td></tr>` : ""}
 `;
   const footerHtml = `              <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:21px;color:#837a70;">Thank you for choosing SAHUMäRIO.</p>
-              <p style="margin-top:8px;margin-right:0;margin-bottom:0;margin-left:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#a0978d;">This is an automated order message. Keep your order number for reference.</p>
+              <p style="margin-top:8px;margin-right:0;margin-bottom:0;margin-left:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#a0978d;">Questions? Reply to this email or write to <a href="mailto:${SUPPORT_EMAIL}" style="color:#9b6a31;">${SUPPORT_EMAIL}</a>. Keep your order number for reference.</p>
 `;
   return layout({ eyebrow, title, intro, bodyHtml, footerHtml });
 }
@@ -109,7 +113,8 @@ async function sendEmail({ to, subject, html, text, replyTo }) {
 
   const body = { from, to: [to], subject, html };
   if (text) body.text = text;
-  if (replyTo) body.reply_to = replyTo;
+  // Customer replies reach the support inbox unless a caller says otherwise.
+  body.reply_to = replyTo || SUPPORT_EMAIL;
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -131,7 +136,7 @@ function customerEmail(order) {
 }
 
 function baseText(title, intro, order, extra = "") {
-  return `SAHUMäRIO\n\n${title}\n\n${intro}\n\nOrder #${order?.id || ""}\n${plainOrderLines(order)}${extra ? `\n\n${extra}` : ""}\n\nThank you for choosing SAHUMäRIO.`;
+  return `SAHUMäRIO\n\n${title}\n\n${intro}\n\nOrder #${order?.id || ""}\n${plainOrderLines(order)}${extra ? `\n\n${extra}` : ""}\n\nQuestions? Reply to this email or write to ${SUPPORT_EMAIL}.\n\nThank you for choosing SAHUMäRIO.`;
 }
 
 async function sendOrderReceived(order) {
@@ -193,7 +198,7 @@ const BRAND_PHONE = "+91 99745 99910";
 const BRAND_PHONE_LINK = "+919974599910";
 const INSTAGRAM_URL = "https://www.instagram.com/sahumario_fragrance/";
 const INSTAGRAM_HANDLE = "@sahumario_fragrance";
-const BULK_INBOX = "sahumariofragrance@gmail.com";
+const BULK_INBOX = SUPPORT_EMAIL;
 
 function shortReference(id) {
   return String(id || "").split("-")[0].toUpperCase();
@@ -331,7 +336,7 @@ async function sendBulkEnquiryEmails(enquiry) {
       intro: customerIntro,
       preheader: `Your enquiry #${ref} is with our team.`,
       bodyHtml: cardRow(detailsCard(`YOUR ENQUIRY #${ref}`, customerRows))
-        + cardRow(`              <p style="margin:0;${SANS}font-size:14px;line-height:22px;color:#625b52;">Questions in the meantime? Call or WhatsApp us on ${link(`tel:${BRAND_PHONE_LINK}`, BRAND_PHONE)}, or message us on Instagram ${link(INSTAGRAM_URL, INSTAGRAM_HANDLE)}.</p>`, { top: 12 }),
+        + cardRow(`              <p style="margin:0;${SANS}font-size:14px;line-height:22px;color:#625b52;">Questions in the meantime? Call or WhatsApp us on ${link(`tel:${BRAND_PHONE_LINK}`, BRAND_PHONE)}, write to ${link(`mailto:${SUPPORT_EMAIL}`, SUPPORT_EMAIL)}, or message us on Instagram ${link(INSTAGRAM_URL, INSTAGRAM_HANDLE)}.</p>`, { top: 12 }),
       footerHtml: footerLines([
         "Thank you for choosing SAHUMäRIO.",
         `Please keep your reference #${ref} for any follow-up.`,
@@ -347,7 +352,7 @@ async function sendBulkEnquiryEmails(enquiry) {
       `Bottles: ${quantityText}`,
       notes && `Notes: ${notes}`,
       "",
-      `Questions in the meantime? Call or WhatsApp us on ${BRAND_PHONE}, or message us on Instagram ${INSTAGRAM_HANDLE} (${INSTAGRAM_URL}).`,
+      `Questions in the meantime? Call or WhatsApp us on ${BRAND_PHONE}, write to ${SUPPORT_EMAIL}, or message us on Instagram ${INSTAGRAM_HANDLE} (${INSTAGRAM_URL}).`,
       "",
       "SAHUMäRIO",
     ].filter((line) => line !== null && line !== undefined && line !== false).join("\n"),

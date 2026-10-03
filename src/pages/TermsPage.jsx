@@ -1,4 +1,5 @@
 import React from "react";
+import { SUPPORT_EMAIL } from "../constants/contact";
 
 function Section({ heading, children }) {
   return (
@@ -153,7 +154,11 @@ export default function TermsPage() {
           <a href="tel:+919974599910" className="text-amber-600 hover:underline">
             +91-99745 99910
           </a>{" "}
-          (call or WhatsApp). SAHUMÄRIO will make its best possible effort to settle the issue amicably
+          (call or WhatsApp) or write to us at{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="text-amber-600 hover:underline">
+            {SUPPORT_EMAIL}
+          </a>
+          . SAHUMÄRIO will make its best possible effort to settle the issue amicably
           before taking any legal recourse.
         </P>
       </Section>
@@ -170,7 +175,11 @@ export default function TermsPage() {
         <P>
           In accordance with the provisions of Rule 3(11) of the Information Technology
           (Intermediaries Guidelines) Rules, 2011, any user who suffers as a result of a
-          violation may notify their complaints to us on{" "}
+          violation may notify their complaints to us at{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="text-amber-600 hover:underline">
+            {SUPPORT_EMAIL}
+          </a>{" "}
+          or on{" "}
           <a href="tel:+919974599910" className="text-amber-600 hover:underline">
             +91-99745 99910
           </a>

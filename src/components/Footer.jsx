@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import { SUPPORT_EMAIL } from "../constants/contact";
 import { Instagram } from "lucide-react";
 import BrandMark from "./BrandMark";
 import SpaLink from "./SpaLink";
@@ -59,6 +60,7 @@ const Footer = React.memo(({ setCurrentPage }) => {
             <h3 className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">Contact</h3>
             <div className="mt-5 space-y-3 text-sm text-white/65">
               <p><a href="tel:+919974599910" className="transition hover:text-white">+91 99745 99910</a></p>
+              <p><a href={`mailto:${SUPPORT_EMAIL}`} className="break-all transition hover:text-white">{SUPPORT_EMAIL}</a></p>
               <p>
                 <a href="https://www.instagram.com/sahumario_fragrance/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 transition hover:text-white">
                   <Instagram className="h-4 w-4" aria-hidden="true" />@sahumario_fragrance

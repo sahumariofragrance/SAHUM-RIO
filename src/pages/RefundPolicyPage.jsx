@@ -1,4 +1,5 @@
 import React from "react";
+import { SUPPORT_EMAIL } from "../constants/contact";
 
 function Section({ heading, children }) {
   return (
@@ -45,7 +46,12 @@ export default function RefundPolicyPage() {
           <a href="tel:+919974599910" className="text-amber-600 hover:underline">
             +91-99745 99910
           </a>{" "}
-          (call or WhatsApp) and share the necessary images and videos of the product.
+          (call or WhatsApp) or write to us at{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="text-amber-600 hover:underline">
+            {SUPPORT_EMAIL}
+          </a>{" "}
+          with the subject line "Refund for order #…", and share the necessary images and
+          videos of the product.
         </P>
         <P>
           If a package is tampered, damaged, or defective, please refuse to accept the
@@ -121,7 +127,11 @@ export default function RefundPolicyPage() {
           <a href="tel:+919974599910" className="text-amber-600 hover:underline">
             +91-99745 99910
           </a>{" "}
-          (call or WhatsApp).
+          (call or WhatsApp) or{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="text-amber-600 hover:underline">
+            {SUPPORT_EMAIL}
+          </a>
+          .
         </P>
       </Section>
     </section>
