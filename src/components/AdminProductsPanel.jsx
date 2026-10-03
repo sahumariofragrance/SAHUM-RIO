@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, ImagePlus, Loader2, Pencil, Plus, RefreshCw, Star, Trash2, Upload } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, ImagePlus, Loader2, Pencil, Plus, RefreshCw, Star, Trash2, Upload, X } from "lucide-react";
 import { AdminButton, Field, Notice, inputClass } from "./admin/AdminUI";
 import SafeImage from "./SafeImage";
 import { compressImage } from "../utils/compressImage";
@@ -43,6 +43,13 @@ function fileKey(file) {
   return file ? `${file.name}::${file.size}::${file.lastModified}` : "";
 }
 
+// The edited gallery is one ordered list: photos already saved ("existing",
+// by URL) and newly chosen files ("new"). Item 0 is the cover.
+function existingItems(product) {
+  const urls = Array.isArray(product.gallery_urls) && product.gallery_urls.length ? product.gallery_urls : [product.image_url];
+  return [...new Set(urls.filter(Boolean))].map((url) => ({ key: url, kind: "existing", url }));
+}
+
 function storageObjectPath(publicUrl) {
   const marker = "/storage/v1/object/public/product-images/";
   const value = String(publicUrl || "");
@@ -63,9 +70,8 @@ export default function AdminProductsPanel() {
   const { refreshProducts } = useProducts();
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
-  const [files, setFiles] = useState([]);
-  const [thumbnailKey, setThumbnailKey] = useState("");
-  const previewUrls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files]);
+  const [gallery, setGallery] = useState([]);
+  const previews = useRef(new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -80,9 +86,23 @@ export default function AdminProductsPanel() {
 
   useEffect(() => { load(); }, []);
 
+  // Free the previews of chosen files when leaving the page.
   useEffect(() => () => {
-    previewUrls.forEach((url) => URL.revokeObjectURL(url));
-  }, [previewUrls]);
+    previews.current.forEach((url) => URL.revokeObjectURL(url));
+  }, []);
+
+  function releasePreview(item) {
+    if (item?.kind !== "new") return;
+    URL.revokeObjectURL(item.preview);
+    previews.current.delete(item.preview);
+  }
+
+  function replaceGallery(next) {
+    setGallery((current) => {
+      current.filter((item) => !next.includes(item)).forEach(releasePreview);
+      return next;
+    });
+  }
 
   const nextOrder = useMemo(() => products.reduce((max, product) => Math.max(max, Number(product.display_order || 0)), 0) + 10, [products]);
 
@@ -94,8 +114,7 @@ export default function AdminProductsPanel() {
 
   function reset() {
     setForm({ ...emptyForm, display_order: nextOrder });
-    setFiles([]);
-    setThumbnailKey("");
+    replaceGallery([]);
     setMessage("");
     setError("");
   }
@@ -109,80 +128,84 @@ export default function AdminProductsPanel() {
       gallery_urls: Array.isArray(product.gallery_urls) ? product.gallery_urls : [],
       active: Boolean(product.active), display_order: Number(product.display_order || 0),
     });
-    setFiles([]); setThumbnailKey(""); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
+    replaceGallery(existingItems(product)); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // New photos are added after the current ones; nothing is replaced.
   function selectImages(event) {
     const selected = Array.from(event.target.files || []);
+    event.target.value = "";
     setError("");
+    if (!selected.length) return;
 
-    if (selected.length > MAX_PRODUCT_IMAGES) {
-      event.target.value = "";
-      setFiles([]);
-      setError(`Choose a maximum of ${MAX_PRODUCT_IMAGES} product images.`);
-      return;
-    }
-
-    const invalidType = selected.find((file) => !ACCEPTED_IMAGE_TYPES.includes(file.type));
-    if (invalidType) {
-      event.target.value = "";
-      setFiles([]);
+    if (selected.find((file) => !ACCEPTED_IMAGE_TYPES.includes(file.type))) {
       setError("Use JPG, PNG, or WebP images only.");
       return;
     }
-
-    const tooLarge = selected.find((file) => file.size > MAX_IMAGE_SIZE);
-    if (tooLarge) {
-      event.target.value = "";
-      setFiles([]);
+    if (selected.find((file) => file.size > MAX_IMAGE_SIZE)) {
       setError("Each image must be 10 MB or smaller.");
       return;
     }
+    const room = MAX_PRODUCT_IMAGES - gallery.length;
+    if (selected.length > room) {
+      setError(room > 0
+        ? `A perfume can have up to ${MAX_PRODUCT_IMAGES} photos. You can add ${room} more — remove one first to add others.`
+        : `A perfume can have up to ${MAX_PRODUCT_IMAGES} photos. Remove one to add another.`);
+      return;
+    }
 
-    setFiles(selected);
-    setThumbnailKey(selected[0] ? fileKey(selected[0]) : "");
+    const added = selected.map((file) => {
+      const preview = URL.createObjectURL(file);
+      previews.current.add(preview);
+      return { key: `${fileKey(file)}::${preview}`, kind: "new", file, preview };
+    });
+    setGallery((current) => [...current, ...added]);
   }
 
-  function makeThumbnail(index) {
-    if (index < 0 || index >= files.length) return;
-    const selectedKey = fileKey(files[index]);
-    setThumbnailKey(selectedKey);
-    setFiles((current) => {
+  function makeCover(index) {
+    setGallery((current) => {
+      if (index <= 0 || index >= current.length) return current;
       const next = [...current];
-      const selectedIndex = next.findIndex((file) => fileKey(file) === selectedKey);
-      if (selectedIndex <= 0) return next;
-      const [selected] = next.splice(selectedIndex, 1);
-      next.unshift(selected);
-      return next;
+      const [item] = next.splice(index, 1);
+      return [item, ...next];
     });
   }
 
   function moveGalleryImage(index, direction) {
-    setFiles((current) => {
+    setGallery((current) => {
       const target = index + direction;
-      if (index <= 0 || target <= 0 || target >= current.length) return current;
+      if (target < 0 || target >= current.length) return current;
       const next = [...current];
       [next[index], next[target]] = [next[target], next[index]];
       return next;
     });
   }
 
-  // Uploads the selected images into a new versioned folder. Nothing is
-  // deleted here: the old gallery is removed only after the product is saved.
-  async function uploadGallery(productSlug) {
-    const selectedThumbnailKey = thumbnailKey || fileKey(files[0]);
-    const thumbnailIndex = files.findIndex((file) => fileKey(file) === selectedThumbnailKey);
-    const orderedFiles = thumbnailIndex > 0
-      ? [files[thumbnailIndex], ...files.filter((_, index) => index !== thumbnailIndex)]
-      : [...files];
+  // Takes the photo off the product. Saved files stay in storage, so a photo
+  // removed by mistake can still be recovered.
+  function removeGalleryImage(index) {
+    setGallery((current) => {
+      const item = current[index];
+      if (!item) return current;
+      releasePreview(item);
+      return current.filter((_, i) => i !== index);
+    });
+  }
 
+  // Uploads the newly chosen photos into a new versioned folder and returns
+  // the whole gallery's URLs in order. Nothing is deleted here.
+  async function uploadGallery(productSlug) {
     const version = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
     const urls = [];
     const paths = [];
     try {
-      for (let index = 0; index < orderedFiles.length; index += 1) {
-        const file = await compressImage(orderedFiles[index]);
-        const objectName = galleryPath(productSlug, index, version);
+      for (const item of gallery) {
+        if (item.kind === "existing") {
+          urls.push(item.url);
+          continue;
+        }
+        const file = await compressImage(item.file);
+        const objectName = galleryPath(productSlug, paths.length, version);
         const { error: uploadError } = await supabase.storage
           .from("product-images")
           .upload(objectName, file, { upsert: false, contentType: file.type, cacheControl: "31536000" });
@@ -212,12 +235,12 @@ export default function AdminProductsPanel() {
     try {
       const name = form.name.trim(); const slug = slugify(form.slug || name); const price = Number(form.price);
       if (!name || !slug || !form.description.trim() || !Number.isFinite(price) || price <= 0) throw new Error("Name, description, slug, and a valid price are required.");
-      if (!form.id && !files.length && !form.image_url) throw new Error("Please upload at least one product image.");
+      if (!gallery.length) throw new Error("Please add at least one product image.");
 
-      const uploaded = files.length ? await uploadGallery(slug) : null;
-      const imageUrl = uploaded ? uploaded.urls[0] : form.image_url;
-      if (!imageUrl) throw new Error("Please upload at least one product image.");
-      const galleryUrls = uploaded ? uploaded.urls : (form.gallery_urls?.length ? form.gallery_urls : [imageUrl]);
+      const addedCount = gallery.filter((item) => item.kind === "new").length;
+      const uploaded = await uploadGallery(slug);
+      const galleryUrls = uploaded.urls;
+      const imageUrl = galleryUrls[0];
 
       const { data: userData } = await supabase.auth.getUser(); const user = userData?.user;
       const payload = {
@@ -236,26 +259,15 @@ export default function AdminProductsPanel() {
       else result = await supabase.from("products").insert({ ...payload, created_by: user?.id || null }).select("*").single();
       if (result.error) {
         // The product was not saved: remove the images just uploaded.
-        if (uploaded) await supabase.storage.from("product-images").remove(uploaded.paths);
+        if (uploaded.paths.length) await supabase.storage.from("product-images").remove(uploaded.paths);
         throw result.error;
       }
 
-      // Saved: now remove the previous gallery (never the images just uploaded).
-      if (uploaded && form.id) {
-        const keep = new Set(uploaded.paths);
-        const previous = galleryObjects({ slug: form.slug || slug, image_url: form.image_url, gallery_urls: form.gallery_urls }).filter((path) => !keep.has(path));
-        if (previous.length) {
-          const { error: cleanupError } = await supabase.storage.from("product-images").remove(previous);
-          if (cleanupError) console.warn("Old product images could not be removed", cleanupError.message);
-        }
-      }
-
       const savedProduct = result.data;
-      const galleryMessage = files.length > 1 ? ` ${files.length} images saved.` : files.length === 1 ? " 1 image saved." : "";
+      const galleryMessage = addedCount > 1 ? ` ${addedCount} new images added.` : addedCount === 1 ? " 1 new image added." : "";
       const visibility = savedProduct.active ? "" : " It is hidden from the store until you make it visible.";
       setMessage(form.id ? `${savedProduct.name} updated.${galleryMessage}${visibility}` : `${savedProduct.name} added to the catalogue.${galleryMessage}${visibility}`);
-      setFiles([]);
-      setThumbnailKey("");
+      replaceGallery([]);
       await load();
       await refreshProducts();
       // Back to a blank "Add a perfume" form; display_order 0 lets the effect
@@ -294,7 +306,6 @@ export default function AdminProductsPanel() {
     }
   }
 
-  const isThumbnail = (selectedFile, index) => fileKey(selectedFile) === thumbnailKey || (!thumbnailKey && index === 0);
   const sectionTitle = "text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]";
 
   return (
@@ -360,35 +371,30 @@ export default function AdminProductsPanel() {
 
           <section className="border-t border-[var(--color-border)] pt-6">
             <h3 className={`${sectionTitle} mb-4`}>Images</h3>
-            <label htmlFor="product-gallery-input" className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-7 text-center transition hover:border-[var(--color-text)]/40">
-              <Upload className="h-5 w-5 text-[var(--color-muted)]" />
-              <span className="mt-2 text-sm font-semibold">{files.length ? `${files.length} image${files.length === 1 ? "" : "s"} selected — choose again to replace` : `Choose up to ${MAX_PRODUCT_IMAGES} images`}</span>
-              <span className="mt-1 text-xs text-[var(--color-muted)]">JPG, PNG or WebP, up to 10 MB each; photos are resized and compressed automatically. New images replace the current gallery.</span>
-              <input id="product-gallery-input" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectImages} className="sr-only" />
-            </label>
-
-            {files.length > 0 && (
-              <div className="mt-4">
-                <p className="text-xs text-[var(--color-muted)]">Image 1 is the collection thumbnail and opens first on the product page.</p>
+            {gallery.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs text-[var(--color-muted)]">The first photo is the cover: it shows in the collection and opens first on the product page.</p>
                 <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {files.map((selectedFile, index) => (
-                    <div key={selectedFile.name + selectedFile.size + selectedFile.lastModified} className={`overflow-hidden rounded-xl border p-1.5 ${isThumbnail(selectedFile, index) ? "border-[var(--color-text)]/50" : "border-[var(--color-border)]"}`}>
+                  {gallery.map((item, index) => (
+                    <div key={item.key} className={`overflow-hidden rounded-xl border p-1.5 ${index === 0 ? "border-[var(--color-text)]/50" : "border-[var(--color-border)]"}`}>
                       <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-[var(--color-surface-muted)]">
-                        <img src={previewUrls[index]} alt="" className="h-full w-full object-cover" />
-                        <span className="absolute left-1.5 top-1.5 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">{isThumbnail(selectedFile, index) ? "Thumbnail" : index + 1}</span>
+                        {item.kind === "new"
+                          ? <img src={item.preview} alt="" className="h-full w-full object-cover" />
+                          : <SafeImage src={item.url} alt="" sizes="200px" maxWidth={480} className="h-full w-full object-cover" />}
+                        <span className="absolute left-1.5 top-1.5 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">{index === 0 ? "Cover" : index + 1}</span>
+                        {item.kind === "new" && <span className="absolute bottom-1.5 left-1.5 rounded-full bg-[var(--color-kesar)] px-2 py-0.5 text-[10px] font-semibold text-white">New</span>}
+                        <button type="button" onClick={() => removeGalleryImage(index)} className="absolute right-1.5 top-1.5 rounded-full bg-black/70 p-1 text-white hover:bg-black" aria-label={`Remove photo ${index + 1}`} title="Remove photo"><X className="h-3.5 w-3.5" /></button>
                       </div>
                       <div className="mt-1.5 flex items-center gap-1">
-                        {isThumbnail(selectedFile, index) ? (
+                        {index === 0 ? (
                           <span className="inline-flex items-center gap-1 px-1 text-[10px] font-semibold uppercase tracking-[0.08em]"><Star className="h-3 w-3 fill-current" />Cover</span>
                         ) : (
-                          <button type="button" onClick={() => makeThumbnail(index)} className="inline-flex items-center gap-1 rounded-full px-1.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--color-muted)] hover:text-[var(--color-text)]" title="Make thumbnail"><Star className="h-3 w-3" />Cover</button>
+                          <button type="button" onClick={() => makeCover(index)} className="inline-flex items-center gap-1 rounded-full px-1.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--color-muted)] hover:text-[var(--color-text)]" title="Make cover"><Star className="h-3 w-3" />Cover</button>
                         )}
-                        {index > 0 && (
-                          <div className="ml-auto flex">
-                            <button type="button" onClick={() => moveGalleryImage(index, -1)} disabled={index === 1} className="rounded-md p-1 hover:bg-[var(--color-surface-muted)] disabled:opacity-30" aria-label={`Move ${selectedFile.name} earlier`} title="Move earlier"><ChevronLeft className="h-3.5 w-3.5" /></button>
-                            <button type="button" onClick={() => moveGalleryImage(index, 1)} disabled={index === files.length - 1} className="rounded-md p-1 hover:bg-[var(--color-surface-muted)] disabled:opacity-30" aria-label={`Move ${selectedFile.name} later`} title="Move later"><ChevronRight className="h-3.5 w-3.5" /></button>
-                          </div>
-                        )}
+                        <div className="ml-auto flex">
+                          <button type="button" onClick={() => moveGalleryImage(index, -1)} disabled={index === 0} className="rounded-md p-1 hover:bg-[var(--color-surface-muted)] disabled:opacity-30" aria-label={`Move photo ${index + 1} earlier`} title="Move earlier"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                          <button type="button" onClick={() => moveGalleryImage(index, 1)} disabled={index === gallery.length - 1} className="rounded-md p-1 hover:bg-[var(--color-surface-muted)] disabled:opacity-30" aria-label={`Move photo ${index + 1} later`} title="Move later"><ChevronRight className="h-3.5 w-3.5" /></button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -396,18 +402,15 @@ export default function AdminProductsPanel() {
               </div>
             )}
 
-            {form.image_url && files.length === 0 && (
-              <div className="mt-4">
-                <div className="flex flex-wrap gap-2">
-                  {(form.gallery_urls?.length ? form.gallery_urls : [form.image_url]).map((url, index) => (
-                    <SafeImage key={url} src={url} alt="" sizes="64px" maxWidth={320} title={index === 0 ? "Cover" : `Image ${index + 1}`} className={`h-20 w-16 rounded-lg object-cover ${index === 0 ? "ring-2 ring-[var(--color-text)]/40" : ""}`} />
-                  ))}
-                </div>
-                <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">
-                  Current gallery ({form.gallery_urls?.length || 1} image{(form.gallery_urls?.length || 1) === 1 ? "" : "s"}, cover first).{form.id ? " Leave the picker empty to keep it." : ""}
-                </p>
-              </div>
+            {gallery.length < MAX_PRODUCT_IMAGES && (
+              <label htmlFor="product-gallery-input" className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-7 text-center transition hover:border-[var(--color-text)]/40">
+                <Upload className="h-5 w-5 text-[var(--color-muted)]" />
+                <span className="mt-2 text-sm font-semibold">{gallery.length ? `Add more photos (${MAX_PRODUCT_IMAGES - gallery.length} more allowed)` : `Choose up to ${MAX_PRODUCT_IMAGES} photos`}</span>
+                <span className="mt-1 text-xs text-[var(--color-muted)]">JPG, PNG or WebP, up to 10 MB each; photos are resized and compressed automatically. New photos are added after the current ones.</span>
+                <input id="product-gallery-input" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectImages} className="sr-only" />
+              </label>
             )}
+            {gallery.length > 0 && <p className="mt-2 text-xs text-[var(--color-muted)]">Changes to photos are saved when you press Save.</p>}
 
             <div className="mt-4">
               <Field label="Image alt text" htmlFor="product-alt" hint="Describes the photo for Google Images and screen readers.">
