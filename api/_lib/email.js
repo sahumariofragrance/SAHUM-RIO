@@ -366,4 +366,73 @@ async function sendBulkEnquiryEmails(enquiry) {
   return Promise.all([internal, customer]);
 }
 
-module.exports = { sendOrderReceived, sendStatusEmail, sendShipped, sendBulkEnquiryEmails };
+// ── Review requests ────────────────────────────────────────────────────────
+
+const SITE_URL = "https://sahumario.com";
+
+function productReviewCard(product) {
+  const href = `${SITE_URL}/product/${encodeURIComponent(product.slug)}#write-review`;
+  const image = product.image && /^https:\/\//i.test(product.image)
+    ? `<td width="76" valign="middle" style="width:76px;padding-right:16px;"><img src="${escapeHtml(product.image)}" width="76" height="95" alt="${escapeHtml(product.name)}" style="display:block;width:76px;height:95px;object-fit:cover;border:0;"></td>`
+    : "";
+  return `              <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#f8f5ef;border:1px solid #e9e1d5;">
+                <tr>
+                  <td style="padding-top:14px;padding-right:16px;padding-bottom:14px;padding-left:14px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr>${image}
+                      <td valign="middle">
+                        <p style="margin:0 0 10px 0;font-family:Georgia,'Times New Roman',serif;font-size:20px;line-height:26px;color:#241f1a;">${escapeHtml(product.name)}</p>
+${buttons([[href, "Write a review", true]])}
+                      </td>
+                    </tr></table>
+                  </td>
+                </tr>
+              </table>`;
+}
+
+/**
+ * A week after delivery: asks for an honest review of each perfume in the
+ * order. The thank-you code (when given) is for every customer, review or not,
+ * so reviews are never paid for.
+ */
+async function sendReviewRequest(order, products, thankYou) {
+  const firstName = String(order?.address?.name || "").trim().split(/\s+/)[0] || "there";
+  const one = products.length === 1;
+  const intro = `Your SAHUMäRIO order arrived about a week ago. We’d love to know how ${one ? products[0].name : "your perfumes"} ${one ? "is" : "are"} wearing on you. An honest review, good or bad, helps other people find their scent and helps us make better perfumes.`;
+  const thankYouHtml = thankYou ? cardRow(`              <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;border:1px dashed #c9a46c;background-color:#fffaf1;">
+                <tr><td style="padding-top:16px;padding-right:18px;padding-bottom:16px;padding-left:18px;${SANS}font-size:14px;line-height:22px;color:#514a42;">
+                  <strong style="color:#29251f;">A thank-you from us:</strong> ${thankYou.percent}% off your next order with code <strong style="font-family:'Courier New',Courier,monospace;font-size:15px;letter-spacing:1px;color:#241f1a;">${escapeHtml(thankYou.code)}</strong>.<br>
+                  <span style="color:#8a8176;font-size:12px;">It’s yours whether or not you write a review.</span>
+                </td></tr>
+              </table>`, { top: 20 }) : "";
+  const html = layout({
+    eyebrow: "HOW IS IT WEARING?",
+    title: `Thank you, ${firstName}.`,
+    intro,
+    preheader: "Tell us how your SAHUMäRIO perfume is wearing. It takes a minute.",
+    bodyHtml: products.map((product, index) => cardRow(productReviewCard(product), { top: index ? 10 : 22 })).join("") + thankYouHtml,
+    footerHtml: footerLines([
+      "Thank you for choosing SAHUMäRIO.",
+      `Something not right? Just reply to this email or write to ${link(`mailto:${SUPPORT_EMAIL}`, SUPPORT_EMAIL)}.`,
+    ]),
+  });
+  const text = [
+    `Thank you, ${firstName}.`,
+    "",
+    intro,
+    "",
+    ...products.map((product) => `Review ${product.name}: ${SITE_URL}/product/${product.slug}#write-review`),
+    thankYou ? `\nA thank-you from us: ${thankYou.percent}% off your next order with code ${thankYou.code}. It’s yours whether or not you write a review.` : "",
+    "",
+    `Something not right? Reply to this email or write to ${SUPPORT_EMAIL}.`,
+    "",
+    "SAHUMäRIO",
+  ].join("\n");
+  return sendEmail({
+    to: customerEmail(order),
+    subject: one ? `How is ${products[0].name} wearing, ${firstName}?` : `How are your SAHUMäRIO perfumes wearing, ${firstName}?`,
+    html,
+    text,
+  });
+}
+
+module.exports = { sendOrderReceived, sendStatusEmail, sendShipped, sendBulkEnquiryEmails, sendReviewRequest };
