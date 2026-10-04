@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Lock, ShieldCheck, Loader2, Sparkles, FlaskConical, Tag, X } from "lucide-react";
 import SafeImage from "./SafeImage";
+import ComboNudge from "./ComboNudge";
+import { COMBO } from "../lib/offers";
 import { formatINR } from "../utils/money";
 
 const CartSummary = React.memo(
@@ -19,6 +21,9 @@ const CartSummary = React.memo(
     onRemoveCode,
     codeError = "",
     applyingCode = false,
+    codeUnused = false,
+    offerAmount = 0,
+    offerLabel = "",
   }) => {
     const [codeOpen, setCodeOpen] = useState(false);
     const [codeInput, setCodeInput] = useState("");
@@ -63,7 +68,13 @@ const CartSummary = React.memo(
             <span className="text-[var(--color-muted)]">Shipping</span>
             <span className="font-medium text-green-600">Free</span>
           </div>
-          {discountPercent > 0 && (
+          {offerAmount > 0 && (
+            <div className="flex justify-between gap-3 text-sm">
+              <span className="text-[var(--color-muted)]">{offerLabel}</span>
+              <span className="shrink-0 font-medium text-green-600">- {formatINR(offerAmount)}</span>
+            </div>
+          )}
+          {discountPercent > 0 && !codeUnused && (
             <div className="flex justify-between text-sm">
               <span className="text-[var(--color-muted)]">Discount{discountCode ? ` · ${discountCode}` : ""} ({discountPercent}%)</span>
               <span className="font-medium text-green-600">- {formatINR(subtotal - total)}</span>
@@ -75,10 +86,17 @@ const CartSummary = React.memo(
           </div>
         </div>
 
+        <ComboNudge className="mt-3" action={onContinueShopping ? { label: "Add one", onClick: onContinueShopping } : undefined} />
+
         {/* Discount code */}
         {onApplyCode && (
           <div className="mt-4">
-            {discountCode ? (
+            {discountCode && codeUnused ? (
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-2 text-sm">
+                <span className="inline-flex items-start gap-2"><Tag className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span><span className="font-semibold">{discountCode}</span> not used: the {COMBO.label} saves you more. Keep the code for another order.</span></span>
+                <button type="button" onClick={() => { onRemoveCode?.(); setCodeInput(""); }} className="rounded p-1 hover:bg-[var(--color-border)]" aria-label="Remove discount code"><X className="h-4 w-4" /></button>
+              </div>
+            ) : discountCode ? (
               <div className="flex items-center justify-between gap-3 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
                 <span className="inline-flex items-center gap-2 font-medium"><Tag className="h-4 w-4" aria-hidden="true" />{discountCode} applied — {discountPercent}% off</span>
                 <button type="button" onClick={() => { onRemoveCode?.(); setCodeInput(""); }} className="rounded p-1 hover:bg-green-100" aria-label="Remove discount code"><X className="h-4 w-4" /></button>

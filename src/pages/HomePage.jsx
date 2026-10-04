@@ -4,6 +4,7 @@ import ProductGrid from "../components/ProductGrid";
 import SpaLink from "../components/SpaLink";
 import IndiaFlag from "../components/IndiaFlag";
 import PromoTicket from "../components/PromoTicket";
+import DiwaliOffer from "../components/DiwaliOffer";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
@@ -39,6 +40,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
           <IndiaFlag />
           Made in India
         </p>
+        <DiwaliOffer />
         <PromoTicket />
       </div>
 

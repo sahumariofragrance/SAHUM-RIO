@@ -6,7 +6,9 @@ import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
 import { formatINR } from "../utils/money";
 import PromoLine from "../components/PromoLine";
+import ComboNudge from "../components/ComboNudge";
 import DiscoverMore from "../components/DiscoverMore";
+import { pixelViewContent } from "../lib/metaPixel";
 import { productJsonLd } from "../seo/site";
 import { setPageJsonLd } from "../seo/head";
 import { useTheme } from "../context/ThemeContext";
@@ -45,6 +47,7 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
   const [rating, setRating] = useState(null);
 
   useEffect(() => { setRating(null); }, [product?.id]);
+  useEffect(() => { if (product) pixelViewContent(product); }, [product]);
 
   useEffect(() => {
     if (!product) return undefined;
@@ -149,6 +152,10 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
             </a>
           </div>
           <PromoLine />
+          <ComboNudge
+            className="mt-2"
+            action={{ label: "See perfumes", onClick: () => document.getElementById("discover-more-title")?.scrollIntoView({ behavior: "smooth", block: "start" }) }}
+          />
           <p className="mt-7 max-w-xl text-sm leading-7 text-[var(--color-muted)]">{product.description}</p>
 
           <div className="mt-9 border-t border-[var(--color-border)] pt-6">

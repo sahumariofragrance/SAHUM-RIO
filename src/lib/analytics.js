@@ -17,6 +17,11 @@ function enabled() {
   }
 }
 
+/** Shared with the Meta Pixel: same pages and devices are left out. */
+export function trackingAllowed(path = window.location.pathname) {
+  return enabled() && !UNTRACKED.test(path);
+}
+
 function send(payload) {
   try {
     fetch("/api/collect", {
@@ -43,7 +48,7 @@ function takeEntry() {
 
 export function trackPageview() {
   const path = window.location.pathname;
-  if (!enabled() || UNTRACKED.test(path)) return;
+  if (!trackingAllowed(path)) return;
   const payload = { kind: "pageview", path };
   if (takeEntry()) {
     const params = new URLSearchParams(window.location.search);

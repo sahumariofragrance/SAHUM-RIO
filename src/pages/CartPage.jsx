@@ -4,10 +4,13 @@ import SafeImage from "../components/SafeImage";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
 import { formatINR } from "../utils/money";
+import ComboNudge from "../components/ComboNudge";
+import { COMBO, comboDiscount } from "../lib/offers";
 
 export default function CartPage({ setCurrentPage }) {
   const { items, updateQty, removeItem, subtotal } = useCart();
   const { products } = useProducts();
+  const offer = comboDiscount(items);
 
   const catalogueById = useMemo(
     () => new Map(products.map((product) => [product.id, product])),
@@ -69,14 +72,23 @@ export default function CartPage({ setCurrentPage }) {
 
         <aside className="h-fit rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 lg:sticky lg:top-24">
           <h2 className="font-serif text-2xl font-semibold">Order Summary</h2>
-          <div className="mt-5 flex justify-between border-b border-[var(--color-border)] pb-4">
-            <span className="text-[var(--color-muted)]">Subtotal</span>
-            <strong>{formatINR(subtotal)}</strong>
+          <div className="mt-5 space-y-2 border-b border-[var(--color-border)] pb-4">
+            <div className="flex justify-between">
+              <span className="text-[var(--color-muted)]">Subtotal</span>
+              <strong>{formatINR(subtotal)}</strong>
+            </div>
+            {offer > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-[var(--color-muted)]">{COMBO.label} · any 2 for {formatINR(COMBO.pairPrice)}</span>
+                <span className="font-medium text-green-600">- {formatINR(offer)}</span>
+              </div>
+            )}
           </div>
           <div className="mt-4 flex justify-between text-lg">
             <span className="font-semibold">Total</span>
-            <strong>{formatINR(subtotal)}</strong>
+            <strong>{formatINR(subtotal - offer)}</strong>
           </div>
+          <ComboNudge className="mt-3" action={{ label: "Add one", onClick: () => setCurrentPage("perfumes") }} />
 
           <div className="mt-5 space-y-3 border-t border-[var(--color-border)] pt-5 text-sm text-[var(--color-muted)]">
             <div className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-amber-700" /><span>Free shipping across India</span></div>

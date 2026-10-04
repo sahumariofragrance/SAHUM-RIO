@@ -1,5 +1,6 @@
 import React from "react";
 import { SUPPORT_EMAIL } from "../constants/contact";
+import { META_PIXEL_ID } from "../lib/metaPixel";
 
 function Section({ heading, children }) {
   return (
@@ -69,11 +70,25 @@ export default function PrivacyPolicyPage() {
         </P>
       </Section>
 
+      {META_PIXEL_ID && <Section heading="Advertising (Meta Pixel)">
+        <P>
+          We advertise on Instagram and Facebook. To measure these ads and to show them to
+          people who have visited our website, we use the Meta Pixel, a tool from Meta
+          Platforms. It tells Meta when you view a page or a perfume, add a perfume to the
+          bag, start checkout, or complete a payment (with the products and amount). Meta
+          may use cookies and receive technical information such as your IP address and
+          browser details, and handles it under its own privacy policy. We do not send Meta
+          your name, email address, phone number, or address. You can control ads based on
+          your activity in your Instagram or Facebook ad preferences, or by blocking
+          third-party cookies in your browser.
+        </P>
+      </Section>}
+
       <Section heading="Service Providers">
         <P>
           We use third-party service providers for website hosting, authentication and
-          database services, payment processing, transactional email, and delivery or
-          courier services. We share information with them only as reasonably necessary to
+          database services, payment processing, transactional email,
+          {META_PIXEL_ID ? " advertising measurement," : ""} and delivery or courier services. We share information with them only as reasonably necessary to
           provide these services and operate our business.
         </P>
       </Section>

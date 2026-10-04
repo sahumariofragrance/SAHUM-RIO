@@ -10,7 +10,10 @@ import { useProducts } from "../context/ProductsContext";
 import { supabase } from "../lib/supabase";
 import { completeVerifiedOrder } from "../lib/completeOrder";
 import { trackEvent } from "../lib/analytics";
+import { pixelInitiateCheckout, pixelPurchase } from "../lib/metaPixel";
 import { forgetSavedCode, savedCode } from "../lib/promo";
+import { COMBO, comboDiscount } from "../lib/offers";
+import { formatINR } from "../utils/money";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
 
@@ -44,8 +47,12 @@ export default function CheckoutPage({ setCurrentPage }) {
   const [codeError, setCodeError] = useState("");
   const [applyingCode, setApplyingCode] = useState(false);
   // Same whole-rupee formula as the server (api/_lib/discounts.js).
-  const discountAmount = discount ? Math.round((subtotal * discount.percent) / 100) : 0;
-  const total = subtotal - discountAmount;
+  const codeAmount = discount ? Math.round((subtotal * discount.percent) / 100) : 0;
+  // Offers don't combine, as on the server: a code counts only when it saves
+  // more than the Diwali offer; otherwise it stays unused for another order.
+  const offerAmount = comboDiscount(items);
+  const useCode = Boolean(discount) && codeAmount > offerAmount;
+  const total = subtotal - (useCode ? codeAmount : offerAmount);
   const processingRef = useRef(false);
   const successRef = useRef(null);
   const testMode = isTestMode(process.env.REACT_APP_RAZORPAY_KEY_ID);
@@ -105,6 +112,14 @@ export default function CheckoutPage({ setCurrentPage }) {
     applyCode(code);
   }, [items.length, applyCode]);
 
+  // Tell Meta once per visit to checkout, when there is something to buy.
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (checkoutTracked.current || !items.length) return;
+    checkoutTracked.current = true;
+    pixelInitiateCheckout(items, subtotal);
+  }, [items, subtotal]);
+
   const handleFormChange = useCallback((data, valid) => { setFormData(data); setFormValid(Boolean(valid)); setError(""); }, []);
 
   const initiatePayment = useCallback(async () => {
@@ -135,7 +150,7 @@ export default function CheckoutPage({ setCurrentPage }) {
           currency: "INR",
           customer: { name: formData.name, phone: formData.phone, email: shippingAddress.email },
           address: shippingAddress,
-          ...(discount ? { discount_code: discount.code } : {}),
+          ...(useCode ? { discount_code: discount.code } : {}),
         }),
       });
       const orderPayload = await orderRes.json().catch(() => ({}));
@@ -158,13 +173,14 @@ export default function CheckoutPage({ setCurrentPage }) {
       if (!usingGuestCheckout && saveToProfile) await saveAddress(shippingAddress);
       if (!usingGuestCheckout && checkoutUser?.id) await refreshOrders(checkoutUser.id);
       trackEvent("purchase", { value: total });
+      pixelPurchase(items, total, completed.id);
       forgetSavedCode();
       clearCart(); setConfirmedOrderId(completed.id); setGuestCheckout(usingGuestCheckout); setSuccess(true);
     } catch (err) {
       const msg = friendlyPaymentError(err) || err?.message || "Checkout failed. Please try again.";
       setError(msg); paymentLog("error", "FAILED", { message: err?.message });
     } finally { processingRef.current = false; setLoading(false); }
-  }, [user, isGuest, guestCheckout, startGuestSession, formValid, formData, items, total, discount, saveToProfile, saveAddress, refreshOrders, clearCart]);
+  }, [user, isGuest, guestCheckout, startGuestSession, formValid, formData, items, total, discount, useCode, saveToProfile, saveAddress, refreshOrders, clearCart]);
 
   if (success) return (
     <section className="mx-auto max-w-3xl px-4 py-16 text-center">
@@ -193,7 +209,7 @@ export default function CheckoutPage({ setCurrentPage }) {
           {correctedAmount != null && <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">Server-verified total: <strong>₹{Number(correctedAmount).toLocaleString("en-IN")}</strong>. This is the amount presented to Razorpay.</div>}
           <Card className="p-6"><h2 className="mb-6 text-lg font-semibold">Shipping Address</h2>{addressLoaded ? <><ShippingForm key={user?.id || "guest"} onFormChange={handleFormChange} initialValues={formData} requireEmail={guestCheckout || isGuest} />{!guestCheckout && !isGuest && <label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" checked={saveToProfile} onChange={(e) => setSaveToProfile(e.target.checked)} className="rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600" />Save this address to my profile</label>}</> : <div className="h-64 animate-pulse rounded-lg bg-[var(--color-surface-muted)]" />}</Card>
         </div>
-        <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={summaryItems} subtotal={subtotal} total={total} discountPercent={discount?.percent || 0} discountCode={discount?.code || ""} onApplyCode={applyCode} onRemoveCode={removeCode} codeError={codeError} applyingCode={applyingCode} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading} /></div></div>
+        <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={summaryItems} subtotal={subtotal} total={total} discountPercent={discount?.percent || 0} discountCode={discount?.code || ""} codeUnused={Boolean(discount) && !useCode} offerAmount={useCode ? 0 : offerAmount} offerLabel={`${COMBO.label} · any 2 for ${formatINR(COMBO.pairPrice)}`} onApplyCode={applyCode} onRemoveCode={removeCode} codeError={codeError} applyingCode={applyingCode} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading} /></div></div>
       </div>
     </section>
   );
