@@ -3,56 +3,79 @@
     "id": 1,
     "slug": "bloom",
     "name": "Bloom",
-    "description": "Warm, resinous amber with smoky oud base.",
+    "description": "A bright burst of citrus. Bloom opens with zesty lemon and crisp green apple, softened by juicy orange — clean, cheerful and easy to wear every day.",
     "price": 749,
-    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/bloom-1789976722009.png",
+    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/bloom/musmsukk-axg3ys/1",
     "gallery_urls": [
-      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/bloom-1789976722009.png"
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/bloom/musmsukk-axg3ys/1",
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/bloom/musn33jl-pdfqdu/1"
     ],
-    "alt": "Bottle of Amber Oud perfume",
+    "alt": "SAHUMäRIO Bloom Eau de Parfum 50 ml bottle with a black label, among cream flowers and pearls in warm sunlight",
+    "notes": "Lemon · Green Apple · Citrus · Orange",
+    "size_volume": "50ml",
+    "fragrance_family": "Fresh Citrus",
+    "scent_profile": "Fresh, zesty and fruity, with a juicy sweetness",
+    "occasion": "Everyday wear, daytime, summer",
     "display_order": 10,
-    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/bloom-1789976722009.png"
+    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/bloom/musmsukk-axg3ys/1"
   },
   {
     "id": 2,
     "slug": "dew-drop",
     "name": "Dew Drop",
-    "description": "Clean, soft musk with subtle floral notes.",
+    "description": "Cool and clean, like morning water on fresh leaves. Dew Drop pairs crisp green apple with a fresh aquatic breeze for a light, airy scent that feels effortlessly refreshing.",
     "price": 749,
-    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/dew-drop-1789976693532.png",
+    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/dew-drop/musne14y-rgxu9v/1",
     "gallery_urls": [
-      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/dew-drop-1789976693532.png"
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/dew-drop/musne14y-rgxu9v/1",
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/dew-drop/musne14y-rgxu9v/2"
     ],
     "alt": "SAHUMäRIO Dew Drop oil-based perfume bottle",
+    "notes": "Green Apple, Aqua (Aquatic) Accord, Fresh Notes",
+    "size_volume": "50ml",
+    "fragrance_family": "Fresh aquatic",
+    "scent_profile": "Cool, clean and crisp, with a juicy green edge",
+    "occasion": "Everyday wear, daytime, summer, gym and travel",
     "display_order": 20,
-    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/dew-drop-1789976693532.png"
+    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/dew-drop/musne14y-rgxu9v/1"
   },
   {
     "id": 3,
     "slug": "lemon-breeze",
     "name": "Lemon Breeze",
-    "description": "Fresh lemon",
+    "description": "A sunny burst of fruit. Lemon Breeze opens with zesty lemon and fresh lime, then softens into juicy pineapple, sweet peach and cool melon — bright, playful and full of summer.",
     "price": 749,
-    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/lemon-breeze-1789976672708.png",
+    "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/lemon-breeze/musnhqua-591pze/1",
     "gallery_urls": [
-      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/lemon-breeze-1789976672708.png"
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/lemon-breeze/musnhqua-591pze/1",
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/lemon-breeze/musnhqua-591pze/2"
     ],
-    "alt": "Bottle of White Musk perfume",
+    "alt": "SAHUMäRIO Lemon Breeze Eau de Parfum 50 ml bottle surrounded by fresh lemon slices and mint leaves",
+    "notes": "Lemon, Fresh Lime, Pineapple, Peach, Melon",
+    "size_volume": "50ml",
+    "fragrance_family": "Fruity citrus",
+    "scent_profile": "Bright, juicy and tropical, with a zesty fresh opening",
+    "occasion": "Everyday wear, daytime, summer, holidays",
     "display_order": 30,
-    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/lemon-breeze-1789976672708.png"
+    "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/lemon-breeze/musnhqua-591pze/1"
   },
   {
     "id": 4,
     "slug": "morning-dew",
     "name": "Morning Dew",
-    "description": "Clean, soft musk with subtle floral notes.",
+    "description": "Fresh air at first light. Morning Dew opens with sparkling lemon and citrus over juicy melon, pineapple and peach, then settles into cool ozone with a soft herbal, gently spicy warmth — clean, airy and quietly confident.",
     "price": 749,
     "image_url": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/morning-dew/mucv6b98-1hq8li/1",
     "gallery_urls": [
       "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/morning-dew/mucv6b98-1hq8li/1",
-      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/morning-dew/mucv6b98-1hq8li/2"
+      "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/morning-dew/musnm26b-kjb99p/1"
     ],
-    "alt": "Bottle of White Musk perfume",
+    "alt": "SAHUMäRIO Morning Dew Eau de Parfum 50 ml bottle with a pale blue tint on a bright white background",
+    "notes": "Lemon, Citrus, Melon, Pineapple, Peach, Herbal Notes, Spice, Ozone",
+    "size_volume": "50ml",
+    "fragrance_family": "Fresh aromatic (ozonic)",
+    "scent_profile": "Airy, crisp and fruity, with a herbal, gently spicy finish",
+    "occasion": "Everyday wear, office, mornings, all seasons",
     "display_order": 40,
     "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/morning-dew/mucv6b98-1hq8li/1"
   },
@@ -67,7 +90,7 @@
       "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/night-queen/mucv7dlz-gbhi6r/1",
       "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/night-queen/mucv7dlz-gbhi6r/2"
     ],
-    "alt": "Bottle of White Musk perfume",
+    "alt": "SAHUMäRIO Night Queen Eau de Parfum 50 ml bottle with a navy label on a soft white background",
     "display_order": 50,
     "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/night-queen/mucv7dlz-gbhi6r/1"
   },
@@ -82,7 +105,7 @@
       "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/blix/mucv854l-8gwsiw/1",
       "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/blix/mucv854l-8gwsiw/2"
     ],
-    "alt": "Blix perfume bottle",
+    "alt": "SAHUMäRIO Blix Eau de Parfum 50 ml bottle with a light green tint on a bright white background",
     "notes": "Lemone,Pinapple,Peach,Green Apple",
     "display_order": 60,
     "image": "https://itcyhcmjaotlrhfbsrkv.supabase.co/storage/v1/object/public/product-images/gallery/blix/mucv854l-8gwsiw/1"
