@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Star, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
@@ -80,6 +80,17 @@ export default function ProductReviews({ product, onSummary }) {
   useEffect(() => {
     loadReviews();
   }, [loadReviews]);
+
+  // Links from the review-request email end in #write-review: open the form
+  // and bring it into view once the reviews have loaded.
+  const openedFromLink = useRef(false);
+  useEffect(() => {
+    if (loading || openedFromLink.current || window.location.hash !== "#write-review") return undefined;
+    openedFromLink.current = true;
+    setShowForm(true);
+    const timer = window.setTimeout(() => document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "start" }), 400);
+    return () => window.clearTimeout(timer);
+  }, [loading]);
 
   useEffect(() => {
     let live = true;
