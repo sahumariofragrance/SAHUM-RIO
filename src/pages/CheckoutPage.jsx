@@ -10,6 +10,7 @@ import { useProducts } from "../context/ProductsContext";
 import { supabase } from "../lib/supabase";
 import { completeVerifiedOrder } from "../lib/completeOrder";
 import { trackEvent } from "../lib/analytics";
+import { forgetSavedCode, savedCode } from "../lib/promo";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
 
@@ -85,13 +86,24 @@ export default function CheckoutPage({ setCurrentPage }) {
       setDiscount({ code: payload.code, percent: Number(payload.percent) });
     } catch (codeErr) {
       setDiscount(null);
+      forgetSavedCode();
       setCodeError(codeErr.message || "That discount code isn't valid.");
     } finally {
       setApplyingCode(false);
     }
   }, [formData.email, formData.phone]);
 
-  const removeCode = useCallback(() => { setDiscount(null); setCodeError(""); }, []);
+  const removeCode = useCallback(() => { setDiscount(null); setCodeError(""); forgetSavedCode(); }, []);
+
+  // A code saved from the homepage or a product page is applied automatically.
+  const autoApplied = useRef(false);
+  useEffect(() => {
+    if (autoApplied.current || !items.length) return;
+    const code = savedCode();
+    if (!code) return;
+    autoApplied.current = true;
+    applyCode(code);
+  }, [items.length, applyCode]);
 
   const handleFormChange = useCallback((data, valid) => { setFormData(data); setFormValid(Boolean(valid)); setError(""); }, []);
 
@@ -146,6 +158,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       if (!usingGuestCheckout && saveToProfile) await saveAddress(shippingAddress);
       if (!usingGuestCheckout && checkoutUser?.id) await refreshOrders(checkoutUser.id);
       trackEvent("purchase", { value: total });
+      forgetSavedCode();
       clearCart(); setConfirmedOrderId(completed.id); setGuestCheckout(usingGuestCheckout); setSuccess(true);
     } catch (err) {
       const msg = friendlyPaymentError(err) || err?.message || "Checkout failed. Please try again.";

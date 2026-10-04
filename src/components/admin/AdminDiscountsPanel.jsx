@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Copy, Loader2, Plus, RefreshCw } from "lucide-react";
+import { Copy, Globe, Loader2, Plus, RefreshCw } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { AdminButton, Field, Notice, inputClass } from "./AdminUI";
 import { formatINR } from "../../utils/money";
@@ -74,6 +74,21 @@ export default function AdminDiscountsPanel() {
     else load();
   }
 
+  // Only one code is promoted on the website at a time.
+  async function toggleWebsite(row) {
+    setError(""); setMessage("");
+    if (!row.show_on_site) {
+      const { error: clearError } = await supabase.from("discount_codes").update({ show_on_site: false }).eq("show_on_site", true).neq("id", row.id);
+      if (clearError) { setError(clearError.message); return; }
+    }
+    const { error: updateError } = await supabase.from("discount_codes").update({ show_on_site: !row.show_on_site }).eq("id", row.id);
+    if (updateError) { setError(updateError.message); return; }
+    setMessage(row.show_on_site
+      ? `${row.code} is no longer shown on the website.`
+      : `${row.code} now shows on the website: top bar, homepage and perfume pages.`);
+    load();
+  }
+
   async function copy(code) {
     try { await navigator.clipboard.writeText(code); setMessage(`${code} copied.`); } catch { /* clipboard blocked */ }
   }
@@ -127,6 +142,15 @@ export default function AdminDiscountsPanel() {
                   </div>
                   <p className="mt-1 text-sm">{row.percent}% off · {expiryLabel(row.expires_at)}</p>
                   {row.note && <p className="mt-0.5 text-xs text-[var(--color-muted)]">{row.note}</p>}
+                  <button
+                    type="button"
+                    onClick={() => toggleWebsite(row)}
+                    aria-pressed={Boolean(row.show_on_site)}
+                    className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${row.show_on_site ? "admin-tone tone-amber" : "border border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]"}`}
+                  >
+                    <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+                    {row.show_on_site ? (live ? "Shown on website" : "Shown on website (hidden while off/expired)") : "Show on website"}
+                  </button>
                 </div>
                 <div className="text-right text-sm">
                   <div className="font-semibold tabular-nums">{Number(row.uses)} use{Number(row.uses) === 1 ? "" : "s"}</div>

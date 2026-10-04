@@ -379,3 +379,34 @@ body {
 :root[data-theme="dark"] .motif-jaali::before {
   opacity: 0.12;
 }
+
+/* Homepage gift-ticket for the promoted discount code: dashed saffron edge
+   with two punched notches, like a voucher. */
+.promo-ticket {
+  border: 1px dashed color-mix(in srgb, var(--color-kesar) 60%, transparent);
+}
+.promo-ticket::before,
+.promo-ticket::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--color-bg);
+  border: 1px dashed color-mix(in srgb, var(--color-kesar) 60%, transparent);
+  transform: translateY(-50%);
+}
+.promo-ticket::before { left: -10px; clip-path: inset(0 0 0 50%); }
+.promo-ticket::after { right: -10px; clip-path: inset(0 50% 0 0); }
+.promo-ticket-divider {
+  border-left: 1px dashed color-mix(in srgb, var(--color-kesar) 50%, transparent);
+}
+.promo-ticket-in { animation: promo-in 600ms ease-out both; }
+@keyframes promo-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .promo-ticket-in { animation: none; }
+}

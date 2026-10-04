@@ -5,6 +5,7 @@ import BrandMark from "../components/BrandMark";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
 import { formatINR } from "../utils/money";
+import PromoLine from "../components/PromoLine";
 import { productJsonLd } from "../seo/site";
 import { setPageJsonLd } from "../seo/head";
 import { useTheme } from "../context/ThemeContext";
@@ -146,6 +147,7 @@ export default function ProductPage({ slug, navigate }) {
               ) : "Write the first review"}
             </a>
           </div>
+          <PromoLine />
           <p className="mt-7 max-w-xl text-sm leading-7 text-[var(--color-muted)]">{product.description}</p>
 
           <div className="mt-9 border-t border-[var(--color-border)] pt-6">
