@@ -10,6 +10,7 @@ import { useProducts } from "../context/ProductsContext";
 import { supabase } from "../lib/supabase";
 import { completeVerifiedOrder } from "../lib/completeOrder";
 import { trackEvent } from "../lib/analytics";
+import { pixelInitiateCheckout, pixelPurchase } from "../lib/metaPixel";
 import { forgetSavedCode, savedCode } from "../lib/promo";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
@@ -105,6 +106,14 @@ export default function CheckoutPage({ setCurrentPage }) {
     applyCode(code);
   }, [items.length, applyCode]);
 
+  // Tell Meta once per visit to checkout, when there is something to buy.
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (checkoutTracked.current || !items.length) return;
+    checkoutTracked.current = true;
+    pixelInitiateCheckout(items, subtotal);
+  }, [items, subtotal]);
+
   const handleFormChange = useCallback((data, valid) => { setFormData(data); setFormValid(Boolean(valid)); setError(""); }, []);
 
   const initiatePayment = useCallback(async () => {
@@ -158,6 +167,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       if (!usingGuestCheckout && saveToProfile) await saveAddress(shippingAddress);
       if (!usingGuestCheckout && checkoutUser?.id) await refreshOrders(checkoutUser.id);
       trackEvent("purchase", { value: total });
+      pixelPurchase(items, total, completed.id);
       forgetSavedCode();
       clearCart(); setConfirmedOrderId(completed.id); setGuestCheckout(usingGuestCheckout); setSuccess(true);
     } catch (err) {

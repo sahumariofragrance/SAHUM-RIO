@@ -7,6 +7,7 @@ import { useProducts } from "../context/ProductsContext";
 import { formatINR } from "../utils/money";
 import PromoLine from "../components/PromoLine";
 import DiscoverMore from "../components/DiscoverMore";
+import { pixelViewContent } from "../lib/metaPixel";
 import { productJsonLd } from "../seo/site";
 import { setPageJsonLd } from "../seo/head";
 import { useTheme } from "../context/ThemeContext";
@@ -45,6 +46,7 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
   const [rating, setRating] = useState(null);
 
   useEffect(() => { setRating(null); }, [product?.id]);
+  useEffect(() => { if (product) pixelViewContent(product); }, [product]);
 
   useEffect(() => {
     if (!product) return undefined;

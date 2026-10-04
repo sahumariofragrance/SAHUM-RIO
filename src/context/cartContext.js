@@ -7,6 +7,7 @@ import React, {
   useEffect,
 } from "react";
 import { trackEvent } from "../lib/analytics";
+import { pixelAddToCart } from "../lib/metaPixel";
 
 const CartCtx = createContext(null);
 const CART_STORAGE_KEY = "sahumario_cart";
@@ -69,6 +70,7 @@ export function CartProvider({ children }) {
       return;
     }
     trackEvent("add_to_cart", { product: product.slug });
+    pixelAddToCart(product);
     setItems((prev) => {
       const existing = prev.find((item) => item.product_id === product.id);
       if (existing) {
