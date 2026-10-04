@@ -6,6 +6,7 @@ const { requireCustomer } = require("../../_lib/customerAuth");
 const { getServiceClient, setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../../_lib/security");
 const { rejectBots } = require("../../_lib/botCheck");
 const { checkDiscount, discountPaise } = require("../../_lib/discounts");
+const { combo, comboDiscountPaise } = require("../../_lib/offers");
 
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
@@ -113,13 +114,20 @@ module.exports = async (req, res) => {
     if (!serviceClient) return res.status(503).json({ message: "Checkout service is temporarily unavailable." });
 
     // A discount code is checked here, on the server, for this email and phone.
+    // Offers don't combine: a code is used only when it saves more than the
+    // Diwali offer, otherwise the offer applies and the code stays unused.
+    const comboPaise = comboDiscountPaise(normalizedItems);
     let discount = null;
     if (discountCode) {
       const checked = await checkDiscount(serviceClient, { code: discountCode, email: shipping.email, phone: shipping.phone });
       if (!checked.ok) return res.status(400).json({ message: checked.message, discountRejected: true });
       const off = discountPaise(amountPaise, checked.percent);
-      discount = { code: checked.code, percent: checked.percent, paise: off };
+      if (off > comboPaise) discount = { code: checked.code, percent: checked.percent, paise: off };
     }
+    // The offer has no code: its name is saved in the code field so the order
+    // card, emails and PDF show it. No discount code has that name (codes are
+    // capital letters and digits), so no code redemption is recorded.
+    if (!discount && comboPaise > 0) discount = { code: combo.label, offer: true, percent: null, paise: comboPaise };
     const amount = amountPaise - (discount ? discount.paise : 0);
     if (!Number.isSafeInteger(amount) || amount < MIN_AMOUNT_PAISE) {
       return res.status(400).json({ message: "Order amount is outside the allowed range" });
@@ -144,7 +152,8 @@ module.exports = async (req, res) => {
         total_qty: String(count),
         cart_hash: cartHash(user.id, normalizedItems),
         intent_version: "3",
-        ...(discount ? { discount_code: discount.code, discount_percent: String(discount.percent) } : {}),
+        ...(discount && !discount.offer ? { discount_code: discount.code, discount_percent: String(discount.percent) } : {}),
+        ...(discount?.offer ? { offer: discount.code, offer_discount_inr: String(discount.paise / 100) } : {}),
       },
     });
 
@@ -158,7 +167,7 @@ module.exports = async (req, res) => {
       address: shipping,
       customer_email: shipping.email,
       status: "created",
-      // Only when a code is used, so checkout never depends on these columns otherwise.
+      // Only when a code or offer is used, so checkout never depends on these columns otherwise.
       ...(discount ? { discount_code: discount.code, discount_percent: discount.percent, discount_amount: discount.paise / 100 } : {}),
     });
     if (intent.error) {
@@ -167,7 +176,8 @@ module.exports = async (req, res) => {
     }
 
     const response = { id: order.id, amount: order.amount, currency: order.currency, receipt: order.receipt };
-    if (discount) response.discount = { code: discount.code, percent: discount.percent, amount: discount.paise / 100 };
+    if (discount && !discount.offer) response.discount = { code: discount.code, percent: discount.percent, amount: discount.paise / 100 };
+    if (discount?.offer) response.offer = { label: discount.code, amount: discount.paise / 100 };
     if (mismatch) response.correctedAmount = amount / 100;
     return res.status(200).json(response);
   } catch (err) {

@@ -30,7 +30,7 @@ export default function DiscoverMore({ current, onProductNavigate, onViewAll }) 
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">The Collection</p>
-          <h2 id="discover-more-title" className="mt-2 font-serif text-2xl font-normal tracking-[-0.01em] md:text-3xl">Discover more</h2>
+          <h2 id="discover-more-title" className="mt-2 scroll-mt-28 font-serif text-2xl font-normal tracking-[-0.01em] md:text-3xl">Discover more</h2>
         </div>
         <SpaLink href="/perfumes" onNavigate={onViewAll} className="shrink-0 border-b border-current pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] transition-opacity hover:opacity-70">
           View all {products.length}
