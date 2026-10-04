@@ -6,13 +6,14 @@ import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
 import { formatINR } from "../utils/money";
 import PromoLine from "../components/PromoLine";
+import DiscoverMore from "../components/DiscoverMore";
 import { productJsonLd } from "../seo/site";
 import { setPageJsonLd } from "../seo/head";
 import { useTheme } from "../context/ThemeContext";
 import { loadImageHue, tonePalette } from "../utils/imageTone";
 import { optimizedSrc } from "../utils/optimizedImage";
 
-export default function ProductPage({ slug, navigate }) {
+export default function ProductPage({ slug, navigate, onProductNavigate }) {
   const { items, addToCart, updateQty } = useCart();
   const { bySlug, loading } = useProducts();
   const product = useMemo(() => bySlug.get(slug) || null, [bySlug, slug]);
@@ -183,6 +184,7 @@ export default function ProductPage({ slug, navigate }) {
         </div>
       </div>
 
+      <DiscoverMore current={product} onProductNavigate={onProductNavigate} onViewAll={() => navigate("perfumes")} />
       <ProductReviews product={product} navigate={navigate} onSummary={setRating} />
     </section>
   );

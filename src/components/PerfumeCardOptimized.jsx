@@ -19,6 +19,7 @@ const PerfumeCardOptimized = React.memo(({
   onAdd,
   onUpdateQty,
   priority = false,
+  sizes = TILE_SIZES,
 }) => {
   const { id, name, price, image, alt } = product;
   const hoverImage = Array.isArray(product.gallery) && product.gallery.length > 1 ? product.gallery[1] : null;
@@ -34,13 +35,13 @@ const PerfumeCardOptimized = React.memo(({
             alt={alt || name}
             priority={priority}
             className="h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.04]"
-            sizes={TILE_SIZES}
+            sizes={sizes}
           />
           {hoverImage && (
             <SafeImage
               src={hoverImage}
               alt=""
-              sizes={TILE_SIZES}
+              sizes={sizes}
               className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-700 ease-out group-hover:opacity-100"
             />
           )}
