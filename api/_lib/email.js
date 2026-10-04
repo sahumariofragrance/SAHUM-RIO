@@ -19,6 +19,7 @@ function orderTotal(order) {
 function plainOrderLines(order) {
   const items = Array.isArray(order?.items) ? order.items : [];
   const lines = items.map((item) => `${item.name || "Item"} × ${Number(item.qty || 1)} — ${money(Number(item.price || 0) * Number(item.qty || 1))}`);
+  if (Number(order?.discount_amount) > 0) lines.push(`Discount${order.discount_code ? ` (${order.discount_code})` : ""} — −${money(order.discount_amount)}`);
   lines.push(`Total — ${money(orderTotal(order))}`);
   return lines.join("\n");
 }
@@ -71,7 +72,11 @@ function template({ eyebrow = "ORDER UPDATE", title, intro, order, extraHtml = "
     <tr>
       <td style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#29251f;">${escapeHtml(item.name || "Item")} × ${Number(item.qty || 1)}</td>
       <td align="right" style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#29251f;white-space:nowrap;">${money(Number(item.price || 0) * Number(item.qty || 1))}</td>
-    </tr>`).join("");
+    </tr>`).join("") + (Number(order?.discount_amount) > 0 ? `
+    <tr>
+      <td style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#2f7a3d;">Discount${order.discount_code ? ` (${escapeHtml(order.discount_code)})` : ""}</td>
+      <td align="right" style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#2f7a3d;white-space:nowrap;">−${money(order.discount_amount)}</td>
+    </tr>` : "");
 
   const bodyHtml = `          <tr>
             <td style="padding-top:16px;padding-right:32px;padding-bottom:8px;padding-left:32px;">

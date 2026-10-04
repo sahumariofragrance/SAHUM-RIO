@@ -1,5 +1,5 @@
-import React from "react";
-import { Lock, ShieldCheck, Loader2, Sparkles, FlaskConical } from "lucide-react";
+import React, { useState } from "react";
+import { Lock, ShieldCheck, Loader2, Sparkles, FlaskConical, Tag, X } from "lucide-react";
 import SafeImage from "./SafeImage";
 import { formatINR } from "../utils/money";
 
@@ -14,7 +14,18 @@ const CartSummary = React.memo(
     loading = false,
     total = subtotal,
     discountPercent = 0,
+    discountCode = "",
+    onApplyCode,
+    onRemoveCode,
+    codeError = "",
+    applyingCode = false,
   }) => {
+    const [codeOpen, setCodeOpen] = useState(false);
+    const [codeInput, setCodeInput] = useState("");
+    const submitCode = (event) => {
+      event.preventDefault();
+      if (codeInput.trim()) onApplyCode?.(codeInput.trim());
+    };
     return (
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
         <h3 className="mb-4 text-lg font-semibold">Order Summary</h3>
@@ -54,7 +65,7 @@ const CartSummary = React.memo(
           </div>
           {discountPercent > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-[var(--color-muted)]">Discount ({discountPercent}%)</span>
+              <span className="text-[var(--color-muted)]">Discount{discountCode ? ` · ${discountCode}` : ""} ({discountPercent}%)</span>
               <span className="font-medium text-green-600">- {formatINR(subtotal - total)}</span>
             </div>
           )}
@@ -63,6 +74,39 @@ const CartSummary = React.memo(
             <span className="text-amber-600">{formatINR(total)}</span>
           </div>
         </div>
+
+        {/* Discount code */}
+        {onApplyCode && (
+          <div className="mt-4">
+            {discountCode ? (
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+                <span className="inline-flex items-center gap-2 font-medium"><Tag className="h-4 w-4" aria-hidden="true" />{discountCode} applied — {discountPercent}% off</span>
+                <button type="button" onClick={() => { onRemoveCode?.(); setCodeInput(""); }} className="rounded p-1 hover:bg-green-100" aria-label="Remove discount code"><X className="h-4 w-4" /></button>
+              </div>
+            ) : codeOpen ? (
+              <form onSubmit={submitCode} className="flex gap-2">
+                <label htmlFor="discount-code" className="sr-only">Discount code</label>
+                <input
+                  id="discount-code"
+                  value={codeInput}
+                  onChange={(event) => setCodeInput(event.target.value.toUpperCase())}
+                  placeholder="Discount code"
+                  autoComplete="off"
+                  maxLength={20}
+                  className="min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5 text-sm uppercase tracking-wide outline-none focus:ring-2 focus:ring-amber-500"
+                />
+                <button type="submit" disabled={applyingCode || !codeInput.trim()} className="shrink-0 rounded-xl border border-[var(--color-text)] px-4 text-sm font-semibold transition hover:bg-[var(--color-text)] hover:text-[var(--color-bg)] disabled:opacity-40">
+                  {applyingCode ? <Loader2 className="h-4 w-4 animate-spin" aria-label="Checking code" /> : "Apply"}
+                </button>
+              </form>
+            ) : (
+              <button type="button" onClick={() => setCodeOpen(true)} className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-muted)] underline-offset-4 hover:text-[var(--color-text)] hover:underline">
+                <Tag className="h-4 w-4" aria-hidden="true" />Have a discount code?
+              </button>
+            )}
+            {codeError && <p className="mt-2 text-sm text-red-600" role="alert">{codeError}</p>}
+          </div>
+        )}
 
         {/* Primary CTA — disabled until form is valid */}
         <button

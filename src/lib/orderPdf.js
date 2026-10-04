@@ -148,6 +148,12 @@ function orderPage(doc, order) {
   });
 
   doc.line(MARGIN, y - 4, right, y - 4);
+  if (Number(order.discount_amount) > 0) {
+    y += 12;
+    doc.text(pdfText(`Discount${order.discount_code ? ` (${order.discount_code})` : ""}`), cols.price, y, { align: "right" });
+    doc.text(`- ${money(order.discount_amount)}`, cols.amount, y, { align: "right" });
+    y += 6;
+  }
   y += 16;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);

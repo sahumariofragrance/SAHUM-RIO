@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertCircle, BarChart3, CheckCircle2, Download, Loader2, LogOut, Package, RefreshCw, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
+import { AlertCircle, BarChart3, CheckCircle2, Tag, Download, Loader2, LogOut, Package, RefreshCw, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
 import AdminProductsPanel from "../components/AdminProductsPanel";
 import OrderCard from "../components/admin/OrderCard";
 import LiveVisitorsPanel from "../components/admin/LiveVisitorsPanel";
 import AdminAnalyticsPanel from "../components/admin/AdminAnalyticsPanel";
+import AdminDiscountsPanel from "../components/admin/AdminDiscountsPanel";
 import { ignoreThisDevice } from "../lib/analytics";
 import { AdminButton, Notice, ORDER_STATUSES, STATUS_TONES, StatTile, inputClass } from "../components/admin/AdminUI";
 import { changeOrdersTrash, fetchAdminOrders } from "../lib/adminOrders";
@@ -161,7 +162,7 @@ export default function AdminDashboardPage({ setCurrentPage }) {
   }
 
   const tabClass = (active) =>
-    `relative inline-flex items-center gap-2 pb-3 text-sm font-semibold transition ${active ? "text-[var(--color-text)] after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-[var(--color-text)]" : "text-[var(--color-muted)] hover:text-[var(--color-text)]"}`;
+    `relative inline-flex shrink-0 items-center gap-2 whitespace-nowrap pb-3 text-sm font-semibold transition ${active ? "text-[var(--color-text)] after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-[var(--color-text)]" : "text-[var(--color-muted)] hover:text-[var(--color-text)]"}`;
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14">
@@ -185,7 +186,7 @@ export default function AdminDashboardPage({ setCurrentPage }) {
 
       <LiveVisitorsPanel onOpenAnalytics={() => setSection("analytics")} />
 
-      <nav className="mt-10 flex gap-8 border-b border-[var(--color-border)]" aria-label="Admin sections">
+      <nav className="-mx-4 mt-10 flex gap-6 overflow-x-auto border-b border-[var(--color-border)] px-4 sm:mx-0 sm:gap-8 sm:px-0" aria-label="Admin sections">
         <button type="button" onClick={() => setSection("orders")} className={tabClass(section === "orders")} aria-current={section === "orders" ? "page" : undefined}>
           <Package className="h-4 w-4" />Orders
           {stats.pending > 0 && <span className="admin-tone tone-amber rounded-full px-1.5 py-0.5 text-[10px] leading-none">{stats.pending}</span>}
@@ -196,9 +197,14 @@ export default function AdminDashboardPage({ setCurrentPage }) {
         <button type="button" onClick={() => setSection("analytics")} className={tabClass(section === "analytics")} aria-current={section === "analytics" ? "page" : undefined}>
           <BarChart3 className="h-4 w-4" />Analytics
         </button>
+        <button type="button" onClick={() => setSection("discounts")} className={tabClass(section === "discounts")} aria-current={section === "discounts" ? "page" : undefined}>
+          <Tag className="h-4 w-4" />Discounts
+        </button>
       </nav>
 
-      {section === "analytics" ? (
+      {section === "discounts" ? (
+        <div className="mt-8"><AdminDiscountsPanel /></div>
+      ) : section === "analytics" ? (
         <div className="mt-8"><AdminAnalyticsPanel /></div>
       ) : section === "products" ? (
         <div className="mt-8"><AdminProductsPanel /></div>
