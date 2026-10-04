@@ -9,11 +9,7 @@
 const crypto = require("crypto");
 const { getServiceClient, setJsonSecurityHeaders } = require("../_lib/security");
 const { sendReviewRequest } = require("../_lib/email");
-const { checkDiscount } = require("../_lib/discounts");
 
-// Create this code in Admin → Discounts. While it is on, the email includes it
-// as a thank-you (each customer can use it once); while it is off, it doesn't.
-const THANK_YOU_CODE = "THANKYOU10";
 const EVENT_KEY = "review_request";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WAIT_DAYS = 7;
@@ -110,8 +106,7 @@ module.exports = async (req, res) => {
           continue;
         }
 
-        const offer = await checkDiscount(client, { code: THANK_YOU_CODE, email: order.address.email, phone: order.address.phone });
-        const email = await sendReviewRequest(order, toReview, offer.ok ? { code: offer.code, percent: offer.percent } : null);
+        const email = await sendReviewRequest(order, toReview);
         if (email.sent) {
           await markSent(client, claimId);
           summary.sent += 1;
