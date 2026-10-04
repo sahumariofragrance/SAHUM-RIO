@@ -7,7 +7,7 @@
 import { trackingAllowed } from "./analytics";
 
 // From Meta Events Manager (the Pixel / dataset ID). It is public, not a secret.
-export const META_PIXEL_ID = "";
+export const META_PIXEL_ID = "1116564634403858";
 
 const SCRIPT_SRC = "https://connect.facebook.net/en_US/fbevents.js";
 let started = false;
