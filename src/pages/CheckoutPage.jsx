@@ -39,6 +39,12 @@ export default function CheckoutPage({ setCurrentPage }) {
   const [saveToProfile, setSaveToProfile] = useState(true);
   const [guestCheckout, setGuestCheckout] = useState(false);
   const [addressLoaded, setAddressLoaded] = useState(false);
+  const [discount, setDiscount] = useState(null); // { code, percent }
+  const [codeError, setCodeError] = useState("");
+  const [applyingCode, setApplyingCode] = useState(false);
+  // Same whole-rupee formula as the server (api/_lib/discounts.js).
+  const discountAmount = discount ? Math.round((subtotal * discount.percent) / 100) : 0;
+  const total = subtotal - discountAmount;
   const processingRef = useRef(false);
   const successRef = useRef(null);
   const testMode = isTestMode(process.env.REACT_APP_RAZORPAY_KEY_ID);
@@ -66,6 +72,27 @@ export default function CheckoutPage({ setCurrentPage }) {
     return () => { mounted = false; };
   }, [user, fetchAddress]);
 
+  const applyCode = useCallback(async (code) => {
+    setApplyingCode(true); setCodeError("");
+    try {
+      const response = await fetch("/api/discounts/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, email: formData.email || "", phone: formData.phone || "" }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || "That discount code isn't valid.");
+      setDiscount({ code: payload.code, percent: Number(payload.percent) });
+    } catch (codeErr) {
+      setDiscount(null);
+      setCodeError(codeErr.message || "That discount code isn't valid.");
+    } finally {
+      setApplyingCode(false);
+    }
+  }, [formData.email, formData.phone]);
+
+  const removeCode = useCallback(() => { setDiscount(null); setCodeError(""); }, []);
+
   const handleFormChange = useCallback((data, valid) => { setFormData(data); setFormValid(Boolean(valid)); setError(""); }, []);
 
   const initiatePayment = useCallback(async () => {
@@ -86,7 +113,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       const shippingAddress = { ...formData, email: formData.email || checkoutUser?.email || "" };
       if (!shippingAddress.email) throw new Error("Please enter your email so we can send order updates.");
       paymentLog("info", "INITIATED", { itemCount: items.length });
-      const frontendAmount = Math.round(subtotal * 100);
+      const frontendAmount = Math.round(total * 100);
       const orderRes = await fetch("/api/payments/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
@@ -96,10 +123,14 @@ export default function CheckoutPage({ setCurrentPage }) {
           currency: "INR",
           customer: { name: formData.name, phone: formData.phone, email: shippingAddress.email },
           address: shippingAddress,
+          ...(discount ? { discount_code: discount.code } : {}),
         }),
       });
       const orderPayload = await orderRes.json().catch(() => ({}));
-      if (!orderRes.ok) throw new Error(orderPayload.message || "Unable to create payment order. Please try again.");
+      if (!orderRes.ok) {
+        if (orderPayload.discountRejected) { setDiscount(null); setCodeError(orderPayload.message); }
+        throw new Error(orderPayload.message || "Unable to create payment order. Please try again.");
+      }
       if (orderPayload.correctedAmount != null) setCorrectedAmount(orderPayload.correctedAmount);
 
       await loadRazorpayScript();
@@ -114,13 +145,13 @@ export default function CheckoutPage({ setCurrentPage }) {
       paymentLog("info", "ORDER_SAVED", { order_id: completed.id });
       if (!usingGuestCheckout && saveToProfile) await saveAddress(shippingAddress);
       if (!usingGuestCheckout && checkoutUser?.id) await refreshOrders(checkoutUser.id);
-      trackEvent("purchase", { value: subtotal });
+      trackEvent("purchase", { value: total });
       clearCart(); setConfirmedOrderId(completed.id); setGuestCheckout(usingGuestCheckout); setSuccess(true);
     } catch (err) {
       const msg = friendlyPaymentError(err) || err?.message || "Checkout failed. Please try again.";
       setError(msg); paymentLog("error", "FAILED", { message: err?.message });
     } finally { processingRef.current = false; setLoading(false); }
-  }, [user, isGuest, guestCheckout, startGuestSession, formValid, formData, items, subtotal, saveToProfile, saveAddress, refreshOrders, clearCart]);
+  }, [user, isGuest, guestCheckout, startGuestSession, formValid, formData, items, total, discount, saveToProfile, saveAddress, refreshOrders, clearCart]);
 
   if (success) return (
     <section className="mx-auto max-w-3xl px-4 py-16 text-center">
@@ -149,7 +180,7 @@ export default function CheckoutPage({ setCurrentPage }) {
           {correctedAmount != null && <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">Server-verified total: <strong>₹{Number(correctedAmount).toLocaleString("en-IN")}</strong>. This is the amount presented to Razorpay.</div>}
           <Card className="p-6"><h2 className="mb-6 text-lg font-semibold">Shipping Address</h2>{addressLoaded ? <><ShippingForm key={user?.id || "guest"} onFormChange={handleFormChange} initialValues={formData} requireEmail={guestCheckout || isGuest} />{!guestCheckout && !isGuest && <label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" checked={saveToProfile} onChange={(e) => setSaveToProfile(e.target.checked)} className="rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600" />Save this address to my profile</label>}</> : <div className="h-64 animate-pulse rounded-lg bg-[var(--color-surface-muted)]" />}</Card>
         </div>
-        <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={summaryItems} subtotal={subtotal} total={subtotal} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading} /></div></div>
+        <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={summaryItems} subtotal={subtotal} total={total} discountPercent={discount?.percent || 0} discountCode={discount?.code || ""} onApplyCode={applyCode} onRemoveCode={removeCode} codeError={codeError} applyingCode={applyingCode} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading} /></div></div>
       </div>
     </section>
   );

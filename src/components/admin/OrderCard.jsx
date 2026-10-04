@@ -200,6 +200,12 @@ export default function OrderCard({ order, onSaved, defaultOpen = false, selecte
                   </li>
                 ))}
               </ul>
+              {Number(order.discount_amount) > 0 && (
+                <div className="mt-3 flex items-baseline justify-between text-sm text-green-700">
+                  <span>Discount{order.discount_code ? ` · ${order.discount_code}` : ""}</span>
+                  <span className="tabular-nums">−{formatINR(order.discount_amount)}</span>
+                </div>
+              )}
               <div className="mt-3 flex items-baseline justify-between border-t border-[var(--color-border)] pt-3 text-sm">
                 <span className="text-[var(--color-muted)]">Total paid</span>
                 <span className="font-serif text-2xl leading-none">{formatINR(order.total ?? order.subtotal ?? 0)}</span>

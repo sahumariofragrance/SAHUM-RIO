@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const { requireCustomer } = require("../../_lib/customerAuth");
 const { getServiceClient, setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../../_lib/security");
 const { rejectBots } = require("../../_lib/botCheck");
+const { checkDiscount, discountPaise } = require("../../_lib/discounts");
 
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
@@ -57,7 +58,7 @@ module.exports = async (req, res) => {
       identifier: user.id,
     }))) return;
     const body = plain(req.body) ? req.body : {};
-    const { items, frontendAmount, currency = "INR", customer = {}, address } = body;
+    const { items, frontendAmount, currency = "INR", customer = {}, address, discount_code: discountCode } = body;
     if (currency !== "INR") return res.status(400).json({ message: "Unsupported currency" });
     if (!Array.isArray(items) || !items.length) return res.status(400).json({ message: "items must be a non-empty array" });
 
@@ -89,9 +90,8 @@ module.exports = async (req, res) => {
       normalizedItems.push({ product_id: id, name: product.name, price: unitPaise / 100, qty });
     }
     if (count > MAX_TOTAL_ITEMS) return res.status(400).json({ message: "Cart quantity is too large" });
-    const amount = amountPaise;
-    const amountINR = amount / 100;
-    if (!Number.isSafeInteger(amount) || amount < MIN_AMOUNT_PAISE || amount > MAX_AMOUNT_PAISE) {
+    const amountINR = amountPaise / 100;
+    if (!Number.isSafeInteger(amountPaise) || amountPaise < MIN_AMOUNT_PAISE || amountPaise > MAX_AMOUNT_PAISE) {
       return res.status(400).json({ message: "Order amount is outside the allowed range" });
     }
 
@@ -107,6 +107,22 @@ module.exports = async (req, res) => {
     }
     if (!/^\d{6}$/.test(shipping.pin)) {
       return res.status(400).json({ message: "A valid 6-digit PIN code is required" });
+    }
+
+    const serviceClient = getServiceClient();
+    if (!serviceClient) return res.status(503).json({ message: "Checkout service is temporarily unavailable." });
+
+    // A discount code is checked here, on the server, for this email and phone.
+    let discount = null;
+    if (discountCode) {
+      const checked = await checkDiscount(serviceClient, { code: discountCode, email: shipping.email, phone: shipping.phone });
+      if (!checked.ok) return res.status(400).json({ message: checked.message, discountRejected: true });
+      const off = discountPaise(amountPaise, checked.percent);
+      discount = { code: checked.code, percent: checked.percent, paise: off };
+    }
+    const amount = amountPaise - (discount ? discount.paise : 0);
+    if (!Number.isSafeInteger(amount) || amount < MIN_AMOUNT_PAISE) {
+      return res.status(400).json({ message: "Order amount is outside the allowed range" });
     }
 
     const frontend = Number(frontendAmount);
@@ -128,11 +144,9 @@ module.exports = async (req, res) => {
         total_qty: String(count),
         cart_hash: cartHash(user.id, normalizedItems),
         intent_version: "3",
+        ...(discount ? { discount_code: discount.code, discount_percent: String(discount.percent) } : {}),
       },
     });
-
-    const serviceClient = getServiceClient();
-    if (!serviceClient) return res.status(503).json({ message: "Checkout service is temporarily unavailable." });
 
     const intent = await serviceClient.from("payment_intents").insert({
       razorpay_order_id: order.id,
@@ -144,6 +158,8 @@ module.exports = async (req, res) => {
       address: shipping,
       customer_email: shipping.email,
       status: "created",
+      // Only when a code is used, so checkout never depends on these columns otherwise.
+      ...(discount ? { discount_code: discount.code, discount_percent: discount.percent, discount_amount: discount.paise / 100 } : {}),
     });
     if (intent.error) {
       console.error("[order] payment intent persistence failed", intent.error.message);
@@ -151,7 +167,8 @@ module.exports = async (req, res) => {
     }
 
     const response = { id: order.id, amount: order.amount, currency: order.currency, receipt: order.receipt };
-    if (mismatch) response.correctedAmount = amountINR;
+    if (discount) response.discount = { code: discount.code, percent: discount.percent, amount: discount.paise / 100 };
+    if (mismatch) response.correctedAmount = amount / 100;
     return res.status(200).json(response);
   } catch (err) {
     console.error("[order]", err?.message);
