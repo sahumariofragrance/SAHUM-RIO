@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 import BrandMark from "./BrandMark";
 import SpaLink from "./SpaLink";
+import AnnouncementBar from "./AnnouncementBar";
 
 const PAGE_HREFS = {
   home: "/",
@@ -74,9 +75,7 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
 
   return (
     <>
-      <div className="border-b border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-2 text-center text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-        Complimentary delivery across India
-      </div>
+      <AnnouncementBar />
 
       <header className="glass-surface sticky top-0 z-40 border-b">
         <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-10">

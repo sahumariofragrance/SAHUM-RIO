@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import ProductGrid from "../components/ProductGrid";
 import SpaLink from "../components/SpaLink";
 import IndiaFlag from "../components/IndiaFlag";
+import PromoTicket from "../components/PromoTicket";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
@@ -38,6 +39,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
           <IndiaFlag />
           Made in India
         </p>
+        <PromoTicket />
       </div>
 
       <div id="collection" className="flex scroll-mt-24 items-center justify-between gap-4 py-2">
