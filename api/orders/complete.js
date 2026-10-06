@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const Razorpay = require("razorpay");
 const { createClient } = require("@supabase/supabase-js");
 const { requireCustomer } = require("../_lib/customerAuth");
-const { sendOrderReceived } = require("../_lib/email");
+const { sendOrderReceived, sendNewOrderAlert } = require("../_lib/email");
 const { setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../_lib/security");
 
 let razorpayClient = null;
@@ -153,11 +153,10 @@ module.exports = async (req, res) => {
     if (!order?.id) throw new Error("Order finalization returned no order");
 
     if (result.created === true) {
-      try {
-        await sendOrderReceived(order);
-      } catch (emailError) {
-        console.error("[orders/complete] receipt email failed", emailError.message);
-      }
+      await Promise.all([
+        sendOrderReceived(order).catch((emailError) => console.error("[orders/complete] receipt email failed", emailError.message)),
+        sendNewOrderAlert(order).catch((emailError) => console.error("[orders/complete] new order alert failed", emailError.message)),
+      ]);
     }
 
     return res.status(200).json({ order, replay: result.created !== true });

@@ -66,7 +66,7 @@ ${footerHtml}            </td>
 </html>`;
 }
 
-function template({ eyebrow = "ORDER UPDATE", title, intro, order, extraHtml = "" }) {
+function orderCard(order, extraHtml = "") {
   const items = Array.isArray(order?.items) ? order.items : [];
   const itemRows = items.map((item) => `
     <tr>
@@ -102,6 +102,11 @@ function template({ eyebrow = "ORDER UPDATE", title, intro, order, extraHtml = "
           </tr>
           ${extraHtml ? `<tr><td style="padding-top:12px;padding-right:32px;padding-bottom:8px;padding-left:32px;">${extraHtml}</td></tr>` : ""}
 `;
+  return bodyHtml;
+}
+
+function template({ eyebrow = "ORDER UPDATE", title, intro, order, extraHtml = "" }) {
+  const bodyHtml = orderCard(order, extraHtml);
   const footerHtml = `              <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:21px;color:#837a70;">Thank you for choosing SAHUMäRIO.</p>
               <p style="margin-top:8px;margin-right:0;margin-bottom:0;margin-left:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#a0978d;">Questions? Reply to this email or write to <a href="mailto:${SUPPORT_EMAIL}" style="color:#9b6a31;">${SUPPORT_EMAIL}</a>. Keep your order number for reference.</p>
 `;
@@ -424,4 +429,69 @@ async function sendReviewRequest(order, products) {
   });
 }
 
-module.exports = { sendOrderReceived, sendStatusEmail, sendShipped, sendBulkEnquiryEmails, sendReviewRequest };
+// ── New order alert (to the owner) ─────────────────────────────────────────
+
+// Where SAHUMäRIO is told about each new paid order.
+const NEW_ORDER_INBOX = "sahumariofragrance@gmail.com";
+
+/** Tells SAHUMäRIO about a new paid order. Replying writes to the customer. */
+async function sendNewOrderAlert(order) {
+  const address = order?.address || {};
+  const name = String(address.name || "").trim() || "A customer";
+  const items = Array.isArray(order?.items) ? order.items : [];
+  const bottles = items.reduce((sum, item) => sum + Number(item.qty || 1), 0);
+  const total = money(orderTotal(order));
+  const phone = String(address.phone || "").trim();
+  const wa = whatsappNumber(phone);
+  const place = [address.city, address.state].filter(Boolean).join(", ");
+  const fullAddress = [address.address, address.city, address.state, address.pin].filter(Boolean).join(", ");
+  const firstName = name.split(/\s+/)[0];
+  const waText = `Hi ${firstName}, thank you for your SAHUMäRIO order #${order?.id}! `;
+  const rows = [
+    ["Name", escapeHtml(name)],
+    ["Phone", phone ? link(`tel:${phone.replace(/[^\d+]/g, "")}`, phone) : "—"],
+    ["Email", address.email ? link(`mailto:${address.email}`, address.email) : "—"],
+    ["Deliver to", escapeHtml(fullAddress || "—")],
+    ["Paid", `${escapeHtml(istDateTime(order?.created_at))} · Razorpay`],
+  ];
+  const html = layout({
+    eyebrow: "NEW ORDER",
+    title: `${total} from ${name}`,
+    intro: `${bottles} perfume${bottles === 1 ? "" : "s"}${place ? `, to ${place}` : ""}. The payment is confirmed and the order is waiting in your admin dashboard.`,
+    preheader: `${items.map((item) => `${item.name} × ${Number(item.qty || 1)}`).join(", ")} · ${total}`,
+    bodyHtml: orderCard(order)
+      + cardRow(detailsCard("CUSTOMER", rows), { top: 12 })
+      + cardRow(buttons([
+        [`${SITE_URL}/admin`, "Open in admin", true],
+        ...(wa ? [[`https://wa.me/${wa}?text=${encodeURIComponent(waText)}`, "WhatsApp customer", false]] : []),
+      ]), { top: 16 }),
+    footerHtml: footerLines([
+      "Reply to this email to write to the customer.",
+      `Order #${escapeHtml(order?.id)}`,
+    ]),
+  });
+  const text = [
+    `New order: ${total} from ${name}`,
+    "",
+    `Order #${order?.id}`,
+    plainOrderLines(order),
+    "",
+    `Name: ${name}`,
+    `Phone: ${phone || "—"}`,
+    `Email: ${address.email || "—"}`,
+    `Deliver to: ${fullAddress || "—"}`,
+    `Paid: ${istDateTime(order?.created_at)} · Razorpay`,
+    "",
+    `Open in admin: ${SITE_URL}/admin`,
+    ...(wa ? [`WhatsApp customer: https://wa.me/${wa}`] : []),
+  ].join("\n");
+  return sendEmail({
+    to: NEW_ORDER_INBOX,
+    subject: `New order ${total} · ${name} · #${order?.id}`,
+    html,
+    text,
+    replyTo: address.email || undefined,
+  });
+}
+
+module.exports = { sendOrderReceived, sendStatusEmail, sendShipped, sendBulkEnquiryEmails, sendReviewRequest, sendNewOrderAlert };
