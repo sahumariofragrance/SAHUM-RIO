@@ -3,7 +3,7 @@
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
 const { createClient } = require("@supabase/supabase-js");
-const { sendOrderReceived } = require("../../_lib/email");
+const { sendOrderReceived, sendNewOrderAlert } = require("../../_lib/email");
 
 function timingSafeHexEqual(a, b) {
   if (!/^[a-f0-9]{64}$/i.test(a || "") || !/^[a-f0-9]{64}$/i.test(b || "")) return false;
@@ -124,7 +124,10 @@ module.exports = async (req, res) => {
       const order = result.order;
       const created = result.created === true;
       if (created && order?.id) {
-        try { await sendOrderReceived(order); } catch (emailError) { console.error("[razorpay/webhook] receipt email failed", emailError.message); }
+        await Promise.all([
+          sendOrderReceived(order).catch((emailError) => console.error("[razorpay/webhook] receipt email failed", emailError.message)),
+          sendNewOrderAlert(order).catch((emailError) => console.error("[razorpay/webhook] new order alert failed", emailError.message)),
+        ]);
       }
       return res.status(200).json({ received: true, finalized: Boolean(order?.id), replay: !created });
     }
