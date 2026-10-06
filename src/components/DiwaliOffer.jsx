@@ -20,7 +20,7 @@ export default function DiwaliOffer() {
         </div>
         <div className="h-12 shrink-0 border-l border-dashed border-[#e9c98f]/50" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#e9c98f]">{COMBO.label}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#e9c98f]">{COMBO.short || COMBO.label}</p>
           <p className="mt-1 text-sm leading-5">
             Mix any two{saving > 0 ? `, save ${formatINR(saving)}` : " perfumes"}. Ends {comboEndsLabel()}.
           </p>
