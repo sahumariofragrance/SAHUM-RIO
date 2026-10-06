@@ -40,7 +40,7 @@ export default function AnnouncementBar() {
       <p className={`${base} ${shown("delivery")}`} aria-hidden={active !== "delivery"}>{DELIVERY}</p>
       {combo && (
         <p className={`${base} text-[var(--color-kesar)] ${shown("combo")}`} aria-hidden={active !== "combo"}>
-          {COMBO.label} · any 2 perfumes for {formatINR(COMBO.pairPrice)}
+          {COMBO.short || COMBO.label} · any 2 for {formatINR(COMBO.pairPrice)}
         </p>
       )}
       {promo && (
