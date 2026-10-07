@@ -31,7 +31,6 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
   return <>
     <div className="mx-auto max-w-[1440px] px-5 sm:px-8 md:px-12">
       <div className="relative isolate pb-10 pt-14 text-center md:pb-14 md:pt-20">
-        <div className="motif-jaali" aria-hidden="true" />
         <h1 className="font-serif text-[clamp(2.25rem,4vw,3.5rem)] font-normal leading-none tracking-[-0.02em]">
           <span className="sr-only">SAHUMäRIO® </span>Eau de Parfum
         </h1>
