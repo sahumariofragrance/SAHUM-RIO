@@ -9,6 +9,13 @@ const PHOTOS = {
   citrus: "/notes/orange.webp",
   apple: "/notes/apple.webp",
   pineapple: "/notes/pineapple.webp",
+  peach: "/notes/peach.webp",
+  melon: "/notes/melon.webp",
+  aqua: "/notes/water.webp",
+  fresh: "/notes/water.webp",
+  ozone: "/notes/water.webp",
+  herbal: "/notes/herbs.webp",
+  spice: "/notes/spice.webp",
 };
 
 // Where the fruits sit around the perfume photo: the first peeks out from
