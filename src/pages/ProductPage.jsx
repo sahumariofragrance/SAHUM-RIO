@@ -21,7 +21,7 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
   const product = useMemo(() => bySlug.get(slug) || null, [bySlug, slug]);
   const { theme } = useTheme();
 
-  // A soft glow of the dominant colour of the perfume's photo.
+  // Tint the whole page with the dominant colour of the perfume's photo.
   const toneImage = product?.image_url || product?.image;
   useEffect(() => {
     if (!toneImage) return undefined;
