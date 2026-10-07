@@ -99,8 +99,9 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
 
       <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
         <div>
-          <div className="relative min-h-[560px] overflow-hidden bg-[var(--color-surface-muted)]">
-            <SafeImage src={activeImage || product.image} alt={product.alt || product.name} sizes="(min-width: 1024px) 55vw, 100vw" className="h-full w-full object-cover" priority />
+          {/* 4:5 like the product photos, so phones show no empty band under the photo. */}
+          <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-surface-muted)]">
+            <SafeImage src={activeImage || product.image} alt={product.alt || product.name} sizes="(min-width: 1024px) 55vw, 100vw" className="absolute inset-0 h-full w-full object-cover" priority />
             <p className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-medium tracking-[0.04em] text-white/90 backdrop-blur-[2px]">
               Real bottle · AI-generated scene
             </p>
