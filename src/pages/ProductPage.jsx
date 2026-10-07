@@ -8,6 +8,8 @@ import { formatINR } from "../utils/money";
 import PromoLine from "../components/PromoLine";
 import ComboNudge from "../components/ComboNudge";
 import DiscoverMore from "../components/DiscoverMore";
+import ScentNotes from "../components/ScentNotes";
+import { parseNotes } from "../lib/scentNotes";
 import { pixelViewContent } from "../lib/metaPixel";
 import { productJsonLd } from "../seo/site";
 import { setPageJsonLd } from "../seo/head";
@@ -71,7 +73,8 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
     ["Fragrance family", product.fragrance_family],
     ["Scent profile", product.scent_profile],
     ["Occasion", product.occasion],
-    ["Fragrance notes", product.notes],
+    // Shown as "The notes" above instead, when they can be read.
+    ...(parseNotes(product.notes).length ? [] : [["Fragrance notes", product.notes]]),
   ].filter(([, value]) => String(value || "").trim()) : [];
 
   function markImageFailed(url) {
@@ -171,6 +174,8 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
               </div>
             )}
           </div>
+
+          <ScentNotes product={product} />
 
           {productDetails.length > 0 && (
             <dl className="mt-10 border-t border-[var(--color-border)]">
