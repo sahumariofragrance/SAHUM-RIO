@@ -98,7 +98,7 @@ export default function BulkOrdersPage() {
 
   return (
     <div>
-      <section className="overflow-hidden bg-[#7A1E2C] text-[#fff8ed]">
+      <section className="overflow-hidden bg-[#24160f] text-[#fff8ed]">
         <div className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
           <div className="grid gap-12 md:grid-cols-[1.15fr_0.85fr] md:items-end">
             <div>
@@ -179,7 +179,7 @@ export default function BulkOrdersPage() {
 
               {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
 
-              <button disabled={submitting} type="submit" className="inline-flex items-center gap-2 rounded-full bg-[#7A1E2C] px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:opacity-50">
+              <button disabled={submitting} type="submit" className="inline-flex items-center gap-2 rounded-full bg-[#24160f] px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:opacity-50">
                 {submitting ? "Submitting…" : "Submit enquiry"} <ArrowRight className="h-4 w-4" />
               </button>
             </form>
@@ -187,7 +187,7 @@ export default function BulkOrdersPage() {
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-[2rem] bg-[#7A1E2C] p-6 text-[#fff8ed] md:p-8">
+          <div className="rounded-[2rem] bg-[#24160f] p-6 text-[#fff8ed] md:p-8">
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-amber-300">Terms & conditions</p>
             <div className="mt-6 divide-y divide-white/10 border-y border-white/10">
               {TERMS.map((term, index) => (

@@ -98,10 +98,23 @@ export function loadImageHue(url) {
   return promise;
 }
 
-/** CSS custom properties for a perfume page: a glow of hue `h` for the given theme. */
+/** CSS custom properties for a page tinted with hue `h`, readable in the given theme. */
 export function tonePalette({ h, s }, theme) {
-  // Only a soft glow of the perfume's colour: the page itself keeps the site's
-  // Bandhani colours, so an orange perfume no longer turns the page brown.
-  const sat = `${Math.round(Math.min(s, 0.6) * 100)}%`;
-  return { "--tone-glow": theme === "light" ? `hsl(${h} ${sat} 80% / 0.55)` : `hsl(${h} ${sat} 32% / 0.45)` };
+  const sat = (value) => `${Math.round(Math.min(s, 0.6) * value * 100)}%`;
+  if (theme === "light") {
+    return {
+      "--color-bg": `hsl(${h} ${sat(0.75)} 92%)`,
+      "--color-surface": `hsl(${h} ${sat(0.6)} 95.5%)`,
+      "--color-surface-muted": `hsl(${h} ${sat(0.65)} 87%)`,
+      "--color-border": `hsl(${h} ${sat(0.45)} 78%)`,
+      "--tone-glow": `hsl(${h} ${sat(1)} 80% / 0.55)`,
+    };
+  }
+  return {
+    "--color-bg": `hsl(${h} ${sat(0.85)} 10%)`,
+    "--color-surface": `hsl(${h} ${sat(0.75)} 13%)`,
+    "--color-surface-muted": `hsl(${h} ${sat(0.7)} 17%)`,
+    "--color-border": `hsl(${h} ${sat(0.4)} 85% / 0.16)`,
+    "--tone-glow": `hsl(${h} ${sat(1)} 32% / 0.45)`,
+  };
 }

@@ -165,7 +165,7 @@ export default function CheckoutPage({ setCurrentPage }) {
         key: razorpayKey, amount: orderPayload.amount, currency: orderPayload.currency, name: "SAHUMäRIO",
         description: `${items.length} perfume${items.length === 1 ? "" : "s"}`, image: "/logo.png", order_id: orderPayload.id,
         prefill: { name: formData.name, email: shippingAddress.email, contact: formData.phone },
-        notes: { shipping_city: formData.city, shipping_pin: formData.pin }, theme: { color: "#B0303F" },
+        notes: { shipping_city: formData.city, shipping_pin: formData.pin }, theme: { color: "#d97706" },
       });
       paymentLog("info", "PAYMENT_CAPTURED", { payment_id: paymentResponse.razorpay_payment_id });
       const completed = await completeVerifiedOrder({ paymentResponse, items, address: shippingAddress });
