@@ -10,6 +10,7 @@ import ComboNudge from "../components/ComboNudge";
 import DiscoverMore from "../components/DiscoverMore";
 import ScentNotes from "../components/ScentNotes";
 import NotesBackdrop from "../components/NotesBackdrop";
+import NotesFruits from "../components/NotesFruits";
 import { parseNotes } from "../lib/scentNotes";
 import { pixelViewContent } from "../lib/metaPixel";
 import { productJsonLd } from "../seo/site";
@@ -99,18 +100,22 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
   }
 
   return (
-    <section className="mx-auto max-w-[1440px] px-5 py-8 sm:px-8 md:px-12 md:py-12">
+    <section className="mx-auto max-w-[1440px] overflow-x-clip px-5 py-8 sm:px-8 md:px-12 md:py-12">
       <div className="relative isolate">
-        <NotesBackdrop notes={notes} seed={product.slug} />
+        <NotesBackdrop notes={notes} />
         <button onClick={() => navigate("perfumes")} className="mb-8 text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)] transition hover:text-[var(--color-text)]" aria-label="Back to perfume collection">← The Collection</button>
 
         <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
           <div>
-            <div className="relative min-h-[560px] overflow-hidden bg-[var(--color-surface-muted)]">
-              <SafeImage src={activeImage || product.image} alt={product.alt || product.name} sizes="(min-width: 1024px) 55vw, 100vw" className="h-full w-full object-cover" priority />
-              <p className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-medium tracking-[0.04em] text-white/90 backdrop-blur-[2px]">
-                Real bottle · AI-generated scene
-              </p>
+            <div className="relative">
+              {/* 4:5 like the product photos, so phones show no empty band under the photo. */}
+              <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-surface-muted)]">
+                <SafeImage src={activeImage || product.image} alt={product.alt || product.name} sizes="(min-width: 1024px) 55vw, 100vw" className="absolute inset-0 h-full w-full object-cover" priority />
+                <p className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-medium tracking-[0.04em] text-white/90 backdrop-blur-[2px]">
+                  Real bottle · AI-generated scene
+                </p>
+              </div>
+              <NotesFruits notes={notes} />
             </div>
 
             {visibleGallery.length > 1 && (
