@@ -9,6 +9,7 @@ import PromoLine from "../components/PromoLine";
 import ComboNudge from "../components/ComboNudge";
 import DiscoverMore from "../components/DiscoverMore";
 import ScentNotes from "../components/ScentNotes";
+import NotesBackdrop from "../components/NotesBackdrop";
 import { parseNotes } from "../lib/scentNotes";
 import { pixelViewContent } from "../lib/metaPixel";
 import { productJsonLd } from "../seo/site";
@@ -44,6 +45,7 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
     };
   }, [toneImage, theme]);
   const galleryUrls = useMemo(() => product?.gallery || [], [product]);
+  const notes = useMemo(() => parseNotes(product?.notes), [product?.notes]);
   const [activeImage, setActiveImage] = useState("");
   const [failedImages, setFailedImages] = useState([]);
   const [rating, setRating] = useState(null);
@@ -74,7 +76,7 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
     ["Scent profile", product.scent_profile],
     ["Occasion", product.occasion],
     // Shown as "The notes" above instead, when they can be read.
-    ...(parseNotes(product.notes).length ? [] : [["Fragrance notes", product.notes]]),
+    ...(notes.length ? [] : [["Fragrance notes", product.notes]]),
   ].filter(([, value]) => String(value || "").trim()) : [];
 
   function markImageFailed(url) {
@@ -98,100 +100,103 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
 
   return (
     <section className="mx-auto max-w-[1440px] px-5 py-8 sm:px-8 md:px-12 md:py-12">
-      <button onClick={() => navigate("perfumes")} className="mb-8 text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)] transition hover:text-[var(--color-text)]" aria-label="Back to perfume collection">← The Collection</button>
+      <div className="relative isolate">
+        <NotesBackdrop notes={notes} seed={product.slug} />
+        <button onClick={() => navigate("perfumes")} className="mb-8 text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)] transition hover:text-[var(--color-text)]" aria-label="Back to perfume collection">← The Collection</button>
 
-      <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
-        <div>
-          <div className="relative min-h-[560px] overflow-hidden bg-[var(--color-surface-muted)]">
-            <SafeImage src={activeImage || product.image} alt={product.alt || product.name} sizes="(min-width: 1024px) 55vw, 100vw" className="h-full w-full object-cover" priority />
-            <p className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-medium tracking-[0.04em] text-white/90 backdrop-blur-[2px]">
-              Real bottle · AI-generated scene
-            </p>
-          </div>
-
-          {visibleGallery.length > 1 && (
-            <div className="mt-3 grid grid-cols-6 gap-2" aria-label={product.name + " image gallery"}>
-              {galleryUrls.map((url, index) => (
-                !failedImages.includes(url) && (
-                  <button
-                    key={url}
-                    type="button"
-                    onClick={() => setActiveImage(url)}
-                    className={"relative aspect-[4/5] overflow-hidden border transition " + ((activeImage || product.image) === url ? "border-[var(--color-text)]" : "border-transparent opacity-65 hover:opacity-100")}
-                    aria-label={`View ${product.name} image ${index + 1}`}
-                  >
-                    <img
-                      src={optimizedSrc(url, 320)}
-                      alt=""
-                      onError={(event) => {
-                        // Optimized copy failed: try the original before hiding the thumbnail.
-                        if (event.currentTarget.getAttribute("src") !== url) event.currentTarget.src = url;
-                        else markImageFailed(url);
-                      }}
-                      className="h-full w-full object-cover"
-                      loading={index === 0 ? "eager" : "lazy"}
-                    />
-                  </button>
-                )
-              ))}
+        <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
+          <div>
+            <div className="relative min-h-[560px] overflow-hidden bg-[var(--color-surface-muted)]">
+              <SafeImage src={activeImage || product.image} alt={product.alt || product.name} sizes="(min-width: 1024px) 55vw, 100vw" className="h-full w-full object-cover" priority />
+              <p className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-medium tracking-[0.04em] text-white/90 backdrop-blur-[2px]">
+                Real bottle · AI-generated scene
+              </p>
             </div>
-          )}
 
-        </div>
-
-        <div className="flex flex-col justify-center lg:py-8">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]"><BrandMark /> · Eau de Parfum</p>
-          <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.025em] sm:text-6xl">{product.name}</h1>
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-            <p className="text-base tabular-nums">{formatINR(product.price)} <span className="text-sm text-[var(--color-muted)]">· {product.size_volume}</span></p>
-            <a
-              href="#reviews"
-              onClick={(event) => { event.preventDefault(); document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
-              className="inline-flex items-center gap-1.5 text-xs text-[var(--color-muted)] underline-offset-4 transition-colors hover:text-[var(--color-text)] hover:underline"
-            >
-              {rating ? (
-                <><span className="text-[var(--color-kesar)]" aria-hidden="true">★</span> {rating.average.toFixed(1)} · {rating.count} review{rating.count === 1 ? "" : "s"}</>
-              ) : "Write the first review"}
-            </a>
-          </div>
-          <PromoLine />
-          <ComboNudge
-            className="mt-2"
-            action={{ label: "See perfumes", onClick: () => document.getElementById("discover-more-title")?.scrollIntoView({ behavior: "smooth", block: "start" }) }}
-          />
-          <p className="mt-7 max-w-xl text-sm leading-7 text-[var(--color-muted)]">{product.description}</p>
-
-          <div className="mt-9 border-t border-[var(--color-border)] pt-6">
-            {quantity === 0 ? (
-              <button onClick={() => addToCart(product)} className="flex h-12 w-full items-center justify-between bg-[var(--color-text)] px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-bg)] transition-opacity hover:opacity-85">
-                <span>Add to bag</span><span>+</span>
-              </button>
-            ) : (
-              <div className="grid h-12 grid-cols-[3rem_1fr_3rem] border border-[var(--color-border)]">
-                <button onClick={() => updateQty(product.id, quantity - 1)} className="text-lg" aria-label={"Decrease " + product.name}>−</button>
-                <span className="flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.12em]">{quantity} in bag</span>
-                <button onClick={() => updateQty(product.id, quantity + 1)} className="text-lg" aria-label={"Increase " + product.name}>+</button>
+            {visibleGallery.length > 1 && (
+              <div className="mt-3 grid grid-cols-6 gap-2" aria-label={product.name + " image gallery"}>
+                {galleryUrls.map((url, index) => (
+                  !failedImages.includes(url) && (
+                    <button
+                      key={url}
+                      type="button"
+                      onClick={() => setActiveImage(url)}
+                      className={"relative aspect-[4/5] overflow-hidden border transition " + ((activeImage || product.image) === url ? "border-[var(--color-text)]" : "border-transparent opacity-65 hover:opacity-100")}
+                      aria-label={`View ${product.name} image ${index + 1}`}
+                    >
+                      <img
+                        src={optimizedSrc(url, 320)}
+                        alt=""
+                        onError={(event) => {
+                          // Optimized copy failed: try the original before hiding the thumbnail.
+                          if (event.currentTarget.getAttribute("src") !== url) event.currentTarget.src = url;
+                          else markImageFailed(url);
+                        }}
+                        className="h-full w-full object-cover"
+                        loading={index === 0 ? "eager" : "lazy"}
+                      />
+                    </button>
+                  )
+                ))}
               </div>
             )}
+
           </div>
 
-          <ScentNotes product={product} />
+          <div className="flex flex-col justify-center lg:py-8">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]"><BrandMark /> · Eau de Parfum</p>
+            <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.025em] sm:text-6xl">{product.name}</h1>
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <p className="text-base tabular-nums">{formatINR(product.price)} <span className="text-sm text-[var(--color-muted)]">· {product.size_volume}</span></p>
+              <a
+                href="#reviews"
+                onClick={(event) => { event.preventDefault(); document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+                className="inline-flex items-center gap-1.5 text-xs text-[var(--color-muted)] underline-offset-4 transition-colors hover:text-[var(--color-text)] hover:underline"
+              >
+                {rating ? (
+                  <><span className="text-[var(--color-kesar)]" aria-hidden="true">★</span> {rating.average.toFixed(1)} · {rating.count} review{rating.count === 1 ? "" : "s"}</>
+                ) : "Write the first review"}
+              </a>
+            </div>
+            <PromoLine />
+            <ComboNudge
+              className="mt-2"
+              action={{ label: "See perfumes", onClick: () => document.getElementById("discover-more-title")?.scrollIntoView({ behavior: "smooth", block: "start" }) }}
+            />
+            <p className="mt-7 max-w-xl text-sm leading-7 text-[var(--color-muted)]">{product.description}</p>
 
-          {productDetails.length > 0 && (
-            <dl className="mt-10 border-t border-[var(--color-border)]">
-              {productDetails.map(([label, value]) => (
-                <div key={label} className="grid gap-2 border-b border-[var(--color-border)] py-4 sm:grid-cols-[10rem_1fr]">
-                  <dt className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">{label}</dt>
-                  <dd className="whitespace-pre-line text-sm leading-6">{value}</dd>
+            <div className="mt-9 border-t border-[var(--color-border)] pt-6">
+              {quantity === 0 ? (
+                <button onClick={() => addToCart(product)} className="flex h-12 w-full items-center justify-between bg-[var(--color-text)] px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-bg)] transition-opacity hover:opacity-85">
+                  <span>Add to bag</span><span>+</span>
+                </button>
+              ) : (
+                <div className="grid h-12 grid-cols-[3rem_1fr_3rem] border border-[var(--color-border)]">
+                  <button onClick={() => updateQty(product.id, quantity - 1)} className="text-lg" aria-label={"Decrease " + product.name}>−</button>
+                  <span className="flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.12em]">{quantity} in bag</span>
+                  <button onClick={() => updateQty(product.id, quantity + 1)} className="text-lg" aria-label={"Increase " + product.name}>+</button>
                 </div>
-              ))}
-            </dl>
-          )}
+              )}
+            </div>
 
-          <div className="mt-8 space-y-3 border-t border-[var(--color-border)] pt-5 text-xs leading-5 text-[var(--color-muted)]">
-            <p>Complimentary delivery across India.</p>
-            <p>Typical delivery window: 3–7 business days.</p>
-            <p>Payments are processed through Razorpay.</p>
+            <ScentNotes product={product} />
+
+            {productDetails.length > 0 && (
+              <dl className="mt-10 border-t border-[var(--color-border)]">
+                {productDetails.map(([label, value]) => (
+                  <div key={label} className="grid gap-2 border-b border-[var(--color-border)] py-4 sm:grid-cols-[10rem_1fr]">
+                    <dt className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">{label}</dt>
+                    <dd className="whitespace-pre-line text-sm leading-6">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+
+            <div className="mt-8 space-y-3 border-t border-[var(--color-border)] pt-5 text-xs leading-5 text-[var(--color-muted)]">
+              <p>Complimentary delivery across India.</p>
+              <p>Typical delivery window: 3–7 business days.</p>
+              <p>Payments are processed through Razorpay.</p>
+            </div>
           </div>
         </div>
       </div>

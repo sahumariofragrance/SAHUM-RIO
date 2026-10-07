@@ -432,3 +432,24 @@ body {
     radial-gradient(1px 1px at 40% 86%, rgba(255, 220, 160, 0.6), transparent),
     radial-gradient(1px 1px at 76% 78%, rgba(255, 220, 160, 0.6), transparent);
 }
+
+/* Perfume pages: the perfume's notes as a faint pattern behind the top of
+   the page (src/components/NotesBackdrop.jsx), slowly floating and fading
+   out further down. */
+.notes-backdrop {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 78%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 78%);
+}
+.notes-float {
+  opacity: 0.16;
+  transform: rotate(var(--rot, 0deg));
+  animation: notes-float 12s ease-in-out infinite alternate;
+}
+:root[data-theme="dark"] .notes-float { opacity: 0.2; }
+@keyframes notes-float {
+  from { transform: translateY(-7px) rotate(var(--rot, 0deg)); }
+  to { transform: translateY(7px) rotate(calc(var(--rot, 0deg) + 6deg)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .notes-float { animation: none; }
+}
