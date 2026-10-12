@@ -5,6 +5,7 @@ import SpaLink from "../components/SpaLink";
 import IndiaFlag from "../components/IndiaFlag";
 import PromoTicket from "../components/PromoTicket";
 import DiwaliOffer from "../components/DiwaliOffer";
+import ScentQuiz, { QuizInvite } from "../components/ScentQuiz";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
@@ -19,6 +20,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
   const { items, addToCart, updateQty } = useCart();
   const { products: catalogueProducts, loading } = useProducts();
   const [sort, setSort] = useState("featured");
+  const [quizOpen, setQuizOpen] = useState(false);
   const itemQtyById = useMemo(() => items.reduce((acc, item) => { acc[item.product_id] = item.qty; return acc; }, {}), [items]);
   const products = useMemo(() => {
     const list = catalogueProducts.map((product) => ({ ...product, qty: itemQtyById[product.id] ?? 0 }));
@@ -41,6 +43,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
           Made in India
         </p>
         <DiwaliOffer />
+        <QuizInvite onStart={() => setQuizOpen(true)} />
         <PromoTicket />
       </div>
 
@@ -73,5 +76,6 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
         </SpaLink>
       </div>
     </div>
+    <ScentQuiz open={quizOpen} onClose={() => setQuizOpen(false)} onProductNavigate={onProductNavigate} onGoToBag={() => setCurrentPage?.("cart")} />
   </>;
 }
