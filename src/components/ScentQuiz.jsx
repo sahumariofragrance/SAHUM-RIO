@@ -191,8 +191,9 @@ export default function ScentQuiz({ open, onClose, onProductNavigate, onGoToBag 
             key="result"
             match={match}
             pair={pair}
-            onViewProduct={() => { onClose(); onProductNavigate?.(match); }}
-            onGoToBag={() => { onClose(); onGoToBag?.(); }}
+            // Leaving for another page closes the quiz with the homepage.
+            onViewProduct={() => onProductNavigate?.(match)}
+            onGoToBag={() => onGoToBag?.()}
             onRetake={() => setAnswers([])}
           />
         ) : (

@@ -138,8 +138,19 @@ export async function drawScentCard(product) {
   if (notes.length) {
     ctx.font = `600 26px ${SANS}`;
     ctx.letterSpacing = "5px";
-    wrap(ctx, notes.join("  ·  ").toUpperCase(), W - 220, 2).forEach((line, index) => {
-      centred(ctx, line, 1606 + index * 44, { font: `600 SIZE ${SANS}`, size: 26, color: CREAM, spacing: 5 });
+    // Break between notes, never inside one or after a dot.
+    const lines = [];
+    let line = [];
+    notes.map((note) => note.toUpperCase()).forEach((note) => {
+      if (line.length && ctx.measureText([...line, note].join("  ·  ")).width > W - 220) {
+        lines.push(line);
+        line = [];
+      }
+      line.push(note);
+    });
+    if (line.length) lines.push(line);
+    lines.slice(0, 2).map((items) => items.join("  ·  ")).forEach((text, index) => {
+      centred(ctx, text, 1606 + index * 44, { font: `600 SIZE ${SANS}`, size: 26, color: CREAM, spacing: 5 });
     });
   }
 
