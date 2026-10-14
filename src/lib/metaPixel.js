@@ -90,6 +90,11 @@ function cartParams(items, value) {
   };
 }
 
+/** A tap on "Chat with us on WhatsApp". */
+export function pixelContact() {
+  track("Contact");
+}
+
 export function pixelInitiateCheckout(items, value) {
   if (items?.length) track("InitiateCheckout", cartParams(items, value));
 }
