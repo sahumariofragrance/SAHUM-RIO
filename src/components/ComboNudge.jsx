@@ -3,6 +3,7 @@ import { Check, Gift } from "lucide-react";
 import { useCart } from "../context/cartContext";
 import { COMBO, comboActive, comboEndsLabel } from "../lib/offers";
 import { formatINR } from "../utils/money";
+import { bottlesOnly } from "../lib/samples";
 
 /**
  * Diwali offer hint that follows the bag: what the offer is, "add 1 more"
@@ -12,7 +13,7 @@ import { formatINR } from "../utils/money";
 export default function ComboNudge({ action, className = "" }) {
   const { items } = useCart();
   if (!comboActive()) return null;
-  const bottles = items.reduce((sum, item) => sum + item.qty, 0);
+  const bottles = bottlesOnly(items).reduce((sum, item) => sum + item.qty, 0);
   const pairPrice = formatINR(COMBO.pairPrice);
   const waiting = bottles % 2 === 1;
   const applied = bottles >= 2 && !waiting;

@@ -6,6 +6,15 @@
 
 const { combo } = require("../../src/data/offers.json");
 
+/**
+ * A discovery box (URL starting with "discovery", e.g. /product/discovery-box)
+ * holds sample vials, not a bottle, so it is not part of the offer. The
+ * website uses the same rule (src/lib/samples.js).
+ */
+function isSampleSetSlug(slug) {
+  return /^discovery/.test(String(slug || ""));
+}
+
 function comboActive(now = Date.now()) {
   return Boolean(combo) && now <= Date.parse(combo.endsAt);
 }
@@ -27,4 +36,4 @@ function comboDiscountPaise(items, now = Date.now()) {
   return off;
 }
 
-module.exports = { combo, comboActive, comboDiscountPaise };
+module.exports = { combo, comboActive, comboDiscountPaise, isSampleSetSlug };

@@ -83,6 +83,8 @@ export const PAGE_META = {
   admin: { path: "/admin", title: "Admin — SAHUMäRIO®", description: "SAHUMäRIO® administration.", noindex: true },
   login: { path: "/login", title: "Log In or Sign Up — SAHUMäRIO®", description: "Log in or create your SAHUMäRIO® account.", noindex: true },
   "reset-password": { path: "/reset-password", title: "Reset Password — SAHUMäRIO®", description: "Choose a new password for your SAHUMäRIO® account.", noindex: true },
+  // The homepage with the scent quiz open: a link for Instagram, not a search page.
+  quiz: { path: "/quiz", title: "Find Your Scent — 3-Tap Perfume Quiz | SAHUMäRIO®", description: "Three quick taps and we'll match you to your SAHUMäRIO® Eau de Parfum.", noindex: true },
 };
 
 export const NOT_FOUND_META = {

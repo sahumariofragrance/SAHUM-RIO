@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import ProductGrid from "../components/ProductGrid";
 import SpaLink from "../components/SpaLink";
 import IndiaFlag from "../components/IndiaFlag";
 import PromoTicket from "../components/PromoTicket";
 import DiwaliOffer from "../components/DiwaliOffer";
+import ScentQuiz, { QuizInvite } from "../components/ScentQuiz";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
@@ -15,10 +16,12 @@ const SORTS = {
   name: { label: "Name: A to Z", compare: (a, b) => a.name.localeCompare(b.name) },
 };
 
-export default function HomePage({ onProductNavigate, setCurrentPage }) {
+export default function HomePage({ onProductNavigate, setCurrentPage, openQuiz = false }) {
   const { items, addToCart, updateQty } = useCart();
   const { products: catalogueProducts, loading } = useProducts();
   const [sort, setSort] = useState("featured");
+  // sahumario.com/quiz opens the homepage with the quiz already showing.
+  const [quizOpen, setQuizOpen] = useState(openQuiz);
   const itemQtyById = useMemo(() => items.reduce((acc, item) => { acc[item.product_id] = item.qty; return acc; }, {}), [items]);
   const products = useMemo(() => {
     const list = catalogueProducts.map((product) => ({ ...product, qty: itemQtyById[product.id] ?? 0 }));
@@ -27,6 +30,12 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
   }, [catalogueProducts, itemQtyById, sort]);
   const handleAdd = useCallback((product) => addToCart(product), [addToCart]);
   const handleQty = useCallback((productId, qty) => updateQty(productId, qty), [updateQty]);
+  // Also when coming back to /quiz with the browser's back button.
+  useEffect(() => { if (openQuiz) setQuizOpen(true); }, [openQuiz]);
+  const closeQuiz = useCallback(() => {
+    setQuizOpen(false);
+    if (openQuiz) setCurrentPage?.("home");
+  }, [openQuiz, setCurrentPage]);
 
   return <>
     <div className="mx-auto max-w-[1440px] px-5 sm:px-8 md:px-12">
@@ -41,6 +50,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
           Made in India
         </p>
         <DiwaliOffer />
+        <QuizInvite onStart={() => setQuizOpen(true)} />
         <PromoTicket />
       </div>
 
@@ -73,5 +83,6 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
         </SpaLink>
       </div>
     </div>
+    <ScentQuiz open={quizOpen} onClose={closeQuiz} onProductNavigate={onProductNavigate} onGoToBag={() => setCurrentPage?.("cart")} />
   </>;
 }

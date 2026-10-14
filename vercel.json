@@ -156,6 +156,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/quiz",
+      "destination": "/index.html"
+    },
+    {
       "source": "/privacy-policy",
       "destination": "/index.html"
     },
