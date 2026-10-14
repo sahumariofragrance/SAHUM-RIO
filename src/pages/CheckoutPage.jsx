@@ -13,6 +13,7 @@ import { trackEvent } from "../lib/analytics";
 import { pixelInitiateCheckout, pixelPurchase } from "../lib/metaPixel";
 import { forgetSavedCode, savedCode } from "../lib/promo";
 import { COMBO, comboDiscount } from "../lib/offers";
+import { bottlesOnly } from "../lib/samples";
 import { formatINR } from "../utils/money";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
@@ -50,7 +51,7 @@ export default function CheckoutPage({ setCurrentPage }) {
   const codeAmount = discount ? Math.round((subtotal * discount.percent) / 100) : 0;
   // Offers don't combine, as on the server: a code counts only when it saves
   // more than the Diwali offer; otherwise it stays unused for another order.
-  const offerAmount = comboDiscount(items);
+  const offerAmount = comboDiscount(bottlesOnly(items));
   const useCode = Boolean(discount) && codeAmount > offerAmount;
   const total = subtotal - (useCode ? codeAmount : offerAmount);
   const processingRef = useRef(false);

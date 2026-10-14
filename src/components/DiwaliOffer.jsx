@@ -2,12 +2,14 @@ import React from "react";
 import { useProducts } from "../context/ProductsContext";
 import { COMBO, comboActive, comboEndsLabel } from "../lib/offers";
 import { formatINR } from "../utils/money";
+import { bottlesOnly } from "../lib/samples";
 
 /** Homepage card for the Diwali offer; hidden once the offer has ended. */
 export default function DiwaliOffer() {
   const { products } = useProducts();
   if (!comboActive()) return null;
-  const lowest = products.length ? Math.min(...products.map((product) => Number(product.price) || Infinity)) : 0;
+  const perfumes = bottlesOnly(products);
+  const lowest = perfumes.length ? Math.min(...perfumes.map((product) => Number(product.price) || Infinity)) : 0;
   const saving = Number.isFinite(lowest) && lowest > 0 ? lowest * 2 - COMBO.pairPrice : 0;
 
   return (

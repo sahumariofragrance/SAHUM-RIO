@@ -1,7 +1,9 @@
 import React, { useEffect, useId, useRef, useState } from "react";
-import { AlertCircle, Check, CheckCircle2, ChevronDown, Copy, Download, Loader2, Mail, MessageCircle, Phone, RotateCcw, Trash2, Truck, XCircle } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, ChevronDown, Copy, Download, Gift, Loader2, Mail, MessageCircle, Phone, RotateCcw, Trash2, Truck, XCircle } from "lucide-react";
 import { updateAdminOrder } from "../../lib/adminOrders";
 import { formatINR } from "../../utils/money";
+import { useProducts } from "../../context/ProductsContext";
+import { suggestSample } from "../../lib/samples";
 import { AdminButton, Field, Notice, ORDER_FLOW, ORDER_STATUSES, StatusPill, inputClass } from "./AdminUI";
 
 // The next step offered for each status; anything else is under "Change status manually".
@@ -89,6 +91,10 @@ export default function OrderCard({ order, onSaved, defaultOpen = false, selecte
   const detailsChanged =
     courier !== (order.courier || "") || trackingNumber !== (order.tracking_number || "") || trackingUrl !== (order.tracking_url || "");
   const whatsapp = whatsappLink(address.phone);
+  // Every order gets a free 2 ml sample of another perfume; suggest which one
+  // until the parcel has gone out.
+  const { products } = useProducts();
+  const sample = ["Pending", "Accepted", "Processing"].includes(status) ? suggestSample(items, products) : null;
 
   async function save(nextStatus, { confirm = false } = {}) {
     setError("");
@@ -200,6 +206,12 @@ export default function OrderCard({ order, onSaved, defaultOpen = false, selecte
                   </li>
                 ))}
               </ul>
+              {sample && (
+                <p className="mt-3 flex items-center gap-2 rounded-xl bg-[var(--color-surface-muted)] px-3 py-2 text-sm">
+                  <Gift className="h-4 w-4 shrink-0 text-[var(--color-kesar)]" aria-hidden="true" />
+                  <span>Pack a free 2 ml sample: <strong className="font-semibold">{sample.name}</strong></span>
+                </p>
+              )}
               {Number(order.discount_amount) > 0 && (
                 <div className="mt-3 flex items-baseline justify-between text-sm text-green-700">
                   <span>Discount{order.discount_code ? ` · ${order.discount_code}` : ""}</span>

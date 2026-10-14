@@ -14,11 +14,17 @@ import { setPageJsonLd } from "../seo/head";
 import { useTheme } from "../context/ThemeContext";
 import { loadImageHue, tonePalette } from "../utils/imageTone";
 import { optimizedSrc } from "../utils/optimizedImage";
+import SpaLink from "../components/SpaLink";
+import { bottlesOnly, isSampleSet } from "../lib/samples";
 
 export default function ProductPage({ slug, navigate, onProductNavigate }) {
   const { items, addToCart, updateQty } = useCart();
-  const { bySlug, loading } = useProducts();
+  const { bySlug, loading, products } = useProducts();
   const product = useMemo(() => bySlug.get(slug) || null, [bySlug, slug]);
+  // The discovery box, if the catalogue has one: offered to visitors who
+  // aren't sure which perfume to pick.
+  const sampleSet = useMemo(() => products.find(isSampleSet) || null, [products]);
+  const perfumeCount = useMemo(() => bottlesOnly(products).length, [products]);
   const { theme } = useTheme();
 
   // Tint the whole page with the dominant colour of the perfume's photo.
@@ -169,6 +175,19 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
                 <button onClick={() => updateQty(product.id, quantity - 1)} className="text-lg" aria-label={"Decrease " + product.name}>−</button>
                 <span className="flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.12em]">{quantity} in bag</span>
                 <button onClick={() => updateQty(product.id, quantity + 1)} className="text-lg" aria-label={"Increase " + product.name}>+</button>
+              </div>
+            )}
+            {!isSampleSet(product) && (
+              <div className="mt-4 space-y-1.5 text-xs leading-5 text-[var(--color-muted)]">
+                <p><span aria-hidden="true">🎁 </span>A free 2 ml sample of another scent in every order.</p>
+                {sampleSet && (
+                  <p>
+                    Not sure yet?{" "}
+                    <SpaLink href={`/product/${sampleSet.slug}`} onNavigate={() => onProductNavigate?.(sampleSet)} className="font-semibold text-[var(--color-text)] underline underline-offset-4 hover:opacity-75">
+                      Try all {perfumeCount} in the {sampleSet.name} for {formatINR(sampleSet.price)}
+                    </SpaLink>
+                  </p>
+                )}
               </div>
             )}
           </div>

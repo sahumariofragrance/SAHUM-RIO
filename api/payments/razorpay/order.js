@@ -6,7 +6,7 @@ const { requireCustomer } = require("../../_lib/customerAuth");
 const { getServiceClient, setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../../_lib/security");
 const { rejectBots } = require("../../_lib/botCheck");
 const { checkDiscount, discountPaise } = require("../../_lib/discounts");
-const { combo, comboDiscountPaise } = require("../../_lib/offers");
+const { combo, comboDiscountPaise, isSampleSetSlug } = require("../../_lib/offers");
 
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
@@ -67,11 +67,11 @@ module.exports = async (req, res) => {
     if (ids.some((id) => !Number.isInteger(id) || id <= 0)) return res.status(400).json({ message: "Invalid product ID" });
     const { data: catalogueRows, error: catalogueError } = await serverClient
       .from("products")
-      .select("id,name,price,active")
+      .select("id,name,slug,price,active")
       .in("id", ids)
       .eq("active", true);
     if (catalogueError) throw catalogueError;
-    const catalogue = new Map((catalogueRows || []).map((product) => [Number(product.id), { name: product.name, price: Number(product.price) }]));
+    const catalogue = new Map((catalogueRows || []).map((product) => [Number(product.id), { name: product.name, slug: product.slug, price: Number(product.price) }]));
 
     const seen = new Set(); let count = 0; let amountPaise = 0;
     const normalizedItems = [];
@@ -116,7 +116,7 @@ module.exports = async (req, res) => {
     // A discount code is checked here, on the server, for this email and phone.
     // Offers don't combine: a code is used only when it saves more than the
     // Diwali offer, otherwise the offer applies and the code stays unused.
-    const comboPaise = comboDiscountPaise(normalizedItems);
+    const comboPaise = comboDiscountPaise(normalizedItems.filter((item) => !isSampleSetSlug(catalogue.get(item.product_id)?.slug)));
     let discount = null;
     if (discountCode) {
       const checked = await checkDiscount(serviceClient, { code: discountCode, email: shipping.email, phone: shipping.phone });

@@ -6,6 +6,7 @@ import { useProducts } from "../context/ProductsContext";
 import { COMBO, comboActive } from "../lib/offers";
 import { QUESTIONS, noteList, rankPerfumes } from "../lib/scentQuiz";
 import { shareScentCard } from "../lib/scentCard";
+import { bottlesOnly, isSampleSet } from "../lib/samples";
 import { formatINR } from "../utils/money";
 
 const PICK_DELAY_MS = 220;
@@ -54,7 +55,7 @@ function Question({ question, index, picked, onPick, onBack }) {
   );
 }
 
-function Result({ match, pair, onViewProduct, onGoToBag, onRetake }) {
+function Result({ match, pair, sampleSet, perfumeCount, onViewProduct, onViewSampleSet, onGoToBag, onRetake }) {
   const { items, addToCart } = useCart();
   const [sharing, setSharing] = useState("");
   const inBag = (product) => items.some((item) => item.product_id === product.id);
@@ -101,6 +102,14 @@ function Result({ match, pair, onViewProduct, onGoToBag, onRetake }) {
         <button type="button" onClick={onViewProduct} className="h-10 text-[10px] font-semibold uppercase tracking-[0.16em] underline-offset-4 hover:underline">
           See {match.name} in detail
         </button>
+        {sampleSet && (
+          <p className="text-center text-xs text-[var(--color-muted)]">
+            Can't decide?{" "}
+            <button type="button" onClick={onViewSampleSet} className="font-semibold text-[var(--color-text)] underline underline-offset-4 hover:opacity-75">
+              Try all {perfumeCount} in the {sampleSet.name} for {formatINR(sampleSet.price)}
+            </button>
+          </p>
+        )}
       </div>
 
       {showPair && (
@@ -148,7 +157,10 @@ export default function ScentQuiz({ open, onClose, onProductNavigate, onGoToBag 
   const step = answers.length;
   const done = step >= QUESTIONS.length;
 
-  const [match, pair] = useMemo(() => (done ? rankPerfumes(products, answers) : []), [done, products, answers]);
+  const perfumes = useMemo(() => bottlesOnly(products), [products]);
+  const sampleSet = useMemo(() => products.find(isSampleSet) || null, [products]);
+  const perfumeCount = perfumes.length;
+  const [match, pair] = useMemo(() => (done ? rankPerfumes(perfumes, answers) : []), [done, perfumes, answers]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -191,8 +203,11 @@ export default function ScentQuiz({ open, onClose, onProductNavigate, onGoToBag 
             key="result"
             match={match}
             pair={pair}
+            sampleSet={sampleSet}
+            perfumeCount={perfumeCount}
             // Leaving for another page closes the quiz with the homepage.
             onViewProduct={() => onProductNavigate?.(match)}
+            onViewSampleSet={() => onProductNavigate?.(sampleSet)}
             onGoToBag={() => onGoToBag?.()}
             onRetake={() => setAnswers([])}
           />
