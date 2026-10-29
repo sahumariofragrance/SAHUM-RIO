@@ -8,14 +8,18 @@ import { formatINR } from "../utils/money";
 import PromoLine from "../components/PromoLine";
 import ComboNudge from "../components/ComboNudge";
 import DiscoverMore from "../components/DiscoverMore";
-import { pixelViewContent } from "../lib/metaPixel";
+import { pixelContact, pixelViewContent } from "../lib/metaPixel";
 import { productJsonLd } from "../seo/site";
 import { setPageJsonLd } from "../seo/head";
 import { useTheme } from "../context/ThemeContext";
 import { loadImageHue, tonePalette } from "../utils/imageTone";
 import { optimizedSrc } from "../utils/optimizedImage";
 import SpaLink from "../components/SpaLink";
-import { bottlesOnly, isSampleSet } from "../lib/samples";
+import { isSampleSet } from "../lib/samples";
+import { forSale, isComingSoon, isIllustration } from "../lib/catalogue";
+import { whatsappLink } from "../components/WhatsAppButton";
+
+const AUDIENCE_DETAIL = { Men: "Men", Women: "Women", Unisex: "Everyone (unisex)" };
 
 export default function ProductPage({ slug, navigate, onProductNavigate }) {
   const { items, addToCart, updateQty } = useCart();
@@ -24,7 +28,8 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
   // The discovery box, if the catalogue has one: offered to visitors who
   // aren't sure which perfume to pick.
   const sampleSet = useMemo(() => products.find(isSampleSet) || null, [products]);
-  const perfumeCount = useMemo(() => bottlesOnly(products).length, [products]);
+  // The box holds the perfumes already made, not those coming soon.
+  const perfumeCount = useMemo(() => forSale(products).length, [products]);
   const { theme } = useTheme();
 
   // Tint the whole page with the dominant colour of the perfume's photo.
@@ -72,7 +77,9 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
   );
 
   const quantity = product ? (items.find((item) => item.product_id === product.id)?.qty || 0) : 0;
+  const comingSoon = isComingSoon(product);
   const productDetails = product ? [
+    ["For", AUDIENCE_DETAIL[product.audience]],
     ["Size / volume", product.size_volume],
     ["Fragrance family", product.fragrance_family],
     ["Scent profile", product.scent_profile],
@@ -109,7 +116,7 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
           <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-surface-muted)]">
             <SafeImage src={activeImage || product.image} alt={product.alt || product.name} sizes="(min-width: 1024px) 55vw, 100vw" className="absolute inset-0 h-full w-full object-cover" priority />
             <p className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-medium tracking-[0.04em] text-white/90 backdrop-blur-[2px]">
-              Real bottle · AI-generated scene
+              {isIllustration(activeImage || product.image) ? "Illustration · photo coming soon" : "Real bottle · AI-generated scene"}
             </p>
           </div>
 
@@ -148,7 +155,7 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
           <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.025em] sm:text-6xl">{product.name}</h1>
           <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
             <p className="text-base tabular-nums">{formatINR(product.price)} <span className="text-sm text-[var(--color-muted)]">· {product.size_volume}</span></p>
-            <a
+            {!comingSoon && <a
               href="#reviews"
               onClick={(event) => { event.preventDefault(); document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
               className="inline-flex items-center gap-1.5 text-xs text-[var(--color-muted)] underline-offset-4 transition-colors hover:text-[var(--color-text)] hover:underline"
@@ -156,17 +163,33 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
               {rating ? (
                 <><span className="text-[var(--color-kesar)]" aria-hidden="true">★</span> {rating.average.toFixed(1)} · {rating.count} review{rating.count === 1 ? "" : "s"}</>
               ) : "Write the first review"}
-            </a>
+            </a>}
           </div>
-          <PromoLine />
-          <ComboNudge
-            className="mt-2"
-            action={{ label: "See perfumes", onClick: () => document.getElementById("discover-more-title")?.scrollIntoView({ behavior: "smooth", block: "start" }) }}
-          />
+          {!comingSoon && <>
+            <PromoLine />
+            <ComboNudge
+              className="mt-2"
+              action={{ label: "See perfumes", onClick: () => document.getElementById("discover-more-title")?.scrollIntoView({ behavior: "smooth", block: "start" }) }}
+            />
+          </>}
           <p className="mt-7 max-w-xl text-sm leading-7 text-[var(--color-muted)]">{product.description}</p>
 
           <div className="mt-9 border-t border-[var(--color-border)] pt-6">
-            {quantity === 0 ? (
+            {comingSoon ? (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-kesar)]">Coming soon</p>
+                <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">We're making {product.name} now. Message us and we'll tell you as soon as it's ready to order.</p>
+                <a
+                  href={whatsappLink(`Hi SAHUMäRIO! Please tell me when ${product.name} is available.`)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => pixelContact()}
+                  className="mt-4 flex h-12 w-full items-center justify-between bg-[var(--color-text)] px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-bg)] transition-opacity hover:opacity-85"
+                >
+                  <span>Ask on WhatsApp</span><span aria-hidden="true">→</span>
+                </a>
+              </div>
+            ) : quantity === 0 ? (
               <button onClick={() => addToCart(product)} className="flex h-12 w-full items-center justify-between bg-[var(--color-text)] px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-bg)] transition-opacity hover:opacity-85">
                 <span>Add to bag</span><span>+</span>
               </button>
@@ -177,10 +200,10 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
                 <button onClick={() => updateQty(product.id, quantity + 1)} className="text-lg" aria-label={"Increase " + product.name}>+</button>
               </div>
             )}
-            {!isSampleSet(product) && (
+            {!isSampleSet(product) && !comingSoon && (
               <div className="mt-4 space-y-1.5 text-xs leading-5 text-[var(--color-muted)]">
                 <p><span aria-hidden="true">🎁 </span>A free 2 ml sample of another scent in every order.</p>
-                {sampleSet && (
+                {sampleSet && perfumeCount > 1 && (
                   <p>
                     Not sure yet?{" "}
                     <SpaLink href={`/product/${sampleSet.slug}`} onNavigate={() => onProductNavigate?.(sampleSet)} className="font-semibold text-[var(--color-text)] underline underline-offset-4 hover:opacity-75">
@@ -212,7 +235,8 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
       </div>
 
       <DiscoverMore current={product} onProductNavigate={onProductNavigate} onViewAll={() => navigate("perfumes")} />
-      <ProductReviews product={product} navigate={navigate} onSummary={setRating} />
+      {/* Nobody has tried a coming-soon perfume yet, so it has no reviews section. */}
+      {!comingSoon && <ProductReviews product={product} navigate={navigate} onSummary={setRating} />}
     </section>
   );
 }

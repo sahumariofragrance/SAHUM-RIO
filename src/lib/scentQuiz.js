@@ -4,50 +4,53 @@
 
 // Words that give a perfume each tag, looked for in its notes, family,
 // profile, occasion and description (its own name is removed first, so
-// "Night Queen" or "Lemon Breeze" do not count). The more of a tag's words a
-// perfume has, the stronger that tag is for it, up to 3.
+// "Raat Mogra" or "Gulab Malai" do not count). The more of a tag's words a
+// perfume has, the stronger that tag is for it, up to 3. Who a perfume is for
+// (Admin → Catalogue → For) adds a men, women or unisex tag of strength 3.
 const TAGS = {
-  citrus: [/lemon/, /lime/, /citrus/, /orange/, /bergamot/, /grapefruit/, /zest/],
-  apple: [/(^|[^a-z])apple/], // green apple, not pineapple
-  tropical: [/pin?e?apple/, /peach/, /melon/, /mango/, /tropical/, /coconut/, /l[iy]t?chee|litchi/],
-  aquatic: [/aqua/, /water/, /ozon/, /marine/],
-  herbal: [/\bherb/, /\bspic/, /\bmint\b/, /\btea\b/, /basil/],
-  soft: [/musk/, /floral|flower/, /rose/, /jasmine/, /vanilla/, /amber/, /wood|oud|sandal/],
-  day: [/every ?day/, /daytime/, /morning/, /office/, /college/],
-  active: [/\bgym\b/, /travel/, /sport/, /outdoor/],
-  holiday: [/holiday/, /summer/, /beach/, /vacation/],
-  night: [/night/, /evening/, /party/],
+  fresh: [/lemon|lime|citrus|bergamot|grapefruit|orange|mandarin/, /basil|rosemary|herb|green|apple/, /fresh|clean|cool|aqua|ozon|marine/],
+  floral: [/rose|gulab/, /jasmine|mogra/, /magnolia|champa|neroli|blossom|flower|floral|lavender/],
+  woody: [/oud|agarwood/, /leather/, /vetiver|khus|cedar|wood|sandal/],
+  sweet: [/vanilla|cream|malai/, /cherry|raspberr|strawberr|peach|pineapple|fruit/, /\brum\b|sweet|gourmand/],
+  spicy: [/saffron|kesar/, /cardamom|elaichi/, /cinnamon|dalchini|pepper|spic/],
+  warm: [/vanilla|warm/, /musk/, /evening|night/],
+  soft: [/musk/, /soft|powder|silk|skin|tender/, /sandal|cream/],
+  day: [/every ?day|daytime|morning|office|college/],
+  night: [/night|evening|date|party/],
+  festive: [/wedding|festiv|celebrat|special occasion/],
 };
+const AUDIENCE_TAGS = { Men: "men", Women: "women", Unisex: "unisex" };
 
+// `only`: who the perfume must be for (when the catalogue says).
 export const QUESTIONS = [
+  {
+    id: "who",
+    title: "Who is it for?",
+    options: [
+      { id: "him", emoji: "🤵", label: "For him", hint: "Bold and woody", only: ["Men", "Unisex"], weights: { men: 2 } },
+      { id: "her", emoji: "💃", label: "For her", hint: "Soft and floral", only: ["Women", "Unisex"], weights: { women: 2 } },
+      { id: "anyone", emoji: "✨", label: "For anyone", hint: "Unisex", weights: { unisex: 3 } },
+      { id: "gift", emoji: "🎁", label: "A gift", hint: "Easy to love", weights: { unisex: 2, soft: 1 } },
+    ],
+  },
   {
     id: "when",
     title: "When will you wear it most?",
     options: [
-      { id: "day", emoji: "☀️", label: "College & office", hint: "Fresh all day", weights: { day: 2, citrus: 1, herbal: 1 } },
-      { id: "active", emoji: "🏃", label: "Gym & travel", hint: "Light, on the go", weights: { active: 3, aquatic: 2 } },
-      { id: "holiday", emoji: "🌴", label: "Weekends & trips", hint: "Sunny and playful", weights: { holiday: 2, tropical: 2 } },
-      { id: "night", emoji: "🌙", label: "Evenings & garba", hint: "Soft, close to skin", weights: { night: 2, soft: 2 } },
-    ],
-  },
-  {
-    id: "vibe",
-    title: "Pick a vibe",
-    options: [
-      { id: "zesty", emoji: "✨", label: "Zesty & sparkling", hint: "Bright citrus", weights: { citrus: 3 } },
-      { id: "juicy", emoji: "🍑", label: "Juicy & tropical", hint: "Sweet fruit", weights: { tropical: 3 } },
-      { id: "clean", emoji: "💧", label: "Cool & clean", hint: "Fresh water", weights: { aquatic: 3, apple: 1 } },
-      { id: "soft", emoji: "🌸", label: "Soft & musky", hint: "Warm and gentle", weights: { soft: 4 } },
+      { id: "day", emoji: "☀️", label: "Office & college", hint: "Fresh all day", weights: { day: 3, fresh: 2 } },
+      { id: "night", emoji: "🌙", label: "Evenings & dates", hint: "Warm, close to skin", weights: { night: 3, warm: 2 } },
+      { id: "festive", emoji: "🪔", label: "Weddings & festivals", hint: "Rich and royal", weights: { festive: 4, woody: 1, spicy: 1 } },
+      { id: "everyday", emoji: "🌿", label: "Every day", hint: "Soft and easy", weights: { soft: 2, day: 2 } },
     ],
   },
   {
     id: "pick",
     title: "Which one would you pick?",
     options: [
-      { id: "lemon", emoji: "🍋", label: "Lemon", hint: "Sharp and sunny", weights: { citrus: 2 } },
-      { id: "apple", emoji: "🍏", label: "Green apple", hint: "Crisp and green", weights: { apple: 3 } },
-      { id: "pineapple", emoji: "🍍", label: "Pineapple", hint: "Juicy and sweet", weights: { tropical: 2 } },
-      { id: "flowers", emoji: "🌸", label: "Flowers", hint: "No fruit for me", weights: { soft: 2 } },
+      { id: "flowers", emoji: "🌹", label: "Rose & jasmine", hint: "Flowers", weights: { floral: 3 } },
+      { id: "woods", emoji: "🪵", label: "Oud & woods", hint: "Deep and smoky", weights: { woody: 3 } },
+      { id: "sweet", emoji: "🍦", label: "Vanilla & fruit", hint: "Sweet and creamy", weights: { sweet: 3 } },
+      { id: "spice", emoji: "🌶️", label: "Kesar & spice", hint: "Saffron, cardamom", weights: { spicy: 3 } },
     ],
   },
 ];
@@ -62,6 +65,8 @@ export function perfumeTags(product) {
     const hits = words.filter((word) => word.test(text)).length;
     if (hits) tags[tag] = Math.min(hits, 3);
   });
+  const audience = AUDIENCE_TAGS[product.audience];
+  if (audience) tags[audience] = 3;
   return tags;
 }
 
@@ -78,15 +83,21 @@ export function noteList(product) {
  * Perfumes ranked best match first for the chosen option ids (one per
  * question). Each perfume scores the answer weights times its tag strengths;
  * dividing by the square root of its total strength stops perfumes with long
- * note lists from winning every time. Ties keep catalogue order.
+ * note lists from winning every time. Ties keep catalogue order. An answer
+ * with `only` leaves out perfumes for other people (if any is left).
  */
 export function rankPerfumes(products, answers) {
   const weights = {};
+  let pool = products;
   QUESTIONS.forEach((question, index) => {
     const option = question.options.find((candidate) => candidate.id === answers[index]);
     Object.entries(option?.weights || {}).forEach(([tag, weight]) => { weights[tag] = (weights[tag] || 0) + weight; });
+    if (option?.only) {
+      const narrowed = pool.filter((product) => !product.audience || option.only.includes(product.audience));
+      if (narrowed.length) pool = narrowed;
+    }
   });
-  return products
+  return pool
     .map((product, order) => {
       const tags = Object.entries(perfumeTags(product));
       const raw = tags.reduce((sum, [tag, strength]) => sum + (weights[tag] || 0) * strength, 0);

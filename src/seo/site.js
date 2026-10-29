@@ -135,12 +135,14 @@ export function productMeta(product) {
   const price = formatPrice(product.price);
   const lead = String(product.description || "").trim().replace(/\.?$/, ".");
   const description = truncate(
-    `${product.name} Eau de Parfum by SAHUMäRIO®. ${lead === "." ? "" : lead} ${price ? `${price}, ` : ""}free shipping across India.`,
+    product.coming_soon
+      ? `${product.name} Eau de Parfum by SAHUMäRIO®, coming soon. ${lead === "." ? "" : lead}`
+      : `${product.name} Eau de Parfum by SAHUMäRIO®. ${lead === "." ? "" : lead} ${price ? `${price}, ` : ""}free shipping across India.`,
     160
   );
   return {
     path: productPath(product),
-    title: `${product.name} Eau de Parfum${price ? ` — ${price}` : ""} | SAHUMäRIO®`,
+    title: `${product.name} Eau de Parfum${product.coming_soon ? " — Coming soon" : price ? ` — ${price}` : ""} | SAHUMäRIO®`,
     description,
     image: product.image_url || product.image || DEFAULT_IMAGE,
     type: "product",
@@ -168,7 +170,8 @@ export function productJsonLd(product, rating) {
       url,
       priceCurrency: "INR",
       price: String(Number(product.price)),
-      availability: "https://schema.org/InStock",
+      // A coming-soon perfume is shown but can't be ordered yet.
+      availability: product.coming_soon ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
       itemCondition: "https://schema.org/NewCondition",
       seller: { "@id": `${SITE_URL}/#organization` },
       shippingDetails: {

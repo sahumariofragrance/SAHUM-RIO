@@ -7,6 +7,9 @@ import { COMBO, comboActive } from "../lib/offers";
 import { QUESTIONS, noteList, rankPerfumes } from "../lib/scentQuiz";
 import { shareScentCard } from "../lib/scentCard";
 import { bottlesOnly, isSampleSet } from "../lib/samples";
+import { forSale, isComingSoon } from "../lib/catalogue";
+import { whatsappLink } from "./WhatsAppButton";
+import { pixelContact } from "../lib/metaPixel";
 import { formatINR } from "../utils/money";
 
 const PICK_DELAY_MS = 220;
@@ -55,7 +58,7 @@ function Question({ question, index, picked, onPick, onBack }) {
   );
 }
 
-function Result({ match, pair, sampleSet, perfumeCount, onViewProduct, onViewSampleSet, onGoToBag, onRetake }) {
+function Result({ match, pair, alternative, sampleSet, perfumeCount, onViewProduct, onViewAlternative, onViewSampleSet, onGoToBag, onRetake }) {
   const { items, addToCart } = useCart();
   const [sharing, setSharing] = useState("");
   const inBag = (product) => items.some((item) => item.product_id === product.id);
@@ -90,7 +93,17 @@ function Result({ match, pair, sampleSet, perfumeCount, onViewProduct, onViewSam
       )}
 
       <div className="mt-6 grid gap-2.5">
-        {inBag(match) ? (
+        {isComingSoon(match) ? (
+          <a
+            href={whatsappLink(`Hi SAHUMäRIO! The quiz picked ${match.name} for me. Please tell me when it is available.`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => pixelContact()}
+            className="flex h-12 w-full items-center justify-between bg-[var(--color-text)] px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-bg)] transition-opacity hover:opacity-85"
+          >
+            <span>Coming soon · Ask on WhatsApp</span><span aria-hidden="true">→</span>
+          </a>
+        ) : inBag(match) ? (
           <button type="button" onClick={onGoToBag} className="flex h-12 w-full items-center justify-center gap-2 border border-[var(--color-text)] text-[10px] font-semibold uppercase tracking-[0.16em] transition hover:bg-[var(--color-text)] hover:text-[var(--color-bg)]">
             <Check className="h-4 w-4" aria-hidden="true" /> In your bag · View bag
           </button>
@@ -102,7 +115,7 @@ function Result({ match, pair, sampleSet, perfumeCount, onViewProduct, onViewSam
         <button type="button" onClick={onViewProduct} className="h-10 text-[10px] font-semibold uppercase tracking-[0.16em] underline-offset-4 hover:underline">
           See {match.name} in detail
         </button>
-        {sampleSet && (
+        {sampleSet && perfumeCount > 1 && (
           <p className="text-center text-xs text-[var(--color-muted)]">
             Can't decide?{" "}
             <button type="button" onClick={onViewSampleSet} className="font-semibold text-[var(--color-text)] underline underline-offset-4 hover:opacity-75">
@@ -111,6 +124,25 @@ function Result({ match, pair, sampleSet, perfumeCount, onViewProduct, onViewSam
           </p>
         )}
       </div>
+
+      {alternative && (
+        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+          <button type="button" onClick={onViewAlternative} className="relative aspect-[4/5] w-12 shrink-0 overflow-hidden rounded-lg bg-[var(--color-surface-muted)]" aria-label={`See ${alternative.name}`}>
+            <SafeImage src={alternative.image} alt="" sizes="48px" maxWidth={320} className="absolute inset-0 h-full w-full object-cover" />
+          </button>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium leading-5">Ready to order now: {alternative.name}</p>
+            <p className="text-xs leading-5 text-[var(--color-muted)]">Your closest match on sale today</p>
+          </div>
+          {inBag(alternative) ? (
+            <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-kesar)]">Added</span>
+          ) : (
+            <button type="button" onClick={() => addToCart(alternative)} className="shrink-0 rounded-full bg-[var(--color-kesar)] px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition hover:opacity-90">
+              Add
+            </button>
+          )}
+        </div>
+      )}
 
       {showPair && (
         <div className="mt-3 flex items-center gap-3 rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-3">
@@ -159,8 +191,20 @@ export default function ScentQuiz({ open, onClose, onProductNavigate, onGoToBag 
 
   const perfumes = useMemo(() => bottlesOnly(products), [products]);
   const sampleSet = useMemo(() => products.find(isSampleSet) || null, [products]);
-  const perfumeCount = perfumes.length;
-  const [match, pair] = useMemo(() => (done ? rankPerfumes(perfumes, answers) : []), [done, perfumes, answers]);
+  // The discovery box holds the perfumes already made.
+  const perfumeCount = useMemo(() => forSale(products).length, [products]);
+  // The best match may be coming soon: then the closest perfume on sale is
+  // offered too. A pair for the any-2 offer is only suggested from perfumes on sale.
+  const { match, pair, alternative } = useMemo(() => {
+    if (!done) return {};
+    const ranked = rankPerfumes(perfumes, answers);
+    const best = ranked[0];
+    const onSale = ranked.filter((product) => !isComingSoon(product));
+    if (!best) return {};
+    return isComingSoon(best)
+      ? { match: best, pair: null, alternative: onSale[0] || null }
+      : { match: best, pair: onSale.find((product) => product.id !== best.id) || null, alternative: null };
+  }, [done, perfumes, answers]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -203,10 +247,12 @@ export default function ScentQuiz({ open, onClose, onProductNavigate, onGoToBag 
             key="result"
             match={match}
             pair={pair}
+            alternative={alternative}
             sampleSet={sampleSet}
             perfumeCount={perfumeCount}
             // Leaving for another page closes the quiz with the homepage.
             onViewProduct={() => onProductNavigate?.(match)}
+            onViewAlternative={() => onProductNavigate?.(alternative)}
             onViewSampleSet={() => onProductNavigate?.(sampleSet)}
             onGoToBag={() => onGoToBag?.()}
             onRetake={() => setAnswers([])}
@@ -236,7 +282,7 @@ export function QuizInvite({ onStart }) {
         className="group flex w-full items-center gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-4 text-left transition hover:border-[var(--color-text)] sm:px-6"
       >
         <span className="quiz-fruits shrink-0 text-[1.35rem] leading-none" aria-hidden="true">
-          <span>🍋</span><span>🍏</span><span>🍍</span><span>💧</span>
+          <span>🌹</span><span>🪵</span><span>🍦</span><span>🌙</span>
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Not sure which one?</span>

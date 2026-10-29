@@ -79,8 +79,9 @@ async function fetchProducts(query) {
       `${url.replace(/\/+$/, "")}/rest/v1/products?select=${fields}&active=eq.true&order=display_order.asc,id.asc${query}`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` }, signal: controller.signal }
     );
-    let res = await request(`${PRODUCT_FIELDS},gallery_urls`);
-    // Before the gallery_urls migration runs, fetch without it.
+    let res = await request(`${PRODUCT_FIELDS},gallery_urls,coming_soon`);
+    // Before the coming_soon and gallery_urls migrations run, fetch without them.
+    if (res.status === 400) res = await request(`${PRODUCT_FIELDS},gallery_urls`);
     if (res.status === 400) res = await request(PRODUCT_FIELDS);
     if (!res.ok) return null;
     const rows = await res.json();

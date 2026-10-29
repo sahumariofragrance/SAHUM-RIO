@@ -1,21 +1,23 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import ProductGrid from "../components/ProductGrid";
+import AudienceFilter from "../components/AudienceFilter";
+import { onSaleFirst } from "../lib/catalogue";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
 export default function PerfumesPage({ onProductNavigate }) {
   const { items, addToCart, updateQty } = useCart();
   const { products: catalogueProducts, loading } = useProducts();
+  const [audience, setAudience] = useState("all");
 
   const itemQtyById = useMemo(() => items.reduce((acc, item) => {
     acc[item.product_id] = item.qty;
     return acc;
   }, {}), [items]);
 
-  const products = useMemo(() => catalogueProducts.map((product) => ({
-    ...product,
-    qty: itemQtyById[product.id] ?? 0,
-  })), [catalogueProducts, itemQtyById]);
+  const products = useMemo(() => onSaleFirst(catalogueProducts
+    .filter((product) => audience === "all" || product.audience === audience)
+    .map((product) => ({ ...product, qty: itemQtyById[product.id] ?? 0 }))), [catalogueProducts, itemQtyById, audience]);
 
   const handleAddToCart = useCallback((product) => addToCart(product), [addToCart]);
   const handleUpdateQty = useCallback((productId, newQty) => updateQty(productId, newQty), [updateQty]);
@@ -31,7 +33,9 @@ export default function PerfumesPage({ onProductNavigate }) {
         </p>
       </div>
 
-      <div className="mt-10 md:mt-14">
+      <AudienceFilter products={catalogueProducts} value={audience} onChange={setAudience} className="mt-8 sm:justify-center" />
+
+      <div className="mt-8 md:mt-10">
         <ProductGrid
           products={products}
           loading={loading}

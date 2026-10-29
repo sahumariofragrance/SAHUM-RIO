@@ -1,5 +1,6 @@
 import React from "react";
 import PerfumeCardOptimized from "./PerfumeCardOptimized";
+import { isIllustration } from "../lib/catalogue";
 
 const ProductGrid = React.memo(({
   products = [],
@@ -45,7 +46,9 @@ const ProductGrid = React.memo(({
         />
       ))}
       <p className="col-span-full text-center text-xs text-[var(--color-muted)]">
-        Every bottle shown is our real bottle; the backgrounds and scenes in the photos are AI-generated.
+        {products.some((product) => isIllustration(product.image))
+          ? "Perfumes without a photo yet are shown as illustrations. In our photos the bottle is real; the backgrounds and scenes are AI-generated."
+          : "Every bottle shown is our real bottle; the backgrounds and scenes in the photos are AI-generated."}
       </p>
     </div>
   );

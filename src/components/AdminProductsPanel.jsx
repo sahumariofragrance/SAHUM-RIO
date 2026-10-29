@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, ImagePlus, Loader2, Pencil, Plus, RefreshCw, Star, Trash2, Upload, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Clock, Eye, EyeOff, ImagePlus, Loader2, Pencil, Plus, RefreshCw, ShoppingBag, Star, Trash2, Upload, X } from "lucide-react";
 import { AdminButton, Field, Notice, inputClass } from "./admin/AdminUI";
 import SafeImage from "./SafeImage";
 import { compressImage } from "../utils/compressImage";
 import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
 import { useProducts } from "../context/ProductsContext";
+import { AUDIENCES } from "../lib/catalogue";
 
 const MAX_PRODUCT_IMAGES = 6;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -26,6 +27,8 @@ const emptyForm = {
   image_url: "",
   gallery_urls: [],
   active: false,
+  coming_soon: false,
+  audience: "",
   display_order: 0,
 };
 
@@ -104,6 +107,10 @@ export default function AdminProductsPanel() {
     });
   }
 
+  // "For" and "Coming soon" need the coming-soon migration; until it has run
+  // they are not shown or saved.
+  const hasAvailability = useMemo(() => products.some((product) => Object.prototype.hasOwnProperty.call(product, "coming_soon")), [products]);
+
   const nextOrder = useMemo(() => products.reduce((max, product) => Math.max(max, Number(product.display_order || 0)), 0) + 10, [products]);
 
   useEffect(() => {
@@ -126,7 +133,8 @@ export default function AdminProductsPanel() {
       size_volume: product.size_volume || "", fragrance_family: product.fragrance_family || "",
       scent_profile: product.scent_profile || "", occasion: product.occasion || "",
       gallery_urls: Array.isArray(product.gallery_urls) ? product.gallery_urls : [],
-      active: Boolean(product.active), display_order: Number(product.display_order || 0),
+      active: Boolean(product.active), coming_soon: Boolean(product.coming_soon), audience: product.audience || "",
+      display_order: Number(product.display_order || 0),
     });
     replaceGallery(existingItems(product)); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -252,6 +260,7 @@ export default function AdminProductsPanel() {
         scent_profile: form.scent_profile.trim() || null,
         occasion: form.occasion.trim() || null,
         active: Boolean(form.active), display_order: Number(form.display_order || 0),
+        ...(hasAvailability ? { coming_soon: Boolean(form.coming_soon), audience: form.audience || null } : {}),
         updated_at: new Date().toISOString(), updated_by: user?.id || null,
       };
       let result;
@@ -281,6 +290,12 @@ export default function AdminProductsPanel() {
   async function toggleActive(product) {
     setError("");
     const { error: updateError } = await supabase.from("products").update({ active: !product.active, updated_at: new Date().toISOString() }).eq("id", product.id);
+    if (updateError) setError(updateError.message); else { await load(); await refreshProducts(); }
+  }
+
+  async function toggleComingSoon(product) {
+    setError("");
+    const { error: updateError } = await supabase.from("products").update({ coming_soon: !product.coming_soon, updated_at: new Date().toISOString() }).eq("id", product.id);
     if (updateError) setError(updateError.message); else { await load(); await refreshProducts(); }
   }
 
@@ -346,6 +361,14 @@ export default function AdminProductsPanel() {
                 <input id="product-order" type="number" value={form.display_order} onChange={(e) => setForm((p) => ({ ...p, display_order: e.target.value }))} className={inputClass} />
               </Field>
             </div>
+            {hasAvailability && (
+              <Field label="For" htmlFor="product-audience" hint="Used by the shop's For him / For her / Unisex filter and the quiz.">
+                <select id="product-audience" value={form.audience} onChange={(e) => setForm((p) => ({ ...p, audience: e.target.value }))} className={inputClass}>
+                  <option value="">Not set</option>
+                  {AUDIENCES.map((audience) => <option key={audience.id} value={audience.id}>{audience.id === "Unisex" ? "Unisex (everyone)" : audience.id}</option>)}
+                </select>
+              </Field>
+            )}
           </fieldset>
 
           <section className="space-y-4 border-t border-[var(--color-border)] pt-6">
@@ -419,10 +442,22 @@ export default function AdminProductsPanel() {
             </div>
           </section>
 
+          {hasAvailability && (
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3.5">
+              <div>
+                <div className="text-sm font-semibold">Coming soon</div>
+                <div className="text-xs text-[var(--color-muted)]">{form.coming_soon ? "Shown in the store, but customers can't buy it yet." : "On sale: customers can buy it."}</div>
+              </div>
+              <button type="button" role="switch" aria-checked={form.coming_soon} aria-label="Coming soon" onClick={() => setForm((p) => ({ ...p, coming_soon: !p.coming_soon }))} className={`relative h-6 w-11 shrink-0 rounded-full transition ${form.coming_soon ? "bg-[var(--color-text)]" : "bg-[var(--color-border)]"}`}>
+                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--color-bg)] shadow transition-all ${form.coming_soon ? "left-[1.375rem]" : "left-0.5"}`} />
+              </button>
+            </div>
+          )}
+
           <div className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3.5">
             <div>
               <div className="text-sm font-semibold">Visible in store</div>
-              <div className="text-xs text-[var(--color-muted)]">{form.active ? "Customers can see and buy this perfume." : "Hidden from customers until you turn this on."}</div>
+              <div className="text-xs text-[var(--color-muted)]">{form.active ? (form.coming_soon ? "Customers can see this perfume." : "Customers can see and buy this perfume.") : "Hidden from customers until you turn this on."}</div>
             </div>
             <button type="button" role="switch" aria-checked={form.active} aria-label="Visible in store" onClick={() => setForm((p) => ({ ...p, active: !p.active }))} className={`relative h-6 w-11 shrink-0 rounded-full transition ${form.active ? "bg-[var(--color-text)]" : "bg-[var(--color-border)]"}`}>
               <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--color-bg)] shadow transition-all ${form.active ? "left-[1.375rem]" : "left-0.5"}`} />
@@ -444,6 +479,7 @@ export default function AdminProductsPanel() {
             <h2 className="font-serif text-3xl font-normal tracking-[-0.02em]">Current catalogue</h2>
             <p className="mt-1 text-sm text-[var(--color-muted)]">
               {products.length} perfume{products.length === 1 ? "" : "s"} · {products.filter((product) => product.active).length} visible
+              {hasAvailability && ` · ${products.filter((product) => product.active && !product.coming_soon).length} on sale`}
             </p>
           </div>
           <AdminButton size="sm" variant="secondary" onClick={load}><RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />Refresh</AdminButton>
@@ -466,6 +502,12 @@ export default function AdminProductsPanel() {
                     <button type="button" onClick={() => toggleActive(product)} className={`admin-tone ${product.active ? "tone-green" : "tone-stone"} inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold`} title={product.active ? "Visible — click to hide" : "Hidden — click to show"}>
                       {product.active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}{product.active ? "Visible" : "Hidden"}
                     </button>
+                    {hasAvailability && (
+                      <button type="button" onClick={() => toggleComingSoon(product)} className={`admin-tone ${product.coming_soon ? "tone-amber" : "tone-green"} inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold`} title={product.coming_soon ? "Coming soon — click to put on sale" : "On sale — click to mark coming soon"}>
+                        {product.coming_soon ? <Clock className="h-3.5 w-3.5" /> : <ShoppingBag className="h-3.5 w-3.5" />}{product.coming_soon ? "Coming soon" : "On sale"}
+                      </button>
+                    )}
+                    {product.audience && <span className="text-[11px] text-[var(--color-muted)]">{product.audience}</span>}
                     <AdminButton size="sm" variant="ghost" onClick={() => edit(product)} className="h-7"><Pencil className="h-3.5 w-3.5" />Edit</AdminButton>
                     <AdminButton size="sm" variant="ghost" onClick={() => removeProduct(product)} className="ml-auto h-7 text-red-600 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" />Delete</AdminButton>
                   </div>

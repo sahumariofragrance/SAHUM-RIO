@@ -8,6 +8,8 @@ import React, {
 } from "react";
 import { trackEvent } from "../lib/analytics";
 import { pixelAddToCart } from "../lib/metaPixel";
+import { isComingSoon } from "../lib/catalogue";
+import { useProducts } from "./ProductsContext";
 
 const CartCtx = createContext(null);
 const CART_STORAGE_KEY = "sahumario_cart";
@@ -64,11 +66,22 @@ export function CartProvider({ children }) {
     }
   }, [items]);
 
+  // Once the live catalogue has loaded, drop bag items that can no longer be
+  // bought (a perfume taken off the shop, or switched back to coming soon), so
+  // checkout never fails on them. Skipped while the saved backup is showing.
+  const { products, loading: productsLoading, error: productsError } = useProducts();
+  useEffect(() => {
+    if (productsLoading || productsError || !products.length) return;
+    const buyable = new Set(products.filter((product) => !isComingSoon(product)).map((product) => product.id));
+    setItems((prev) => (prev.every((item) => buyable.has(item.product_id)) ? prev : prev.filter((item) => buyable.has(item.product_id))));
+  }, [products, productsLoading, productsError]);
+
   const addToCart = useCallback((product) => {
     if (!product?.id || !product?.price) {
       console.warn("CartContext: addToCart called with invalid product", product);
       return;
     }
+    if (isComingSoon(product)) return;
     trackEvent("add_to_cart", { product: product.slug });
     pixelAddToCart(product);
     setItems((prev) => {

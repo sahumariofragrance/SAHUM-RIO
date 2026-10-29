@@ -65,13 +65,12 @@ module.exports = async (req, res) => {
 
     const ids = items.map((item) => safeInt(item?.product_id));
     if (ids.some((id) => !Number.isInteger(id) || id <= 0)) return res.status(400).json({ message: "Invalid product ID" });
-    const { data: catalogueRows, error: catalogueError } = await serverClient
-      .from("products")
-      .select("id,name,slug,price,active")
-      .in("id", ids)
-      .eq("active", true);
+    const catalogueQuery = (fields) => serverClient.from("products").select(fields).in("id", ids).eq("active", true);
+    let { data: catalogueRows, error: catalogueError } = await catalogueQuery("id,name,slug,price,active,coming_soon");
+    // Before the coming-soon migration runs there is no such column: every perfume is on sale.
+    if (catalogueError && /coming_soon/.test(catalogueError.message || "")) ({ data: catalogueRows, error: catalogueError } = await catalogueQuery("id,name,slug,price,active"));
     if (catalogueError) throw catalogueError;
-    const catalogue = new Map((catalogueRows || []).map((product) => [Number(product.id), { name: product.name, slug: product.slug, price: Number(product.price) }]));
+    const catalogue = new Map((catalogueRows || []).map((product) => [Number(product.id), { name: product.name, slug: product.slug, price: Number(product.price), comingSoon: Boolean(product.coming_soon) }]));
 
     const seen = new Set(); let count = 0; let amountPaise = 0;
     const normalizedItems = [];
@@ -79,6 +78,7 @@ module.exports = async (req, res) => {
       if (!plain(item)) return res.status(400).json({ message: "Invalid item" });
       const id = safeInt(item.product_id); const qty = safeInt(item.qty); const product = catalogue.get(id);
       if (!product) return res.status(400).json({ message: `Product ${item.product_id} is unavailable` });
+      if (product.comingSoon) return res.status(400).json({ message: `${product.name} is coming soon and can't be ordered yet. Please remove it from your bag.` });
       if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY_PER_ITEM) return res.status(400).json({ message: "Invalid quantity" });
       if (seen.has(id)) return res.status(400).json({ message: `Duplicate product_id ${id}` });
       const unitPaise = Math.round(Number(product.price) * 100);

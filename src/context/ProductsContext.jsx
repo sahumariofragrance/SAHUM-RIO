@@ -5,6 +5,8 @@ import fallbackProducts from "../data/products.json";
 const ProductsContext = createContext(null);
 
 const PRODUCT_FIELDS = "id,slug,name,description,price,image_url,alt,notes,size_volume,fragrance_family,scent_profile,occasion,active,display_order,updated_at";
+// Added by supabase/migrations/20261029120000_coming_soon_and_new_collection.sql.
+const AVAILABILITY_FIELDS = "coming_soon,audience";
 
 function withImageVersion(url, updatedAt) {
   const value = String(url || "");
@@ -50,8 +52,10 @@ export function ProductsProvider({ children }) {
       .eq("active", true)
       .order("display_order", { ascending: true })
       .order("id", { ascending: true });
-    let { data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls`);
-    // Before the gallery_urls migration runs, load without it rather than falling back.
+    let { data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls,${AVAILABILITY_FIELDS}`);
+    // Before the coming-soon migration runs, load without those columns
+    // (then every perfume is on sale), and likewise before the gallery one.
+    if (queryError && /coming_soon|audience/.test(queryError.message || "")) ({ data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls`));
     if (queryError && /gallery_urls/.test(queryError.message || "")) ({ data, error: queryError } = await query(PRODUCT_FIELDS));
 
     if (queryError) {

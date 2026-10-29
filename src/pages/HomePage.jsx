@@ -6,6 +6,8 @@ import IndiaFlag from "../components/IndiaFlag";
 import PromoTicket from "../components/PromoTicket";
 import DiwaliOffer from "../components/DiwaliOffer";
 import ScentQuiz, { QuizInvite } from "../components/ScentQuiz";
+import AudienceFilter from "../components/AudienceFilter";
+import { onSaleFirst } from "../lib/catalogue";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
@@ -20,14 +22,18 @@ export default function HomePage({ onProductNavigate, setCurrentPage, openQuiz =
   const { items, addToCart, updateQty } = useCart();
   const { products: catalogueProducts, loading } = useProducts();
   const [sort, setSort] = useState("featured");
+  const [audience, setAudience] = useState("all");
   // sahumario.com/quiz opens the homepage with the quiz already showing.
   const [quizOpen, setQuizOpen] = useState(openQuiz);
   const itemQtyById = useMemo(() => items.reduce((acc, item) => { acc[item.product_id] = item.qty; return acc; }, {}), [items]);
   const products = useMemo(() => {
-    const list = catalogueProducts.map((product) => ({ ...product, qty: itemQtyById[product.id] ?? 0 }));
+    const list = catalogueProducts
+      .filter((product) => audience === "all" || product.audience === audience)
+      .map((product) => ({ ...product, qty: itemQtyById[product.id] ?? 0 }));
     const { compare } = SORTS[sort];
-    return compare ? [...list].sort(compare) : list;
-  }, [catalogueProducts, itemQtyById, sort]);
+    // Perfumes that can be bought now come before those coming soon.
+    return onSaleFirst(compare ? [...list].sort(compare) : list);
+  }, [catalogueProducts, itemQtyById, sort, audience]);
   const handleAdd = useCallback((product) => addToCart(product), [addToCart]);
   const handleQty = useCallback((productId, qty) => updateQty(productId, qty), [updateQty]);
   // Also when coming back to /quiz with the browser's back button.
@@ -71,6 +77,8 @@ export default function HomePage({ onProductNavigate, setCurrentPage, openQuiz =
           </select>
         </label>
       </div>
+
+      <AudienceFilter products={catalogueProducts} value={audience} onChange={setAudience} className="mt-4" />
 
       <div className="pb-24 pt-6 md:pb-32 md:pt-8">
         <ProductGrid products={products} loading={loading} onSelectProduct={onProductNavigate} onAddToCart={handleAdd} onUpdateQty={handleQty} />

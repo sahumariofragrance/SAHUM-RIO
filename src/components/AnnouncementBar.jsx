@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { saveCode, usePromo } from "../lib/promo";
 import { COMBO, comboActive } from "../lib/offers";
 import { formatINR } from "../utils/money";
+import { useProducts } from "../context/ProductsContext";
+import { forSale } from "../lib/catalogue";
 
 const DELIVERY = "Complimentary delivery across India";
 const SAMPLE = "A free 2 ml sample in every order";
@@ -9,7 +11,9 @@ const SAMPLE = "A free 2 ml sample in every order";
 /** Top bar: free delivery, taking turns with the Diwali offer, the free sample and the promoted code. */
 export default function AnnouncementBar() {
   const promo = usePromo();
-  const combo = comboActive();
+  const { products } = useProducts();
+  // The any-2 offer needs at least two perfumes on sale.
+  const combo = comboActive() && forSale(products).length >= 2;
   const slides = ["delivery", ...(combo ? ["combo"] : []), "sample", ...(promo ? ["promo"] : [])];
   const [index, setIndex] = useState(0);
   const [saved, setSaved] = useState(false);

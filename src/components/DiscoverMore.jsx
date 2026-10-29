@@ -3,13 +3,17 @@ import PerfumeCardOptimized from "./PerfumeCardOptimized";
 import SpaLink from "./SpaLink";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
+import { onSaleFirst } from "../lib/catalogue";
 
 // Phones: two cards across with the third peeking in. Desktop: one row.
 const CARD_SIZES = "(min-width: 1024px) 18vw, (min-width: 640px) 30vw, 40vw";
+// Two rows on desktop; "View all" leads to the rest.
+const MAX_CARDS = 10;
 
 /**
- * "Discover more" on a perfume page: the rest of the collection, starting
- * with the perfume after this one. Visitors who land straight on one perfume
+ * "Discover more" on a perfume page: more of the collection, starting with
+ * the perfumes after this one, those for the same people (him, her or
+ * unisex) and those on sale first. Visitors who land straight on one perfume
  * (e.g. from an Instagram ad) can browse the others without the menu.
  */
 export default function DiscoverMore({ current, onProductNavigate, onViewAll }) {
@@ -18,9 +22,13 @@ export default function DiscoverMore({ current, onProductNavigate, onViewAll }) 
 
   const others = useMemo(() => {
     const index = products.findIndex((product) => product.id === current.id);
-    if (index < 0) return products.filter((product) => product.id !== current.id);
-    return [...products.slice(index + 1), ...products.slice(0, index)];
-  }, [products, current.id]);
+    const rest = index < 0
+      ? products.filter((product) => product.id !== current.id)
+      : [...products.slice(index + 1), ...products.slice(0, index)];
+    const sameAudience = current.audience ? rest.filter((product) => product.audience === current.audience) : rest;
+    const otherAudience = current.audience ? rest.filter((product) => product.audience !== current.audience) : [];
+    return onSaleFirst([...sameAudience, ...otherAudience]).slice(0, MAX_CARDS);
+  }, [products, current.id, current.audience]);
 
   if (others.length === 0) return null;
   const quantityOf = (id) => items.find((item) => item.product_id === id)?.qty || 0;
