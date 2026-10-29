@@ -36,18 +36,6 @@ export const AUDIENCES = [
   { id: "Unisex", label: "Unisex" },
 ];
 
-export function audienceLabel(product) {
-  return AUDIENCES.find((audience) => audience.id === product?.audience)?.label || "";
-}
-
-/**
- * Designed pictures (not photos of the real bottle) are kept in
- * public/products/illustrations/, so the shop can label them honestly.
- */
-export function isIllustration(url) {
-  return /\/products\/illustrations\//.test(String(url || ""));
-}
-
 /** Perfumes on sale first, then coming soon; otherwise the order is kept. */
 export function onSaleFirst(list) {
   return [...list].sort((a, b) => Number(isComingSoon(a)) - Number(isComingSoon(b)));

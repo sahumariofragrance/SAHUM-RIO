@@ -16,7 +16,7 @@ import { loadImageHue, tonePalette } from "../utils/imageTone";
 import { optimizedSrc } from "../utils/optimizedImage";
 import SpaLink from "../components/SpaLink";
 import { isSampleSet } from "../lib/samples";
-import { forSale, isComingSoon, isIllustration } from "../lib/catalogue";
+import { forSale, isComingSoon } from "../lib/catalogue";
 import { whatsappLink } from "../components/WhatsAppButton";
 
 const AUDIENCE_DETAIL = { Men: "Men", Women: "Women", Unisex: "Everyone (unisex)" };
@@ -116,7 +116,7 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
           <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-surface-muted)]">
             <SafeImage src={activeImage || product.image} alt={product.alt || product.name} sizes="(min-width: 1024px) 55vw, 100vw" className="absolute inset-0 h-full w-full object-cover" priority />
             <p className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-medium tracking-[0.04em] text-white/90 backdrop-blur-[2px]">
-              {isIllustration(activeImage || product.image) ? "Illustration · photo coming soon" : "Real bottle · AI-generated scene"}
+              Real bottle · AI-generated scene
             </p>
           </div>
 
