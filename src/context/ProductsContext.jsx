@@ -54,10 +54,11 @@ export function ProductsProvider({ children }) {
       .order("id", { ascending: true });
     let { data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls,${AVAILABILITY_FIELDS}`);
     const beforeMigration = Boolean(queryError) && /coming_soon|audience/.test(queryError.message || "");
-    // Vercel preview links only, never sahumario.com: until the migration adds
-    // the new collection to the database, show the same 50 perfumes from
+    // Vercel preview links only (*.vercel.app; the live site's vercel.app
+    // addresses redirect to sahumario.com): until the migration adds the new
+    // collection to the database, show the same 50 perfumes from
     // src/data/new-collection.json so they can be checked before going live.
-    if (process.env.REACT_APP_VERCEL_ENV === "preview" && beforeMigration) {
+    if (beforeMigration && window.location.hostname.endsWith(".vercel.app")) {
       const { default: collection } = await import("../data/new-collection.json");
       setProducts(collection.map(normalizeProduct));
       setLoading(false);
