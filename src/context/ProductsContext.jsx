@@ -53,9 +53,19 @@ export function ProductsProvider({ children }) {
       .order("display_order", { ascending: true })
       .order("id", { ascending: true });
     let { data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls,${AVAILABILITY_FIELDS}`);
+    const beforeMigration = Boolean(queryError) && /coming_soon|audience/.test(queryError.message || "");
+    // Vercel preview links only, never sahumario.com: until the migration adds
+    // the new collection to the database, show the same 50 perfumes from
+    // src/data/new-collection.json so they can be checked before going live.
+    if (process.env.REACT_APP_VERCEL_ENV === "preview" && beforeMigration) {
+      const { default: collection } = await import("../data/new-collection.json");
+      setProducts(collection.map(normalizeProduct));
+      setLoading(false);
+      return;
+    }
     // Before the coming-soon migration runs, load without those columns
     // (then every perfume is on sale), and likewise before the gallery one.
-    if (queryError && /coming_soon|audience/.test(queryError.message || "")) ({ data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls`));
+    if (beforeMigration) ({ data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls`));
     if (queryError && /gallery_urls/.test(queryError.message || "")) ({ data, error: queryError } = await query(PRODUCT_FIELDS));
 
     if (queryError) {
