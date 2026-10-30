@@ -4,28 +4,31 @@ import SafeImage from "./SafeImage";
 import ComboNudge from "./ComboNudge";
 import { TesterPicker } from "./SpinWheel";
 import { COMBO } from "../lib/offers";
+import { prizeLabel } from "../lib/spinWheel";
 import { formatINR } from "../utils/money";
 
 const SPIN_CODE = /^SPIN[A-Z0-9]{6}$/;
 
 /** A spin wheel prize of free testers: choose them, or keep them for another order. */
-function FreeTesters({ count, ml, useBy, options, picks, needsBottle, skipped, error, onToggle, onSkip, onUnskip }) {
+function FreeTesters({ count, useBy, options, picks, needsBottle, skipped, error, onToggle, onSkip, onUnskip }) {
+  const one = count === 1;
   const note = skipped
     ? `Saved for another order until ${useBy}.`
-    : needsBottle ? "They come with a perfume bottle: add one to your bag." : `Choose ${count}, each a different fragrance family to your bag.`;
+    : needsBottle ? `${one ? "It comes" : "They come"} with a perfume bottle: add one to your bag.`
+      : one ? "Choose one from a different fragrance family to your bag." : `Choose ${count}, each a different fragrance family to your bag.`;
   return (
     <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-3">
       <div className="flex items-start justify-between gap-3">
         <p className="flex items-start gap-2 text-sm">
           <Gift className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-kesar)]" aria-hidden="true" />
           <span>
-            <span className="font-semibold">Spin prize: {count} free {ml} ml testers</span>
+            <span className="font-semibold">Spin prize: {prizeLabel({ testers: count })}</span>
             <span className="mt-0.5 block text-xs text-[var(--color-muted)]">{note}</span>
           </span>
         </p>
         {!needsBottle && (
           <button type="button" onClick={skipped ? onUnskip : onSkip} className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-[var(--color-muted)] underline-offset-4 hover:text-[var(--color-text)] hover:underline">
-            {skipped ? "Add them" : "Not now"}
+            {skipped ? (one ? "Add it" : "Add them") : "Not now"}
           </button>
         )}
       </div>

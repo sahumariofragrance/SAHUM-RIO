@@ -153,9 +153,10 @@ export default function CheckoutPage({ setCurrentPage }) {
 
   const toggleTester = useCallback((id) => {
     if (!prize) return;
+    // With one tester to choose, another perfume replaces the pick.
     const chosen = testerPicks.includes(id)
       ? testerPicks.filter((chosenId) => chosenId !== id)
-      : testerPicks.length < prize.testers ? [...testerPicks, id] : testerPicks;
+      : testerPicks.length < prize.testers ? [...testerPicks, id] : prize.testers === 1 ? [id] : testerPicks;
     const next = { ...prize, chosen };
     saveSpin(next);
     setSpin(next);
@@ -183,7 +184,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     const usingGuestCheckout = !user || isGuest || guestCheckout;
     if (!formValid) { setError("Please complete all required shipping fields before proceeding."); return; }
     if (sendTesters && testerPicks.length !== prize.testers) {
-      setTesterError(`Choose your ${prize.testers} free testers in the order summary, or tap “Not now”.`);
+      setTesterError(`Choose your ${prize.testers === 1 ? "free tester" : `${prize.testers} free testers`} in the order summary, or tap “Not now”.`);
       return;
     }
     const razorpayKey = process.env.REACT_APP_RAZORPAY_KEY_ID;
@@ -259,7 +260,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100"><CheckCircle2 className="h-10 w-10 text-green-600" /></div>
       <h1 ref={successRef} tabIndex={-1} className="mt-6 text-3xl font-semibold outline-none">Payment successful</h1>
       <p className="mt-3 text-[var(--color-muted)]">Your payment was verified and your order is now waiting for SAHUMäRIO review.</p>
-      {packedTesters.length > 0 && <p className="mt-2 text-sm">Your free {WHEEL.testerMl} ml testers, {packedTesters.join(" and ")}, will be packed with it.</p>}
+      {packedTesters.length > 0 && <p className="mt-2 text-sm">Your free {WHEEL.testerMl} ml tester{packedTesters.length === 1 ? "" : "s"}, {packedTesters.join(" and ")}, will be packed with it.</p>}
       {guestCheckout && <p className="mt-2 text-sm text-[var(--color-muted)]">We’ll send order updates to the email you provided. Keep your order number for reference.</p>}
       {confirmedOrderId && <p className="mt-2 font-mono text-xs text-[var(--color-muted)]">Order ID: {confirmedOrderId}</p>}
       <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
@@ -288,7 +289,7 @@ export default function CheckoutPage({ setCurrentPage }) {
         <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={summaryItems} subtotal={subtotal} total={total} discountPercent={discount?.percent || 0} discountCode={discount?.code || ""} codeUnused={Boolean(discount) && !useCode} offerAmount={useCode ? 0 : offerAmount} offerLabel={`${COMBO.label} · any 2 for ${formatINR(COMBO.pairPrice)}`} onApplyCode={applyCode} onRemoveCode={removeCode} codeError={codeError} applyingCode={applyingCode} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading}
           onSpin={canSpin && !wheelShown ? () => setWheelShown(true) : undefined}
           freeTesters={prize?.testers ? {
-            count: prize.testers, ml: WHEEL.testerMl, useBy: prizeUseBy(prize), options: testerOptions, picks: testerPicks,
+            count: prize.testers, useBy: prizeUseBy(prize), options: testerOptions, picks: testerPicks,
             needsBottle: !hasBottle, skipped: testersSkipped, error: testerError,
             onToggle: toggleTester, onSkip: () => { setTestersSkipped(true); setTesterError(""); }, onUnskip: () => setTestersSkipped(false),
           } : undefined}

@@ -6,15 +6,14 @@ import { useProducts } from "../context/ProductsContext";
 import { forSale } from "../lib/catalogue";
 
 const DELIVERY = "Complimentary delivery across India";
-const SAMPLE = "A free 2 ml sample in every order";
 
-/** Top bar: free delivery, taking turns with the Diwali offer, the free sample and the promoted code. */
+/** Top bar: free delivery, taking turns with the Diwali offer and the promoted code. */
 export default function AnnouncementBar() {
   const promo = usePromo();
   const { products } = useProducts();
   // The any-2 offer needs at least two perfumes on sale.
   const combo = comboActive() && forSale(products).length >= 2;
-  const slides = ["delivery", ...(combo ? ["combo"] : []), "sample", ...(promo ? ["promo"] : [])];
+  const slides = ["delivery", ...(combo ? ["combo"] : []), ...(promo ? ["promo"] : [])];
   const [index, setIndex] = useState(0);
   const [saved, setSaved] = useState(false);
   const count = slides.length;
@@ -43,7 +42,6 @@ export default function AnnouncementBar() {
   return (
     <div className="relative h-8 overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-bg)] text-center text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
       <p className={`${base} ${shown("delivery")}`} aria-hidden={active !== "delivery"}>{DELIVERY}</p>
-      <p className={`${base} ${shown("sample")}`} aria-hidden={active !== "sample"}>{SAMPLE}</p>
       {combo && (
         <p className={`${base} text-[var(--color-kesar)] ${shown("combo")}`} aria-hidden={active !== "combo"}>
           {COMBO.short || COMBO.label} · any 2 for {formatINR(COMBO.pairPrice)}

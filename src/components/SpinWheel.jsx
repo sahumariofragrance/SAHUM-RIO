@@ -8,6 +8,9 @@ const SEGMENT_DEG = 360 / WHEEL.segments.length;
 const TURNS = 6;
 const SPIN_MS = 4800;
 const GOLD = "#C9A35A";
+const TESTERS = WHEEL.segments.find((segment) => segment.testers)?.testers || 0;
+
+const sentence = (text) => text.charAt(0).toUpperCase() + text.slice(1);
 
 function segmentColours(segment) {
   if (segment.testers) return { fill: "#A24B14", text: "#FFF4E6" };
@@ -36,10 +39,10 @@ function Wheel({ rotation, durationMs, onStopped }) {
             <g key={index}>
               <path d={`M0 0L${point(98, from)}A98 98 0 0 1 ${point(98, from + SEGMENT_DEG)}Z`} fill={colours.fill} stroke={GOLD} strokeWidth="0.8" />
               <g transform={`rotate(${from + SEGMENT_DEG / 2})`} fill={colours.text} textAnchor="middle">
-                <text y="-63" className="font-serif" fontSize={segment.testers ? 13 : 19} fontWeight="700">
-                  {segment.testers ? `${segment.testers} FREE` : `${segment.percent}%`}
+                <text y="-63" className="font-serif" fontSize={segment.testers ? 14 : 19} fontWeight="700">
+                  {segment.testers ? `${segment.testers === 1 ? "" : `${segment.testers} `}FREE` : `${segment.percent}%`}
                 </text>
-                <text y="-50" fontSize="6.2" fontWeight="700" letterSpacing="1.3">{segment.testers ? "TESTERS" : "OFF"}</text>
+                <text y="-50" fontSize="6.2" fontWeight="700" letterSpacing="1.3">{segment.testers ? (segment.testers === 1 ? "TESTER" : "TESTERS") : "OFF"}</text>
               </g>
             </g>
           );
@@ -56,9 +59,12 @@ function Wheel({ rotation, durationMs, onStopped }) {
   );
 }
 
-/** Choose free testers: one row per suggested perfume; `picks` are product ids. */
+/**
+ * Choose free testers: one row per suggested perfume; `picks` are product ids.
+ * With one tester to choose, tapping another perfume switches to it.
+ */
 export function TesterPicker({ options, picks, count, onToggle, showImages = true }) {
-  const full = picks.length >= count;
+  const full = count > 1 && picks.length >= count;
   return (
     <ul className="space-y-2">
       {options.map((product) => {
@@ -185,7 +191,7 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = 
 
         <div className="text-center">
           <h2 className="font-serif text-3xl font-semibold">{won ? "You won!" : "Spin for a gift"}</h2>
-          <p className="mx-auto mt-1 max-w-xs text-sm text-[var(--color-muted)]">{won ? prizeLabel(spin) : `One spin per customer: ${wheelPrizes()}.`}</p>
+          <p className="mx-auto mt-1 max-w-xs text-sm text-[var(--color-muted)]">{won ? sentence(prizeLabel(spin)) : `One spin per customer: ${wheelPrizes()}.`}</p>
         </div>
 
         {!won && (
@@ -205,7 +211,10 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = 
           )}
           {won && spin.testers && (
             <div className="mt-5">
-              <p className="inline-flex items-center gap-2 text-sm font-semibold"><Gift className="h-4 w-4 text-[var(--color-kesar)]" aria-hidden="true" />Choose {spin.testers}, each a different family to your bag</p>
+              <p className="inline-flex items-center gap-2 text-sm font-semibold">
+                <Gift className="h-4 w-4 shrink-0 text-[var(--color-kesar)]" aria-hidden="true" />
+                {spin.testers === 1 ? "Choose your tester, from a different family to your bag" : `Choose ${spin.testers}, each a different family to your bag`}
+              </p>
               <p className="mt-1 text-xs text-[var(--color-muted)]">Packed free with your order. Use it by {prizeUseBy(spin)}.</p>
               <div className="mt-3">
                 <TesterPicker options={testerOptions} picks={picks} count={spin.testers} onToggle={onTogglePick} />
@@ -219,9 +228,9 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = 
           {won ? (
             <>
               <button type="button" onClick={close} disabled={!testersReady} className="w-full rounded-full bg-[var(--color-text)] px-5 py-3 font-semibold text-[var(--color-bg)] transition hover:opacity-90 disabled:opacity-40">
-                {testersReady ? "Continue to checkout" : `Choose ${spin.testers - picks.length} more`}
+                {testersReady ? "Continue to checkout" : spin.testers === 1 ? "Choose your tester" : `Choose ${spin.testers - picks.length} more`}
               </button>
-              {!testersReady && <button type="button" onClick={close} className="w-full py-2 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]">Choose them at checkout</button>}
+              {!testersReady && <button type="button" onClick={close} className="w-full py-2 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]">Choose {spin.testers === 1 ? "it" : "them"} at checkout</button>}
             </>
           ) : (
             <>
@@ -236,7 +245,8 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = 
         </div>
 
         <p className="mt-3 text-center text-[11px] leading-4 text-[var(--color-muted)]">
-          One prize per customer, checked by email and phone number. Valid on one order for {WHEEL.validDays} days. Free testers come with a perfume bottle.
+          One prize per customer, checked by email and phone number. Valid on one order for {WHEEL.validDays} days.
+          {TESTERS > 0 && ` ${TESTERS === 1 ? "The free tester comes" : "Free testers come"} with a perfume bottle.`}
         </p>
       </div>
     </div>

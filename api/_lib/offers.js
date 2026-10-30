@@ -9,7 +9,7 @@ const { combo } = require("../../src/data/offers.json");
 /**
  * A discovery box (URL starting with "discovery", e.g. /product/discovery-box)
  * holds sample vials, not a bottle, so it is not part of the offer. The
- * website uses the same rule (src/lib/samples.js).
+ * website uses the same rule (src/lib/catalogue.js).
  */
 function isSampleSetSlug(slug) {
   return /^discovery/.test(String(slug || ""));

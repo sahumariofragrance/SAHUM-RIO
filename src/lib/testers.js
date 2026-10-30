@@ -1,4 +1,4 @@
-// Free 10 ml testers won on the spin wheel: which perfumes to suggest.
+// The free 10 ml tester won on the spin wheel: which perfumes to suggest.
 import { forSale } from "./catalogue";
 
 /** The words of a perfume's fragrance family, e.g. "Spicy woody" → spicy, woody. */
@@ -14,8 +14,8 @@ function sharesWord(words, others) {
  * Perfumes to offer as free testers with the bag `items`: on sale, not in the
  * bag, and from a different fragrance family to every perfume in it (no word
  * of the family in common, so "Woody spicy" counts as the same family as
- * "Spicy woody"). Each suggestion has a family of its own, so any two chosen
- * are different from each other too. Perfumes for the same people as the bag
+ * "Spicy woody"). Each suggestion has a family of its own, so the choices
+ * really differ from each other too. Perfumes for the same people as the bag
  * come first (him or her, and unisex), then the catalogue order. If the bag
  * already covers almost every family, other perfumes fill the list up to two.
  */

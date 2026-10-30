@@ -54,7 +54,7 @@ export default function AdminSpinWheelCard() {
           <h2 className="inline-flex items-center gap-2 font-serif text-2xl"><Gift className="h-5 w-5 text-[var(--color-kesar)]" aria-hidden="true" />Spin wheel</h2>
           <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--color-muted)]">
             Opens once at checkout when there’s a perfume in the bag: {wheelPrizes()}, each slice as likely.
-            One prize per customer (email or phone number), for one order within {WHEEL.validDays} days. Testers they choose show on the order to pack.
+            One prize per customer (email or phone number), for one order within {WHEEL.validDays} days. A tester the customer chooses shows on the order to pack.
           </p>
         </div>
         <button

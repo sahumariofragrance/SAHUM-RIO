@@ -200,18 +200,13 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
                 <button onClick={() => updateQty(product.id, quantity + 1)} className="text-lg" aria-label={"Increase " + product.name}>+</button>
               </div>
             )}
-            {!isSampleSet(product) && !comingSoon && (
-              <div className="mt-4 space-y-1.5 text-xs leading-5 text-[var(--color-muted)]">
-                <p><span aria-hidden="true">🎁 </span>A free 2 ml sample of another scent in every order.</p>
-                {sampleSet && perfumeCount > 1 && (
-                  <p>
-                    Not sure yet?{" "}
-                    <SpaLink href={`/product/${sampleSet.slug}`} onNavigate={() => onProductNavigate?.(sampleSet)} className="font-semibold text-[var(--color-text)] underline underline-offset-4 hover:opacity-75">
-                      Try all {perfumeCount} in the {sampleSet.name} for {formatINR(sampleSet.price)}
-                    </SpaLink>
-                  </p>
-                )}
-              </div>
+            {!isSampleSet(product) && !comingSoon && sampleSet && perfumeCount > 1 && (
+              <p className="mt-4 text-xs leading-5 text-[var(--color-muted)]">
+                Not sure yet?{" "}
+                <SpaLink href={`/product/${sampleSet.slug}`} onNavigate={() => onProductNavigate?.(sampleSet)} className="font-semibold text-[var(--color-text)] underline underline-offset-4 hover:opacity-75">
+                  Try all {perfumeCount} in the {sampleSet.name} for {formatINR(sampleSet.price)}
+                </SpaLink>
+              </p>
             )}
           </div>
 

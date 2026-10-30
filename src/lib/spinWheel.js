@@ -40,10 +40,10 @@ export function wheelPrizes() {
   return parts.join(", or ");
 }
 
-/** "10% off" or "2 free 10 ml testers". */
+/** "10% off", "a free 10 ml tester" or "2 free 10 ml testers". */
 export function prizeLabel(prize) {
   if (prize?.percent) return `${prize.percent}% off`;
-  return `${prize?.testers} free ${wheel.testerMl} ml tester${prize?.testers === 1 ? "" : "s"}`;
+  return prize?.testers === 1 ? `a free ${wheel.testerMl} ml tester` : `${prize?.testers} free ${wheel.testerMl} ml testers`;
 }
 
 /** The last day to use the prize, e.g. "6 Nov", in Indian time. */

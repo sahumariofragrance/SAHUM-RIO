@@ -133,8 +133,8 @@ module.exports = async (req, res) => {
 
     // A spin wheel prize (../../_lib/spin.js). A percentage off comes in as the
     // discount code above and, like any code, is used only when it saves the
-    // most. Free testers come in as spin_code with the perfumes chosen: a gift,
-    // so they go with any offer or code. One spin prize per order.
+    // most. A free tester comes in as spin_code with the perfume chosen: a
+    // gift, so it goes with any offer or code. One spin prize per order.
     let spinUsed = discount?.spin ? discount.code : null;
     let freeTesters = null;
     if (spinCode) {
@@ -144,16 +144,21 @@ module.exports = async (req, res) => {
       const checked = await checkSpinPrize(serviceClient, { code, email: normalizeEmail(shipping.email), phone: normalizePhone(shipping.phone) });
       if (!checked.ok) return res.status(400).json({ message: checked.message, spinRejected: true });
       if (!checked.prize.testers) return res.status(400).json({ message: "This spin prize is a discount. Apply it as a discount code.", spinRejected: true });
-      if (!normalizedItems.some((item) => !isSampleSetSlug(catalogue.get(item.product_id)?.slug))) {
-        return res.status(400).json({ message: "Free testers come with a perfume bottle. Please add one to your bag.", testersRejected: true });
-      }
       const wanted = checked.prize.testers;
+      if (!normalizedItems.some((item) => !isSampleSetSlug(catalogue.get(item.product_id)?.slug))) {
+        return res.status(400).json({ message: `${wanted === 1 ? "The free tester comes" : "Free testers come"} with a perfume bottle. Please add one to your bag.`, testersRejected: true });
+      }
       const chosen = testerIds.map((id) => catalogue.get(id));
       const valid = chosen.length === wanted
         && new Set(testerIds).size === wanted
         && chosen.every((product) => product && !product.comingSoon && !isSampleSetSlug(product.slug))
         && testerIds.every((id) => !seen.has(id));
-      if (!valid) return res.status(400).json({ message: `Please choose ${wanted} different perfumes, not in your bag, for your free testers.`, testersRejected: true });
+      if (!valid) {
+        const message = wanted === 1
+          ? "Please choose one perfume, not in your bag, for your free tester."
+          : `Please choose ${wanted} different perfumes, not in your bag, for your free testers.`;
+        return res.status(400).json({ message, testersRejected: true });
+      }
       freeTesters = testerIds.map((id) => ({ product_id: id, name: catalogue.get(id).name, ml: wheel.testerMl }));
       spinUsed = checked.prize.code;
     }

@@ -3,7 +3,7 @@
 /**
  * A discovery box: a catalogue product whose URL starts with "discovery"
  * (e.g. sahumario.com/product/discovery-box). It holds small vials, not a
- * bottle, so it is left out of the any-2 offer, the quiz and free samples.
+ * bottle, so it is left out of the any-2 offer, the quiz and the spin wheel tester.
  * The server checks the same rule (api/_lib/offers.js).
  */
 export function isSampleSet(item) {

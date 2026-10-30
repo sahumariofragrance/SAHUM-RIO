@@ -97,7 +97,6 @@ export default function CartPage({ setCurrentPage }) {
 
           <div className="mt-5 space-y-3 border-t border-[var(--color-border)] pt-5 text-sm text-[var(--color-muted)]">
             <div className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-amber-700" /><span>Free shipping across India</span></div>
-            <div className="flex items-center gap-2"><Gift className="h-4 w-4 shrink-0 text-amber-700" /><span>A free 2 ml sample of another scent in every order</span></div>
             <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-amber-700" /><span>Secure Razorpay payment</span></div>
             <div className="flex items-center gap-2"><MailCheck className="h-4 w-4 shrink-0 text-amber-700" /><span>Order updates by email</span></div>
           </div>

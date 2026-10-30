@@ -3,7 +3,7 @@
 -- At checkout the customer spins a wheel once. The server picks the prize
 -- (api/discounts/[action].js; the prizes and their odds are in
 -- src/data/spin.json) and saves it here under a one-off code: 5% or 10% off,
--- or 2 free 10 ml testers the customer chooses from perfumes of a different
+-- or a free 10 ml tester the customer chooses from perfumes of a different
 -- fragrance family to their bag. A code works for one order, it expires after
 -- a few days, and each customer (order email or phone number) can use one
 -- spin prize ever.
@@ -107,7 +107,7 @@ $$;
 revoke all on function public.admin_set_spin_wheel(boolean) from public, anon;
 grant execute on function public.admin_set_spin_wheel(boolean) to authenticated;
 
--- The prize an order used, and the free testers to pack with it:
+-- The prize an order used, and the free tester(s) to pack with it:
 -- [{ "product_id": 112, "name": "Kesar Kasturi", "ml": 10 }, ...].
 alter table public.payment_intents
   add column if not exists spin_code text,
