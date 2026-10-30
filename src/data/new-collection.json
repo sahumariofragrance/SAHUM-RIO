@@ -205,11 +205,12 @@
     "name": "Chandni",
     "description": "Soft as moonlight: clean white musk with neroli, magnolia and a touch of bergamot. A quiet, skin-close scent for anyone.",
     "price": 749,
-    "image_url": "/products/bottles/chandni.webp",
+    "image_url": "/products/scenes/chandni.webp",
     "gallery_urls": [
+      "/products/scenes/chandni.webp",
       "/products/bottles/chandni.webp"
     ],
-    "alt": "SAHUMäRIO Chandni Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Chandni Eau de Parfum 50 ml bottle among its notes: white musk, neroli, magnolia",
     "notes": "Bergamot · Mandarin · Neroli · Magnolia · White musk",
     "size_volume": "50 ml",
     "fragrance_family": "Musky floral",
@@ -225,11 +226,12 @@
     "name": "Chandan Lavender",
     "description": "Creamy sandalwood with calm lavender and bergamot, softened by white musk and vanilla. Relaxed, smooth and elegant.",
     "price": 749,
-    "image_url": "/products/bottles/chandan-lavender.webp",
+    "image_url": "/products/scenes/chandan-lavender.webp",
     "gallery_urls": [
+      "/products/scenes/chandan-lavender.webp",
       "/products/bottles/chandan-lavender.webp"
     ],
-    "alt": "SAHUMäRIO Chandan Lavender Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Chandan Lavender Eau de Parfum 50 ml bottle among its notes: sandalwood, lavender",
     "notes": "Bergamot · Mandarin · Lavender · Sandalwood · White musk · Vanilla",
     "size_volume": "50 ml",
     "fragrance_family": "Woody aromatic",
@@ -245,11 +247,12 @@
     "name": "Gulab Khus",
     "description": "Rose and khus, the pairing of classic Indian attars, in a modern spray: fresh rose over earthy vetiver, sandalwood and black musk.",
     "price": 749,
-    "image_url": "/products/bottles/gulab-khus.webp",
+    "image_url": "/products/scenes/gulab-khus.webp",
     "gallery_urls": [
+      "/products/scenes/gulab-khus.webp",
       "/products/bottles/gulab-khus.webp"
     ],
-    "alt": "SAHUMäRIO Gulab Khus Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Gulab Khus Eau de Parfum 50 ml bottle among its notes: rose, vetiver",
     "notes": "Bergamot · Mandarin · Rose · Vetiver (khus) · Sandalwood · Black musk",
     "size_volume": "50 ml",
     "fragrance_family": "Floral woody",
@@ -265,11 +268,12 @@
     "name": "Kesar Kasturi",
     "description": "Saffron and dark musk, two treasures of Indian perfumery, with bergamot, sandalwood and a touch of vanilla. Warm, rich and sensual.",
     "price": 749,
-    "image_url": "/products/bottles/kesar-kasturi.webp",
+    "image_url": "/products/scenes/kesar-kasturi.webp",
     "gallery_urls": [
+      "/products/scenes/kesar-kasturi.webp",
       "/products/bottles/kesar-kasturi.webp"
     ],
-    "alt": "SAHUMäRIO Kesar Kasturi Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Kesar Kasturi Eau de Parfum 50 ml bottle among its notes: kesar, black musk",
     "notes": "Bergamot · Mandarin · Saffron (kesar) · Black musk · Sandalwood · Vanilla",
     "size_volume": "50 ml",
     "fragrance_family": "Musky spicy",
@@ -285,11 +289,12 @@
     "name": "Mogra Oud",
     "description": "Heady mogra (jasmine) over rich oud, sandalwood and black musk. Opulent, deep and made for celebrations.",
     "price": 749,
-    "image_url": "/products/bottles/mogra-oud.webp",
+    "image_url": "/products/scenes/mogra-oud.webp",
     "gallery_urls": [
+      "/products/scenes/mogra-oud.webp",
       "/products/bottles/mogra-oud.webp"
     ],
-    "alt": "SAHUMäRIO Mogra Oud Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Mogra Oud Eau de Parfum 50 ml bottle among its notes: jasmine, oud",
     "notes": "Bergamot · Mandarin · Jasmine · Oud · Sandalwood · Black musk",
     "size_volume": "50 ml",
     "fragrance_family": "Floral oud",
