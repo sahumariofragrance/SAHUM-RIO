@@ -55,17 +55,18 @@ export function ProductsProvider({ children }) {
     let { data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls,${AVAILABILITY_FIELDS}`);
     const beforeMigration = Boolean(queryError) && /coming_soon|audience/.test(queryError.message || "");
     // Vercel preview links only (*.vercel.app; the live site's vercel.app
-    // addresses redirect to sahumario.com): until the migration adds the new
-    // perfumes to the database, show the ones it puts on sale from
-    // src/data/new-collection.json after the database's own, so the shop can
-    // be checked before going live.
+    // addresses redirect to sahumario.com): until the migration has run, show
+    // the shop as it will leave it, from src/data/new-collection.json: the
+    // database's perfumes with the "For" it gives them, then the new ones it
+    // puts on sale, so the shop can be checked before going live.
     if (beforeMigration && window.location.hostname.endsWith(".vercel.app")) {
       const [{ default: collection }, current] = await Promise.all([
         import("../data/new-collection.json"),
         query(`${PRODUCT_FIELDS},gallery_urls`),
       ]);
       if (!current.error) {
-        setProducts([...(current.data || []), ...collection].map(normalizeProduct));
+        const existing = (current.data || []).map((product) => ({ ...product, audience: collection.audience[product.slug] ?? null }));
+        setProducts([...existing, ...collection.products].map(normalizeProduct));
         setLoading(false);
         return;
       }

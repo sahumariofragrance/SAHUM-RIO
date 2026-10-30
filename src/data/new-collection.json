@@ -1,317 +1,327 @@
-[
-  {
-    "id": 1008,
-    "slug": "hara-ananas",
-    "name": "Hara Ananas",
-    "description": "Juicy pineapple and zesty lemon lifted by fresh green basil, resting on cool vetiver and cedarwood. Bright, green and full of energy.",
-    "price": 749,
-    "image_url": "/products/scenes/hara-ananas.webp",
-    "gallery_urls": [
-      "/products/scenes/hara-ananas.webp",
-      "/products/bottles/hara-ananas.webp"
-    ],
-    "alt": "SAHUMäRIO Hara Ananas Eau de Parfum 50 ml bottle among its notes: pineapple, basil",
-    "notes": "Pineapple · Lemon · Bergamot · Basil · Vetiver (khus) · Cedarwood",
-    "size_volume": "50 ml",
-    "fragrance_family": "Fruity aromatic",
-    "scent_profile": "Juicy pineapple with fresh green basil",
-    "occasion": "Daytime, summer and travel",
-    "audience": "Men",
-    "coming_soon": false,
-    "display_order": 100
+{
+  "audience": {
+    "bloom": "Unisex",
+    "dew-drop": "Unisex",
+    "lemon-breeze": "Unisex",
+    "morning-dew": "Unisex",
+    "night-queen": "Unisex",
+    "blix": "Unisex"
   },
-  {
-    "id": 1011,
-    "slug": "kali-elaichi",
-    "name": "Kali Elaichi",
-    "description": "Cardamom and cracked black pepper over bergamot and grapefruit, deepened with black musk and cedarwood. Spicy, dark and magnetic.",
-    "price": 749,
-    "image_url": "/products/scenes/kali-elaichi.webp",
-    "gallery_urls": [
-      "/products/scenes/kali-elaichi.webp",
-      "/products/bottles/kali-elaichi.webp"
-    ],
-    "alt": "SAHUMäRIO Kali Elaichi Eau de Parfum 50 ml bottle among its notes: cardamom, black pepper",
-    "notes": "Bergamot · Grapefruit · Cardamom · Black pepper · Black musk · Cedarwood",
-    "size_volume": "50 ml",
-    "fragrance_family": "Spicy woody",
-    "scent_profile": "Cardamom and black pepper on dark musk",
-    "occasion": "Evenings and cooler days",
-    "audience": "Men",
-    "coming_soon": false,
-    "display_order": 110
-  },
-  {
-    "id": 1016,
-    "slug": "chandan-mirch",
-    "name": "Chandan Mirch",
-    "description": "Creamy sandalwood warmed by a crack of black pepper and lifted by mandarin. Smooth, elegant and quietly confident.",
-    "price": 749,
-    "image_url": "/products/scenes/chandan-mirch.webp",
-    "gallery_urls": [
-      "/products/scenes/chandan-mirch.webp",
-      "/products/bottles/chandan-mirch.webp"
-    ],
-    "alt": "SAHUMäRIO Chandan Mirch Eau de Parfum 50 ml bottle among its notes: sandalwood, black pepper",
-    "notes": "Mandarin · Bergamot · Black pepper · Sandalwood · White musk",
-    "size_volume": "50 ml",
-    "fragrance_family": "Woody spicy",
-    "scent_profile": "Creamy sandalwood with black pepper",
-    "occasion": "Every day and evenings",
-    "audience": "Men",
-    "coming_soon": false,
-    "display_order": 120
-  },
-  {
-    "id": 1002,
-    "slug": "rajtilak",
-    "name": "Rajtilak",
-    "description": "A golden touch of saffron, like a king's tilak, laid over smooth leather and dry cedarwood. Bergamot keeps it bright; black musk keeps it close.",
-    "price": 749,
-    "image_url": "/products/scenes/rajtilak.webp",
-    "gallery_urls": [
-      "/products/scenes/rajtilak.webp",
-      "/products/bottles/rajtilak.webp"
-    ],
-    "alt": "SAHUMäRIO Rajtilak Eau de Parfum 50 ml bottle among its notes: kesar, leather",
-    "notes": "Bergamot · Mandarin · Saffron (kesar) · Leather · Cedarwood · Black musk",
-    "size_volume": "50 ml",
-    "fragrance_family": "Saffron leather",
-    "scent_profile": "Golden saffron on smooth leather",
-    "occasion": "Weddings, festivals and special evenings",
-    "audience": "Men",
-    "coming_soon": false,
-    "display_order": 130
-  },
-  {
-    "id": 1001,
-    "slug": "samrat",
-    "name": "Samrat",
-    "description": "Samrat opens with bright mandarin and a warm thread of cinnamon, then settles into smoky oud wrapped in vanilla and creamy sandalwood. Rich and regal, made for the evenings you want to be remembered.",
-    "price": 749,
-    "image_url": "/products/scenes/samrat.webp",
-    "gallery_urls": [
-      "/products/scenes/samrat.webp",
-      "/products/bottles/samrat.webp"
-    ],
-    "alt": "SAHUMäRIO Samrat Eau de Parfum 50 ml bottle among its notes: oud, cinnamon, vanilla",
-    "notes": "Mandarin · Bergamot · Cinnamon · Oud · Vanilla · Sandalwood",
-    "size_volume": "50 ml",
-    "fragrance_family": "Spicy oud",
-    "scent_profile": "Rich, spiced and regal",
-    "occasion": "Evenings, weddings and festivals",
-    "audience": "Men",
-    "coming_soon": false,
-    "display_order": 140
-  },
-  {
-    "id": 1023,
-    "slug": "komal",
-    "name": "Komal",
-    "description": "Gentle magnolia and soft ripe peach on a light bed of white musk and sandalwood. Tender and fresh, like a soft morning.",
-    "price": 749,
-    "image_url": "/products/scenes/komal.webp",
-    "gallery_urls": [
-      "/products/scenes/komal.webp",
-      "/products/bottles/komal.webp"
-    ],
-    "alt": "SAHUMäRIO Komal Eau de Parfum 50 ml bottle among its notes: magnolia, peach",
-    "notes": "Mandarin · Bergamot · Magnolia · Peach · White musk · Sandalwood",
-    "size_volume": "50 ml",
-    "fragrance_family": "Fruity floral",
-    "scent_profile": "Tender magnolia and ripe peach",
-    "occasion": "Every day, office and daytime",
-    "audience": "Women",
-    "coming_soon": false,
-    "display_order": 150
-  },
-  {
-    "id": 1028,
-    "slug": "gulabi-savar",
-    "name": "Gulabi Savar",
-    "description": "A pink morning: sparkling grapefruit and a dewy rose over airy white musk and a touch of vetiver. Fresh, bright and modern.",
-    "price": 749,
-    "image_url": "/products/scenes/gulabi-savar.webp",
-    "gallery_urls": [
-      "/products/scenes/gulabi-savar.webp",
-      "/products/bottles/gulabi-savar.webp"
-    ],
-    "alt": "SAHUMäRIO Gulabi Savar Eau de Parfum 50 ml bottle among its notes: grapefruit, rose",
-    "notes": "Grapefruit · Bergamot · Rose · Vetiver (khus) · White musk",
-    "size_volume": "50 ml",
-    "fragrance_family": "Fresh floral",
-    "scent_profile": "Pink grapefruit and morning rose",
-    "occasion": "Daytime, office and summer",
-    "audience": "Women",
-    "coming_soon": false,
-    "display_order": 160
-  },
-  {
-    "id": 1024,
-    "slug": "mogra-elaichi",
-    "name": "Mogra Elaichi",
-    "description": "Fresh mogra (jasmine) with green cardamom, on creamy sandalwood, white musk and a touch of vanilla. A festive, very Indian floral.",
-    "price": 749,
-    "image_url": "/products/scenes/mogra-elaichi.webp",
-    "gallery_urls": [
-      "/products/scenes/mogra-elaichi.webp",
-      "/products/bottles/mogra-elaichi.webp"
-    ],
-    "alt": "SAHUMäRIO Mogra Elaichi Eau de Parfum 50 ml bottle among its notes: jasmine, cardamom",
-    "notes": "Mandarin · Bergamot · Cardamom · Jasmine · Sandalwood · White musk",
-    "size_volume": "50 ml",
-    "fragrance_family": "Floral spicy",
-    "scent_profile": "Jasmine with green cardamom",
-    "occasion": "Festivals, weddings and evenings",
-    "audience": "Women",
-    "coming_soon": false,
-    "display_order": 170
-  },
-  {
-    "id": 1018,
-    "slug": "rasmalai",
-    "name": "Rasmalai",
-    "description": "Inspired by the dessert: creamy vanilla and soft musk with cardamom and a few threads of saffron, on smooth sandalwood. Sweet, soft and irresistible.",
-    "price": 749,
-    "image_url": "/products/scenes/rasmalai.webp",
-    "gallery_urls": [
-      "/products/scenes/rasmalai.webp",
-      "/products/bottles/rasmalai.webp"
-    ],
-    "alt": "SAHUMäRIO Rasmalai Eau de Parfum 50 ml bottle among its notes: vanilla, cardamom, kesar",
-    "notes": "Mandarin · Cardamom · Saffron (kesar) · Vanilla · Sandalwood · White musk",
-    "size_volume": "50 ml",
-    "fragrance_family": "Gourmand",
-    "scent_profile": "Creamy vanilla, cardamom and saffron",
-    "occasion": "Evenings, festivals and winter",
-    "audience": "Women",
-    "coming_soon": false,
-    "display_order": 180
-  },
-  {
-    "id": 1021,
-    "slug": "laal-gulab",
-    "name": "Laal Gulab",
-    "description": "Juicy dark cherry and a red rose over velvety black musk, sandalwood and vanilla. Bold, sweet and seductive.",
-    "price": 749,
-    "image_url": "/products/scenes/laal-gulab.webp",
-    "gallery_urls": [
-      "/products/scenes/laal-gulab.webp",
-      "/products/bottles/laal-gulab.webp"
-    ],
-    "alt": "SAHUMäRIO Laal Gulab Eau de Parfum 50 ml bottle among its notes: cherry, rose",
-    "notes": "Cherry · Mandarin · Rose · Black musk · Sandalwood · Vanilla",
-    "size_volume": "50 ml",
-    "fragrance_family": "Fruity floral",
-    "scent_profile": "Dark cherry and red rose",
-    "occasion": "Evenings, dates and parties",
-    "audience": "Women",
-    "coming_soon": false,
-    "display_order": 190
-  },
-  {
-    "id": 1042,
-    "slug": "chandni",
-    "name": "Chandni",
-    "description": "Soft as moonlight: clean white musk with neroli, magnolia and a touch of bergamot. A quiet, skin-close scent for anyone.",
-    "price": 749,
-    "image_url": "/products/scenes/chandni.webp",
-    "gallery_urls": [
-      "/products/scenes/chandni.webp",
-      "/products/bottles/chandni.webp"
-    ],
-    "alt": "SAHUMäRIO Chandni Eau de Parfum 50 ml bottle among its notes: white musk, neroli, magnolia",
-    "notes": "Bergamot · Mandarin · Neroli · Magnolia · White musk",
-    "size_volume": "50 ml",
-    "fragrance_family": "Musky floral",
-    "scent_profile": "Soft white musk, like moonlight on skin",
-    "occasion": "Every day, office and nights",
-    "audience": "Unisex",
-    "coming_soon": false,
-    "display_order": 200
-  },
-  {
-    "id": 1043,
-    "slug": "chandan-lavender",
-    "name": "Chandan Lavender",
-    "description": "Creamy sandalwood with calm lavender and bergamot, softened by white musk and vanilla. Relaxed, smooth and elegant.",
-    "price": 749,
-    "image_url": "/products/scenes/chandan-lavender.webp",
-    "gallery_urls": [
-      "/products/scenes/chandan-lavender.webp",
-      "/products/bottles/chandan-lavender.webp"
-    ],
-    "alt": "SAHUMäRIO Chandan Lavender Eau de Parfum 50 ml bottle among its notes: sandalwood, lavender",
-    "notes": "Bergamot · Mandarin · Lavender · Sandalwood · White musk · Vanilla",
-    "size_volume": "50 ml",
-    "fragrance_family": "Woody aromatic",
-    "scent_profile": "Creamy sandalwood and lavender",
-    "occasion": "Every day, office and evenings",
-    "audience": "Unisex",
-    "coming_soon": false,
-    "display_order": 210
-  },
-  {
-    "id": 1035,
-    "slug": "gulab-khus",
-    "name": "Gulab Khus",
-    "description": "Rose and khus, the pairing of classic Indian attars, in a modern spray: fresh rose over earthy vetiver, sandalwood and black musk.",
-    "price": 749,
-    "image_url": "/products/scenes/gulab-khus.webp",
-    "gallery_urls": [
-      "/products/scenes/gulab-khus.webp",
-      "/products/bottles/gulab-khus.webp"
-    ],
-    "alt": "SAHUMäRIO Gulab Khus Eau de Parfum 50 ml bottle among its notes: rose, vetiver",
-    "notes": "Bergamot · Mandarin · Rose · Vetiver (khus) · Sandalwood · Black musk",
-    "size_volume": "50 ml",
-    "fragrance_family": "Floral woody",
-    "scent_profile": "Rose and earthy khus, like a classic attar",
-    "occasion": "Every day, festivals and evenings",
-    "audience": "Unisex",
-    "coming_soon": false,
-    "display_order": 220
-  },
-  {
-    "id": 1037,
-    "slug": "kesar-kasturi",
-    "name": "Kesar Kasturi",
-    "description": "Saffron and dark musk, two treasures of Indian perfumery, with bergamot, sandalwood and a touch of vanilla. Warm, rich and sensual.",
-    "price": 749,
-    "image_url": "/products/scenes/kesar-kasturi.webp",
-    "gallery_urls": [
-      "/products/scenes/kesar-kasturi.webp",
-      "/products/bottles/kesar-kasturi.webp"
-    ],
-    "alt": "SAHUMäRIO Kesar Kasturi Eau de Parfum 50 ml bottle among its notes: kesar, black musk",
-    "notes": "Bergamot · Mandarin · Saffron (kesar) · Black musk · Sandalwood · Vanilla",
-    "size_volume": "50 ml",
-    "fragrance_family": "Musky spicy",
-    "scent_profile": "Saffron on dark musk",
-    "occasion": "Evenings, weddings and winter",
-    "audience": "Unisex",
-    "coming_soon": false,
-    "display_order": 230
-  },
-  {
-    "id": 1036,
-    "slug": "mogra-oud",
-    "name": "Mogra Oud",
-    "description": "Heady mogra (jasmine) over rich oud, sandalwood and black musk. Opulent, deep and made for celebrations.",
-    "price": 749,
-    "image_url": "/products/scenes/mogra-oud.webp",
-    "gallery_urls": [
-      "/products/scenes/mogra-oud.webp",
-      "/products/bottles/mogra-oud.webp"
-    ],
-    "alt": "SAHUMäRIO Mogra Oud Eau de Parfum 50 ml bottle among its notes: jasmine, oud",
-    "notes": "Bergamot · Mandarin · Jasmine · Oud · Sandalwood · Black musk",
-    "size_volume": "50 ml",
-    "fragrance_family": "Floral oud",
-    "scent_profile": "White jasmine on rich oud",
-    "occasion": "Weddings, festivals and evenings",
-    "audience": "Unisex",
-    "coming_soon": false,
-    "display_order": 240
-  }
-]
+  "products": [
+    {
+      "id": 1008,
+      "slug": "hara-ananas",
+      "name": "Hara Ananas",
+      "description": "Juicy pineapple and zesty lemon lifted by fresh green basil, resting on cool vetiver and cedarwood. Bright, green and full of energy.",
+      "price": 749,
+      "image_url": "/products/scenes/hara-ananas.webp",
+      "gallery_urls": [
+        "/products/scenes/hara-ananas.webp",
+        "/products/bottles/hara-ananas.webp"
+      ],
+      "alt": "SAHUMäRIO Hara Ananas Eau de Parfum 50 ml bottle among its notes: pineapple, basil",
+      "notes": "Pineapple · Lemon · Bergamot · Basil · Vetiver (khus) · Cedarwood",
+      "size_volume": "50 ml",
+      "fragrance_family": "Fruity aromatic",
+      "scent_profile": "Juicy pineapple with fresh green basil",
+      "occasion": "Daytime, summer and travel",
+      "audience": "Men",
+      "coming_soon": false,
+      "display_order": 100
+    },
+    {
+      "id": 1011,
+      "slug": "kali-elaichi",
+      "name": "Kali Elaichi",
+      "description": "Cardamom and cracked black pepper over bergamot and grapefruit, deepened with black musk and cedarwood. Spicy, dark and magnetic.",
+      "price": 749,
+      "image_url": "/products/scenes/kali-elaichi.webp",
+      "gallery_urls": [
+        "/products/scenes/kali-elaichi.webp",
+        "/products/bottles/kali-elaichi.webp"
+      ],
+      "alt": "SAHUMäRIO Kali Elaichi Eau de Parfum 50 ml bottle among its notes: cardamom, black pepper",
+      "notes": "Bergamot · Grapefruit · Cardamom · Black pepper · Black musk · Cedarwood",
+      "size_volume": "50 ml",
+      "fragrance_family": "Spicy woody",
+      "scent_profile": "Cardamom and black pepper on dark musk",
+      "occasion": "Evenings and cooler days",
+      "audience": "Men",
+      "coming_soon": false,
+      "display_order": 110
+    },
+    {
+      "id": 1016,
+      "slug": "chandan-mirch",
+      "name": "Chandan Mirch",
+      "description": "Creamy sandalwood warmed by a crack of black pepper and lifted by mandarin. Smooth, elegant and quietly confident.",
+      "price": 749,
+      "image_url": "/products/scenes/chandan-mirch.webp",
+      "gallery_urls": [
+        "/products/scenes/chandan-mirch.webp",
+        "/products/bottles/chandan-mirch.webp"
+      ],
+      "alt": "SAHUMäRIO Chandan Mirch Eau de Parfum 50 ml bottle among its notes: sandalwood, black pepper",
+      "notes": "Mandarin · Bergamot · Black pepper · Sandalwood · White musk",
+      "size_volume": "50 ml",
+      "fragrance_family": "Woody spicy",
+      "scent_profile": "Creamy sandalwood with black pepper",
+      "occasion": "Every day and evenings",
+      "audience": "Men",
+      "coming_soon": false,
+      "display_order": 120
+    },
+    {
+      "id": 1002,
+      "slug": "rajtilak",
+      "name": "Rajtilak",
+      "description": "A golden touch of saffron, like a king's tilak, laid over smooth leather and dry cedarwood. Bergamot keeps it bright; black musk keeps it close.",
+      "price": 749,
+      "image_url": "/products/scenes/rajtilak.webp",
+      "gallery_urls": [
+        "/products/scenes/rajtilak.webp",
+        "/products/bottles/rajtilak.webp"
+      ],
+      "alt": "SAHUMäRIO Rajtilak Eau de Parfum 50 ml bottle among its notes: kesar, leather",
+      "notes": "Bergamot · Mandarin · Saffron (kesar) · Leather · Cedarwood · Black musk",
+      "size_volume": "50 ml",
+      "fragrance_family": "Saffron leather",
+      "scent_profile": "Golden saffron on smooth leather",
+      "occasion": "Weddings, festivals and special evenings",
+      "audience": "Men",
+      "coming_soon": false,
+      "display_order": 130
+    },
+    {
+      "id": 1001,
+      "slug": "samrat",
+      "name": "Samrat",
+      "description": "Samrat opens with bright mandarin and a warm thread of cinnamon, then settles into smoky oud wrapped in vanilla and creamy sandalwood. Rich and regal, made for the evenings you want to be remembered.",
+      "price": 749,
+      "image_url": "/products/scenes/samrat.webp",
+      "gallery_urls": [
+        "/products/scenes/samrat.webp",
+        "/products/bottles/samrat.webp"
+      ],
+      "alt": "SAHUMäRIO Samrat Eau de Parfum 50 ml bottle among its notes: oud, cinnamon, vanilla",
+      "notes": "Mandarin · Bergamot · Cinnamon · Oud · Vanilla · Sandalwood",
+      "size_volume": "50 ml",
+      "fragrance_family": "Spicy oud",
+      "scent_profile": "Rich, spiced and regal",
+      "occasion": "Evenings, weddings and festivals",
+      "audience": "Men",
+      "coming_soon": false,
+      "display_order": 140
+    },
+    {
+      "id": 1023,
+      "slug": "komal",
+      "name": "Komal",
+      "description": "Gentle magnolia and soft ripe peach on a light bed of white musk and sandalwood. Tender and fresh, like a soft morning.",
+      "price": 749,
+      "image_url": "/products/scenes/komal.webp",
+      "gallery_urls": [
+        "/products/scenes/komal.webp",
+        "/products/bottles/komal.webp"
+      ],
+      "alt": "SAHUMäRIO Komal Eau de Parfum 50 ml bottle among its notes: magnolia, peach",
+      "notes": "Mandarin · Bergamot · Magnolia · Peach · White musk · Sandalwood",
+      "size_volume": "50 ml",
+      "fragrance_family": "Fruity floral",
+      "scent_profile": "Tender magnolia and ripe peach",
+      "occasion": "Every day, office and daytime",
+      "audience": "Women",
+      "coming_soon": false,
+      "display_order": 150
+    },
+    {
+      "id": 1028,
+      "slug": "gulabi-savar",
+      "name": "Gulabi Savar",
+      "description": "A pink morning: sparkling grapefruit and a dewy rose over airy white musk and a touch of vetiver. Fresh, bright and modern.",
+      "price": 749,
+      "image_url": "/products/scenes/gulabi-savar.webp",
+      "gallery_urls": [
+        "/products/scenes/gulabi-savar.webp",
+        "/products/bottles/gulabi-savar.webp"
+      ],
+      "alt": "SAHUMäRIO Gulabi Savar Eau de Parfum 50 ml bottle among its notes: grapefruit, rose",
+      "notes": "Grapefruit · Bergamot · Rose · Vetiver (khus) · White musk",
+      "size_volume": "50 ml",
+      "fragrance_family": "Fresh floral",
+      "scent_profile": "Pink grapefruit and morning rose",
+      "occasion": "Daytime, office and summer",
+      "audience": "Women",
+      "coming_soon": false,
+      "display_order": 160
+    },
+    {
+      "id": 1024,
+      "slug": "mogra-elaichi",
+      "name": "Mogra Elaichi",
+      "description": "Fresh mogra (jasmine) with green cardamom, on creamy sandalwood, white musk and a touch of vanilla. A festive, very Indian floral.",
+      "price": 749,
+      "image_url": "/products/scenes/mogra-elaichi.webp",
+      "gallery_urls": [
+        "/products/scenes/mogra-elaichi.webp",
+        "/products/bottles/mogra-elaichi.webp"
+      ],
+      "alt": "SAHUMäRIO Mogra Elaichi Eau de Parfum 50 ml bottle among its notes: jasmine, cardamom",
+      "notes": "Mandarin · Bergamot · Cardamom · Jasmine · Sandalwood · White musk",
+      "size_volume": "50 ml",
+      "fragrance_family": "Floral spicy",
+      "scent_profile": "Jasmine with green cardamom",
+      "occasion": "Festivals, weddings and evenings",
+      "audience": "Women",
+      "coming_soon": false,
+      "display_order": 170
+    },
+    {
+      "id": 1018,
+      "slug": "rasmalai",
+      "name": "Rasmalai",
+      "description": "Inspired by the dessert: creamy vanilla and soft musk with cardamom and a few threads of saffron, on smooth sandalwood. Sweet, soft and irresistible.",
+      "price": 749,
+      "image_url": "/products/scenes/rasmalai.webp",
+      "gallery_urls": [
+        "/products/scenes/rasmalai.webp",
+        "/products/bottles/rasmalai.webp"
+      ],
+      "alt": "SAHUMäRIO Rasmalai Eau de Parfum 50 ml bottle among its notes: vanilla, cardamom, kesar",
+      "notes": "Mandarin · Cardamom · Saffron (kesar) · Vanilla · Sandalwood · White musk",
+      "size_volume": "50 ml",
+      "fragrance_family": "Gourmand",
+      "scent_profile": "Creamy vanilla, cardamom and saffron",
+      "occasion": "Evenings, festivals and winter",
+      "audience": "Women",
+      "coming_soon": false,
+      "display_order": 180
+    },
+    {
+      "id": 1021,
+      "slug": "laal-gulab",
+      "name": "Laal Gulab",
+      "description": "Juicy dark cherry and a red rose over velvety black musk, sandalwood and vanilla. Bold, sweet and seductive.",
+      "price": 749,
+      "image_url": "/products/scenes/laal-gulab.webp",
+      "gallery_urls": [
+        "/products/scenes/laal-gulab.webp",
+        "/products/bottles/laal-gulab.webp"
+      ],
+      "alt": "SAHUMäRIO Laal Gulab Eau de Parfum 50 ml bottle among its notes: cherry, rose",
+      "notes": "Cherry · Mandarin · Rose · Black musk · Sandalwood · Vanilla",
+      "size_volume": "50 ml",
+      "fragrance_family": "Fruity floral",
+      "scent_profile": "Dark cherry and red rose",
+      "occasion": "Evenings, dates and parties",
+      "audience": "Women",
+      "coming_soon": false,
+      "display_order": 190
+    },
+    {
+      "id": 1042,
+      "slug": "chandni",
+      "name": "Chandni",
+      "description": "Soft as moonlight: clean white musk with neroli, magnolia and a touch of bergamot. A quiet, skin-close scent for anyone.",
+      "price": 749,
+      "image_url": "/products/scenes/chandni.webp",
+      "gallery_urls": [
+        "/products/scenes/chandni.webp",
+        "/products/bottles/chandni.webp"
+      ],
+      "alt": "SAHUMäRIO Chandni Eau de Parfum 50 ml bottle among its notes: white musk, neroli, magnolia",
+      "notes": "Bergamot · Mandarin · Neroli · Magnolia · White musk",
+      "size_volume": "50 ml",
+      "fragrance_family": "Musky floral",
+      "scent_profile": "Soft white musk, like moonlight on skin",
+      "occasion": "Every day, office and nights",
+      "audience": "Unisex",
+      "coming_soon": false,
+      "display_order": 200
+    },
+    {
+      "id": 1043,
+      "slug": "chandan-lavender",
+      "name": "Chandan Lavender",
+      "description": "Creamy sandalwood with calm lavender and bergamot, softened by white musk and vanilla. Relaxed, smooth and elegant.",
+      "price": 749,
+      "image_url": "/products/scenes/chandan-lavender.webp",
+      "gallery_urls": [
+        "/products/scenes/chandan-lavender.webp",
+        "/products/bottles/chandan-lavender.webp"
+      ],
+      "alt": "SAHUMäRIO Chandan Lavender Eau de Parfum 50 ml bottle among its notes: sandalwood, lavender",
+      "notes": "Bergamot · Mandarin · Lavender · Sandalwood · White musk · Vanilla",
+      "size_volume": "50 ml",
+      "fragrance_family": "Woody aromatic",
+      "scent_profile": "Creamy sandalwood and lavender",
+      "occasion": "Every day, office and evenings",
+      "audience": "Unisex",
+      "coming_soon": false,
+      "display_order": 210
+    },
+    {
+      "id": 1035,
+      "slug": "gulab-khus",
+      "name": "Gulab Khus",
+      "description": "Rose and khus, the pairing of classic Indian attars, in a modern spray: fresh rose over earthy vetiver, sandalwood and black musk.",
+      "price": 749,
+      "image_url": "/products/scenes/gulab-khus.webp",
+      "gallery_urls": [
+        "/products/scenes/gulab-khus.webp",
+        "/products/bottles/gulab-khus.webp"
+      ],
+      "alt": "SAHUMäRIO Gulab Khus Eau de Parfum 50 ml bottle among its notes: rose, vetiver",
+      "notes": "Bergamot · Mandarin · Rose · Vetiver (khus) · Sandalwood · Black musk",
+      "size_volume": "50 ml",
+      "fragrance_family": "Floral woody",
+      "scent_profile": "Rose and earthy khus, like a classic attar",
+      "occasion": "Every day, festivals and evenings",
+      "audience": "Unisex",
+      "coming_soon": false,
+      "display_order": 220
+    },
+    {
+      "id": 1037,
+      "slug": "kesar-kasturi",
+      "name": "Kesar Kasturi",
+      "description": "Saffron and dark musk, two treasures of Indian perfumery, with bergamot, sandalwood and a touch of vanilla. Warm, rich and sensual.",
+      "price": 749,
+      "image_url": "/products/scenes/kesar-kasturi.webp",
+      "gallery_urls": [
+        "/products/scenes/kesar-kasturi.webp",
+        "/products/bottles/kesar-kasturi.webp"
+      ],
+      "alt": "SAHUMäRIO Kesar Kasturi Eau de Parfum 50 ml bottle among its notes: kesar, black musk",
+      "notes": "Bergamot · Mandarin · Saffron (kesar) · Black musk · Sandalwood · Vanilla",
+      "size_volume": "50 ml",
+      "fragrance_family": "Musky spicy",
+      "scent_profile": "Saffron on dark musk",
+      "occasion": "Evenings, weddings and winter",
+      "audience": "Unisex",
+      "coming_soon": false,
+      "display_order": 230
+    },
+    {
+      "id": 1036,
+      "slug": "mogra-oud",
+      "name": "Mogra Oud",
+      "description": "Heady mogra (jasmine) over rich oud, sandalwood and black musk. Opulent, deep and made for celebrations.",
+      "price": 749,
+      "image_url": "/products/scenes/mogra-oud.webp",
+      "gallery_urls": [
+        "/products/scenes/mogra-oud.webp",
+        "/products/bottles/mogra-oud.webp"
+      ],
+      "alt": "SAHUMäRIO Mogra Oud Eau de Parfum 50 ml bottle among its notes: jasmine, oud",
+      "notes": "Bergamot · Mandarin · Jasmine · Oud · Sandalwood · Black musk",
+      "size_volume": "50 ml",
+      "fragrance_family": "Floral oud",
+      "scent_profile": "White jasmine on rich oud",
+      "occasion": "Weddings, festivals and evenings",
+      "audience": "Unisex",
+      "coming_soon": false,
+      "display_order": 240
+    }
+  ]
+}

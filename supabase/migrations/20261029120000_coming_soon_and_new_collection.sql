@@ -1,9 +1,11 @@
--- The New 50 collection: 15 perfumes on sale now beside the first six, and
--- the other 35 added hidden and marked coming soon, ready to switch on later.
+-- The New 50 collection: 15 perfumes on sale now beside the first six (now
+-- marked unisex), and the other 35 added hidden and marked coming soon, ready
+-- to switch on later.
 --
 -- Run this in the Supabase SQL Editor AFTER the website update that reads
 -- these columns is live, so the hidden perfumes are never sold by mistake.
--- Safe to run twice: columns are added only once and no perfume is added twice.
+-- Safe to run twice: columns are added only once, no perfume is added twice
+-- and a "For" already chosen in Admin is kept.
 
 -- "Coming soon": shown in the shop, but it cannot be added to the bag or
 -- ordered until it is switched to "On sale" in Admin → Catalogue.
@@ -17,6 +19,13 @@ alter table public.products
 
 comment on column public.products.coming_soon is 'Shown in the shop but not for sale yet (the order API refuses it).';
 comment on column public.products.audience is 'Who the perfume is for: Men, Women or Unisex. Used by the shop filter and the scent quiz.';
+
+-- The first six are for everyone: they are listed under Unisex in the shop
+-- filter and the quiz. Change one in Admin → Catalogue → For.
+update public.products
+set audience = 'Unisex'
+where slug in ('bloom', 'dew-drop', 'lemon-breeze', 'morning-dew', 'night-queen', 'blix')
+  and audience is null;
 
 -- The New 50. The 15 launched now are visible and on sale, after the first
 -- six; the other 35 are hidden and coming soon. In Admin → Catalogue, make one
