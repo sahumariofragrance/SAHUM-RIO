@@ -65,7 +65,7 @@ export default function CheckoutPage({ setCurrentPage }) {
   const testerPicks = useMemo(() => (prize?.testers
     ? (prize.chosen || []).filter((id) => testerOptions.some((product) => Number(product.id) === id)).slice(0, prize.testers)
     : []), [prize, testerOptions]);
-  const sendTesters = Boolean(prize?.testers) && hasBottle && !testersSkipped;
+  const sendTesters = Boolean(prize?.testers) && !prize.demo && hasBottle && !testersSkipped;
   // Same whole-rupee formula as the server (api/_lib/discounts.js).
   const codeAmount = discount ? Math.round((subtotal * discount.percent) / 100) : 0;
   // Offers don't combine, as on the server: a code counts only when it saves
@@ -143,7 +143,7 @@ export default function CheckoutPage({ setCurrentPage }) {
   // already applied; then the prize stays saved for another order.
   const takePrize = useCallback((won) => {
     setSpin(won);
-    if (won.percent && !(discount && discount.percent > won.percent)) applyCode(won.code);
+    if (won.percent && !won.demo && !(discount && discount.percent > won.percent)) applyCode(won.code);
   }, [discount, applyCode]);
 
   const closeWheel = useCallback((putOff) => {
@@ -158,7 +158,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       ? testerPicks.filter((chosenId) => chosenId !== id)
       : testerPicks.length < prize.testers ? [...testerPicks, id] : prize.testers === 1 ? [id] : testerPicks;
     const next = { ...prize, chosen };
-    saveSpin(next);
+    if (!next.demo) saveSpin(next);
     setSpin(next);
     setTesterError("");
   }, [prize, testerPicks]);
@@ -270,7 +270,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     </section>
   );
   const wheel = wheelShown && items.length > 0 && (
-    <SpinWheel onClose={closeWheel} onWon={takePrize} testerOptions={testerOptions} picks={testerPicks} onTogglePick={toggleTester} />
+    <SpinWheel onClose={closeWheel} onWon={takePrize} testerOptions={testerOptions} picks={testerPicks} onTogglePick={toggleTester} demo={wheelOn === "demo"} />
   );
   if (!user && !guestCheckout) return <section className="mx-auto max-w-md px-4 py-16 text-center"><h1 className="text-2xl font-semibold">Checkout</h1><p className="mt-2 text-[var(--color-muted)]">Continue as a guest or sign in to keep your orders linked to your account.</p><div className="mt-6 space-y-3"><button onClick={() => { setGuestCheckout(true); setSaveToProfile(false); setAddressLoaded(true); }} className="w-full rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white hover:bg-amber-700">Checkout as Guest</button><button onClick={() => setCurrentPage?.("login", { redirectAfterLogin: "checkout" })} className="w-full rounded-lg border border-[var(--color-border)] px-4 py-2.5 font-medium hover:bg-[var(--color-surface-muted)]">Log In or Sign Up</button></div>{wheel}</section>;
   if (!items.length) return <section className="mx-auto max-w-3xl px-4 py-16 text-center"><Package className="mx-auto h-14 w-14 text-[var(--color-muted)]" /><h1 className="mt-4 text-2xl font-semibold">Your cart is empty</h1><button onClick={() => setCurrentPage?.("perfumes")} className="mt-6 rounded-xl bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700">Browse Collection</button></section>;

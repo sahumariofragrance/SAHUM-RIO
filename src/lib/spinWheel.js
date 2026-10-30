@@ -12,10 +12,22 @@ const SAVED_KEY = "sahumario_spin";
 const LATER_KEY = "sahumario_spin_later";
 let request = null;
 
-/** Whether the wheel is switched on (Admin → Discounts); false until the database update has run. */
+// Vercel preview links (*.vercel.app; the live site's vercel.app addresses
+// redirect to sahumario.com) show a demo wheel until the database update has
+// run, so it can be tried before going live: the browser picks the prize and
+// nothing is saved or applied.
+const previewDemo = () => window.location.hostname.endsWith(".vercel.app");
+
+/**
+ * true when the wheel is switched on (Admin → Discounts), "demo" on a preview
+ * link before the database update, otherwise false.
+ */
 function loadOpen() {
   if (!request) {
-    request = supabase.rpc("spin_wheel_open").then(({ data, error }) => !error && data === true, () => false);
+    request = supabase.rpc("spin_wheel_open").then(
+      ({ data, error }) => (error ? (previewDemo() && /spin_wheel_open|PGRST202/.test(`${error.code} ${error.message}`) ? "demo" : false) : data === true),
+      () => false,
+    );
   }
   return request;
 }
@@ -89,8 +101,20 @@ export function spinPutOff() {
   try { return window.sessionStorage.getItem(LATER_KEY) === "1"; } catch { return false; }
 }
 
-/** Spins on the server and remembers the prize. Throws with a message to show; `closed` when the wheel is off. */
-export async function spinOnServer() {
+/** A preview link's demo spin: picked here, not saved, never applied to an order. */
+function demoSpin() {
+  const segment = Math.floor(Math.random() * wheel.segments.length);
+  const { percent = null, testers = null } = wheel.segments[segment];
+  const expiresAt = new Date(Date.now() + wheel.validDays * 24 * 60 * 60 * 1000).toISOString();
+  return { code: "SPINDEMO00", percent, testers, segment, expiresAt, chosen: [], used: false, demo: true };
+}
+
+/**
+ * Spins on the server and remembers the prize (`demo`: a preview link's demo
+ * spin instead). Throws with a message to show; `closed` when the wheel is off.
+ */
+export async function spinOnServer(demo = false) {
+  if (demo) return demoSpin();
   const response = await fetch("/api/discounts/spin", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

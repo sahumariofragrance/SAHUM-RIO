@@ -102,7 +102,7 @@ export function TesterPicker({ options, picks, count, onToggle, showImages = tru
  * mid-spin). A testers prize is chosen from `testerOptions` here or later in
  * the order summary.
  */
-export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = [], onTogglePick }) {
+export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = [], onTogglePick, demo = false }) {
   const [phase, setPhase] = useState("ready"); // ready | spinning | won | error
   const [spin, setSpin] = useState(null);
   // At rest the pointer sits in the middle of the first segment.
@@ -156,7 +156,7 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = 
     setPhase("spinning");
     setError("");
     try {
-      const won = await spinOnServer();
+      const won = await spinOnServer(demo);
       spinRef.current = won;
       setSpin(won);
       const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -201,6 +201,9 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = 
         )}
 
         <div aria-live="polite">
+          {won && spin.demo && (
+            <p className="mt-4 rounded-xl bg-[var(--color-surface-muted)] px-3 py-2 text-center text-xs text-[var(--color-muted)]">Preview link only: a demo prize, not saved or applied. The real wheel starts once its database update has run.</p>
+          )}
           {won && spin.percent && (
             <div className="mt-5 rounded-2xl border border-dashed border-[var(--color-kesar)] bg-[var(--color-surface)] px-5 py-4 text-center">
               <p className="font-serif text-5xl leading-none text-[var(--color-kesar)]">{spin.percent}%</p>
