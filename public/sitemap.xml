@@ -42,37 +42,32 @@
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/samrat</loc>
+    <loc>https://sahumario.com/product/bloom</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/rajtilak</loc>
+    <loc>https://sahumario.com/product/dew-drop</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/shaurya</loc>
+    <loc>https://sahumario.com/product/lemon-breeze</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/kunwar</loc>
+    <loc>https://sahumario.com/product/morning-dew</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/maharaja</loc>
+    <loc>https://sahumario.com/product/night-queen</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/ashwa</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/narangi-elaichi</loc>
+    <loc>https://sahumario.com/product/blix</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -82,37 +77,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/nayak</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/sheetal</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sahumario.com/product/kali-elaichi</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/kesariya-rum</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/raat-mogra</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/nirmal</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/shyam-gulab</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -122,32 +87,12 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/dalchini-khus</loc>
+    <loc>https://sahumario.com/product/rajtilak</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/rasmalai</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/gulab-malai</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/patola</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/laal-gulab</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/chatpati-strawberry</loc>
+    <loc>https://sahumario.com/product/samrat</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -157,92 +102,22 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/mogra-elaichi</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/hari-mogra</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/rasbhari</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/santra-malai</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sahumario.com/product/gulabi-savar</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/utsav</loc>
+    <loc>https://sahumario.com/product/mogra-elaichi</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/phool-ras</loc>
+    <loc>https://sahumario.com/product/rasmalai</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/kesari-champa</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/kesudo</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/ananas-phool</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/gulab-lavender</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/gulab-khus</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/mogra-oud</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/kesar-kasturi</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/ras-oud</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/champa-oud</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/hariyali</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/ananas-malai</loc>
+    <loc>https://sahumario.com/product/laal-gulab</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -257,37 +132,17 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/manek</loc>
+    <loc>https://sahumario.com/product/gulab-khus</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/garba</loc>
+    <loc>https://sahumario.com/product/kesar-kasturi</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sahumario.com/product/aadu-elaichi</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/kesar-phool</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/seb-kasturi</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/elaichi-phool</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sahumario.com/product/raat-lavender</loc>
+    <loc>https://sahumario.com/product/mogra-oud</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

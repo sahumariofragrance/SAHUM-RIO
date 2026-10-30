@@ -56,13 +56,19 @@ export function ProductsProvider({ children }) {
     const beforeMigration = Boolean(queryError) && /coming_soon|audience/.test(queryError.message || "");
     // Vercel preview links only (*.vercel.app; the live site's vercel.app
     // addresses redirect to sahumario.com): until the migration adds the new
-    // collection to the database, show the same 50 perfumes from
-    // src/data/new-collection.json so they can be checked before going live.
+    // perfumes to the database, show the ones it puts on sale from
+    // src/data/new-collection.json after the database's own, so the shop can
+    // be checked before going live.
     if (beforeMigration && window.location.hostname.endsWith(".vercel.app")) {
-      const { default: collection } = await import("../data/new-collection.json");
-      setProducts(collection.map(normalizeProduct));
-      setLoading(false);
-      return;
+      const [{ default: collection }, current] = await Promise.all([
+        import("../data/new-collection.json"),
+        query(`${PRODUCT_FIELDS},gallery_urls`),
+      ]);
+      if (!current.error) {
+        setProducts([...(current.data || []), ...collection].map(normalizeProduct));
+        setLoading(false);
+        return;
+      }
     }
     // Before the coming-soon migration runs, load without those columns
     // (then every perfume is on sale), and likewise before the gallery one.
