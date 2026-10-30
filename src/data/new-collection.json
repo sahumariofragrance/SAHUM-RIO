@@ -5,11 +5,12 @@
     "name": "Hara Ananas",
     "description": "Juicy pineapple and zesty lemon lifted by fresh green basil, resting on cool vetiver and cedarwood. Bright, green and full of energy.",
     "price": 749,
-    "image_url": "/products/bottles/hara-ananas.webp",
+    "image_url": "/products/scenes/hara-ananas.webp",
     "gallery_urls": [
+      "/products/scenes/hara-ananas.webp",
       "/products/bottles/hara-ananas.webp"
     ],
-    "alt": "SAHUMäRIO Hara Ananas Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Hara Ananas Eau de Parfum 50 ml bottle among its notes: pineapple, basil",
     "notes": "Pineapple · Lemon · Bergamot · Basil · Vetiver (khus) · Cedarwood",
     "size_volume": "50 ml",
     "fragrance_family": "Fruity aromatic",
@@ -25,11 +26,12 @@
     "name": "Kali Elaichi",
     "description": "Cardamom and cracked black pepper over bergamot and grapefruit, deepened with black musk and cedarwood. Spicy, dark and magnetic.",
     "price": 749,
-    "image_url": "/products/bottles/kali-elaichi.webp",
+    "image_url": "/products/scenes/kali-elaichi.webp",
     "gallery_urls": [
+      "/products/scenes/kali-elaichi.webp",
       "/products/bottles/kali-elaichi.webp"
     ],
-    "alt": "SAHUMäRIO Kali Elaichi Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Kali Elaichi Eau de Parfum 50 ml bottle among its notes: cardamom, black pepper",
     "notes": "Bergamot · Grapefruit · Cardamom · Black pepper · Black musk · Cedarwood",
     "size_volume": "50 ml",
     "fragrance_family": "Spicy woody",
@@ -45,11 +47,12 @@
     "name": "Chandan Mirch",
     "description": "Creamy sandalwood warmed by a crack of black pepper and lifted by mandarin. Smooth, elegant and quietly confident.",
     "price": 749,
-    "image_url": "/products/bottles/chandan-mirch.webp",
+    "image_url": "/products/scenes/chandan-mirch.webp",
     "gallery_urls": [
+      "/products/scenes/chandan-mirch.webp",
       "/products/bottles/chandan-mirch.webp"
     ],
-    "alt": "SAHUMäRIO Chandan Mirch Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Chandan Mirch Eau de Parfum 50 ml bottle among its notes: sandalwood, black pepper",
     "notes": "Mandarin · Bergamot · Black pepper · Sandalwood · White musk",
     "size_volume": "50 ml",
     "fragrance_family": "Woody spicy",
@@ -65,11 +68,12 @@
     "name": "Rajtilak",
     "description": "A golden touch of saffron, like a king's tilak, laid over smooth leather and dry cedarwood. Bergamot keeps it bright; black musk keeps it close.",
     "price": 749,
-    "image_url": "/products/bottles/rajtilak.webp",
+    "image_url": "/products/scenes/rajtilak.webp",
     "gallery_urls": [
+      "/products/scenes/rajtilak.webp",
       "/products/bottles/rajtilak.webp"
     ],
-    "alt": "SAHUMäRIO Rajtilak Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Rajtilak Eau de Parfum 50 ml bottle among its notes: kesar, leather",
     "notes": "Bergamot · Mandarin · Saffron (kesar) · Leather · Cedarwood · Black musk",
     "size_volume": "50 ml",
     "fragrance_family": "Saffron leather",
@@ -85,11 +89,12 @@
     "name": "Samrat",
     "description": "Samrat opens with bright mandarin and a warm thread of cinnamon, then settles into smoky oud wrapped in vanilla and creamy sandalwood. Rich and regal, made for the evenings you want to be remembered.",
     "price": 749,
-    "image_url": "/products/bottles/samrat.webp",
+    "image_url": "/products/scenes/samrat.webp",
     "gallery_urls": [
+      "/products/scenes/samrat.webp",
       "/products/bottles/samrat.webp"
     ],
-    "alt": "SAHUMäRIO Samrat Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Samrat Eau de Parfum 50 ml bottle among its notes: oud, cinnamon, vanilla",
     "notes": "Mandarin · Bergamot · Cinnamon · Oud · Vanilla · Sandalwood",
     "size_volume": "50 ml",
     "fragrance_family": "Spicy oud",
@@ -105,11 +110,12 @@
     "name": "Komal",
     "description": "Gentle magnolia and soft ripe peach on a light bed of white musk and sandalwood. Tender and fresh, like a soft morning.",
     "price": 749,
-    "image_url": "/products/bottles/komal.webp",
+    "image_url": "/products/scenes/komal.webp",
     "gallery_urls": [
+      "/products/scenes/komal.webp",
       "/products/bottles/komal.webp"
     ],
-    "alt": "SAHUMäRIO Komal Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Komal Eau de Parfum 50 ml bottle among its notes: magnolia, peach",
     "notes": "Mandarin · Bergamot · Magnolia · Peach · White musk · Sandalwood",
     "size_volume": "50 ml",
     "fragrance_family": "Fruity floral",
@@ -125,11 +131,12 @@
     "name": "Gulabi Savar",
     "description": "A pink morning: sparkling grapefruit and a dewy rose over airy white musk and a touch of vetiver. Fresh, bright and modern.",
     "price": 749,
-    "image_url": "/products/bottles/gulabi-savar.webp",
+    "image_url": "/products/scenes/gulabi-savar.webp",
     "gallery_urls": [
+      "/products/scenes/gulabi-savar.webp",
       "/products/bottles/gulabi-savar.webp"
     ],
-    "alt": "SAHUMäRIO Gulabi Savar Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Gulabi Savar Eau de Parfum 50 ml bottle among its notes: grapefruit, rose",
     "notes": "Grapefruit · Bergamot · Rose · Vetiver (khus) · White musk",
     "size_volume": "50 ml",
     "fragrance_family": "Fresh floral",
@@ -145,11 +152,12 @@
     "name": "Mogra Elaichi",
     "description": "Fresh mogra (jasmine) with green cardamom, on creamy sandalwood, white musk and a touch of vanilla. A festive, very Indian floral.",
     "price": 749,
-    "image_url": "/products/bottles/mogra-elaichi.webp",
+    "image_url": "/products/scenes/mogra-elaichi.webp",
     "gallery_urls": [
+      "/products/scenes/mogra-elaichi.webp",
       "/products/bottles/mogra-elaichi.webp"
     ],
-    "alt": "SAHUMäRIO Mogra Elaichi Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Mogra Elaichi Eau de Parfum 50 ml bottle among its notes: jasmine, cardamom",
     "notes": "Mandarin · Bergamot · Cardamom · Jasmine · Sandalwood · White musk",
     "size_volume": "50 ml",
     "fragrance_family": "Floral spicy",
@@ -165,11 +173,12 @@
     "name": "Rasmalai",
     "description": "Inspired by the dessert: creamy vanilla and soft musk with cardamom and a few threads of saffron, on smooth sandalwood. Sweet, soft and irresistible.",
     "price": 749,
-    "image_url": "/products/bottles/rasmalai.webp",
+    "image_url": "/products/scenes/rasmalai.webp",
     "gallery_urls": [
+      "/products/scenes/rasmalai.webp",
       "/products/bottles/rasmalai.webp"
     ],
-    "alt": "SAHUMäRIO Rasmalai Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Rasmalai Eau de Parfum 50 ml bottle among its notes: vanilla, cardamom, kesar",
     "notes": "Mandarin · Cardamom · Saffron (kesar) · Vanilla · Sandalwood · White musk",
     "size_volume": "50 ml",
     "fragrance_family": "Gourmand",
@@ -185,11 +194,12 @@
     "name": "Laal Gulab",
     "description": "Juicy dark cherry and a red rose over velvety black musk, sandalwood and vanilla. Bold, sweet and seductive.",
     "price": 749,
-    "image_url": "/products/bottles/laal-gulab.webp",
+    "image_url": "/products/scenes/laal-gulab.webp",
     "gallery_urls": [
+      "/products/scenes/laal-gulab.webp",
       "/products/bottles/laal-gulab.webp"
     ],
-    "alt": "SAHUMäRIO Laal Gulab Eau de Parfum 50 ml bottle with a navy label, in soft studio light",
+    "alt": "SAHUMäRIO Laal Gulab Eau de Parfum 50 ml bottle among its notes: cherry, rose",
     "notes": "Cherry · Mandarin · Rose · Black musk · Sandalwood · Vanilla",
     "size_volume": "50 ml",
     "fragrance_family": "Fruity floral",
