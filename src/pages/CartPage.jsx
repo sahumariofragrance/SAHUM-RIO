@@ -7,11 +7,15 @@ import { formatINR } from "../utils/money";
 import ComboNudge from "../components/ComboNudge";
 import { COMBO, comboDiscount } from "../lib/offers";
 import { bottlesOnly } from "../lib/samples";
+import { savedSpin, useSpinWheelOpen, wheelPrizes } from "../lib/spinWheel";
 
 export default function CartPage({ setCurrentPage }) {
   const { items, updateQty, removeItem, subtotal } = useCart();
   const { products } = useProducts();
   const offer = comboDiscount(bottlesOnly(items));
+  // The spin wheel waits at checkout for anyone who hasn't spun yet.
+  const wheelOn = useSpinWheelOpen();
+  const wheelWaiting = wheelOn && !savedSpin() && bottlesOnly(items).length > 0;
 
   const catalogueById = useMemo(
     () => new Map(products.map((product) => [product.id, product])),
@@ -99,6 +103,7 @@ export default function CartPage({ setCurrentPage }) {
           </div>
 
           <button onClick={() => setCurrentPage("checkout")} className="mt-6 w-full rounded-full bg-[#24160f] px-5 py-3 font-semibold text-white hover:bg-amber-800">Proceed to Checkout</button>
+          {wheelWaiting && <p className="mt-2 flex items-start justify-center gap-1.5 text-center text-xs text-[var(--color-muted)]"><Gift className="mt-px h-3.5 w-3.5 shrink-0 text-amber-700" aria-hidden="true" /><span>Spin the wheel at checkout: {wheelPrizes()}</span></p>}
           <button onClick={() => setCurrentPage("perfumes")} className="mt-3 w-full px-5 py-2.5 text-sm font-medium text-[var(--color-muted)] hover:text-amber-700">Continue Shopping</button>
         </aside>
       </div>

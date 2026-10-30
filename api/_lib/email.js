@@ -16,9 +16,16 @@ function orderTotal(order) {
   return Number(order?.total ?? order?.subtotal ?? 0);
 }
 
+// Free testers won on the spin wheel, e.g. "Rasmalai 10 ml tester".
+function testerLines(order) {
+  const testers = Array.isArray(order?.free_testers) ? order.free_testers : [];
+  return testers.map((tester) => `${tester.name || "Perfume"} ${Number(tester.ml) || 10} ml tester`);
+}
+
 function plainOrderLines(order) {
   const items = Array.isArray(order?.items) ? order.items : [];
   const lines = items.map((item) => `${item.name || "Item"} × ${Number(item.qty || 1)} — ${money(Number(item.price || 0) * Number(item.qty || 1))}`);
+  testerLines(order).forEach((line) => lines.push(`${line} (spin prize) — Free`));
   if (Number(order?.discount_amount) > 0) lines.push(`Discount${order.discount_code ? ` (${order.discount_code})` : ""} — −${money(order.discount_amount)}`);
   lines.push(`Total — ${money(orderTotal(order))}`);
   return lines.join("\n");
@@ -72,6 +79,10 @@ function orderCard(order, extraHtml = "") {
     <tr>
       <td style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#29251f;">${escapeHtml(item.name || "Item")} × ${Number(item.qty || 1)}</td>
       <td align="right" style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#29251f;white-space:nowrap;">${money(Number(item.price || 0) * Number(item.qty || 1))}</td>
+    </tr>`).join("") + testerLines(order).map((line) => `
+    <tr>
+      <td style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#29251f;">${escapeHtml(line)} <span style="color:#7a6f62;">(spin prize)</span></td>
+      <td align="right" style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#2f7a3d;white-space:nowrap;">Free</td>
     </tr>`).join("") + (Number(order?.discount_amount) > 0 ? `
     <tr>
       <td style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#2f7a3d;">Discount${order.discount_code ? ` (${escapeHtml(order.discount_code)})` : ""}</td>

@@ -6,6 +6,7 @@ export const PROTECTED_ROUTES = [
   { path: "/api/payments/razorpay/order", method: "POST" },
   { path: "/api/bulk-orders/inquiry", method: "POST" },
   { path: "/api/reviews/upsert", method: "POST" },
+  { path: "/api/discounts/spin", method: "POST" },
 ];
 
 // BotID holds a protected request until its challenge script answers. If that

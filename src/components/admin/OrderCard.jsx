@@ -95,6 +95,8 @@ export default function OrderCard({ order, onSaved, defaultOpen = false, selecte
   // until the parcel has gone out.
   const { products } = useProducts();
   const sample = ["Pending", "Accepted", "Processing"].includes(status) ? suggestSample(items, products) : null;
+  // Free testers the customer won on the spin wheel and chose at checkout.
+  const testers = Array.isArray(order.free_testers) ? order.free_testers : [];
 
   async function save(nextStatus, { confirm = false } = {}) {
     setError("");
@@ -210,6 +212,12 @@ export default function OrderCard({ order, onSaved, defaultOpen = false, selecte
                 <p className="mt-3 flex items-center gap-2 rounded-xl bg-[var(--color-surface-muted)] px-3 py-2 text-sm">
                   <Gift className="h-4 w-4 shrink-0 text-[var(--color-kesar)]" aria-hidden="true" />
                   <span>Pack a free 2 ml sample: <strong className="font-semibold">{sample.name}</strong></span>
+                </p>
+              )}
+              {testers.length > 0 && (
+                <p className="mt-2 flex items-start gap-2 rounded-xl border border-[var(--color-kesar)] bg-[var(--color-surface-muted)] px-3 py-2 text-sm">
+                  <Gift className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-kesar)]" aria-hidden="true" />
+                  <span>Spin prize, pack {testers.length} free testers: <strong className="font-semibold">{testers.map((tester) => `${tester.name} ${tester.ml || 10} ml`).join(", ")}</strong></span>
                 </p>
               )}
               {Number(order.discount_amount) > 0 && (
