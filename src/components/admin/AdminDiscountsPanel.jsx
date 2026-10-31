@@ -83,7 +83,7 @@ export default function AdminDiscountsPanel() {
     });
     setSaving(false);
     if (insertError) {
-      setError(insertError.code === "23505" ? `${code} already exists. Choose another code.` : insertError.message);
+      setError(insertError.code === "23505" ? `${code} already exists or was used before. Choose another code.` : insertError.message);
       return;
     }
     setForm(emptyForm);
@@ -115,7 +115,11 @@ export default function AdminDiscountsPanel() {
 
   async function remove(row) {
     setError(""); setMessage("");
-    if (!window.confirm(`Delete ${row.code}? This can't be undone.`)) return;
+    const used = Number(row.uses) > 0;
+    const question = used
+      ? `Delete ${row.code}? It stops working straight away and leaves this list. Past orders that used it keep their discount. This can't be undone.`
+      : `Delete ${row.code}? This can't be undone.`;
+    if (!window.confirm(question)) return;
     setDeletingId(row.id);
     const { error: deleteError } = await supabase.rpc("admin_delete_discount_code", { p_id: row.id });
     setDeletingId(null);
@@ -222,9 +226,8 @@ export default function AdminDiscountsPanel() {
                     size="sm"
                     variant="danger"
                     onClick={() => remove(row)}
-                    disabled={Number(row.uses) > 0 || deletingId === row.id}
+                    disabled={deletingId === row.id}
                     aria-label={`Delete ${row.code}`}
-                    title={Number(row.uses) > 0 ? "This code has been used, so it can't be deleted. Turn it off instead." : undefined}
                   >
                     {deletingId === row.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}Delete
                   </AdminButton>
