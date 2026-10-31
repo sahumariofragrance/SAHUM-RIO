@@ -16,6 +16,7 @@
   --color-indigo: #253745;
   --color-sage: #9BA8AB;
   --color-hero-overlay: rgba(6, 20, 27, 0.16);
+  --color-danger: #B91C1C;
 }
 
 :root[data-theme="dark"] {
@@ -30,6 +31,7 @@
   --color-indigo: #A3B8C4;
   --color-sage: #9BA8AB;
   --color-hero-overlay: rgba(0, 0, 0, 0.38);
+  --color-danger: #FCA5A5;
 }
 
 /* Two-tone: the top bar and header take the other mode's colours, so each
@@ -46,6 +48,7 @@
   --color-border: rgba(204, 208, 207, 0.16);
   --color-muted: #9BA8AB;
   --color-kesar: #A3B8C4;
+  --color-danger: #FCA5A5;
   --glass-border: rgba(204, 208, 207, 0.14);
   --glass-highlight: rgba(204, 208, 207, 0.10);
 }
@@ -57,6 +60,7 @@
   --color-border: #A7B1B2;
   --color-muted: #3E4F5B;
   --color-kesar: #3D4F5D;
+  --color-danger: #B91C1C;
   --glass-border: rgba(255, 255, 255, 0.45);
   --glass-highlight: rgba(255, 255, 255, 0.55);
 }

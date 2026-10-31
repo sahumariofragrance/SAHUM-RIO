@@ -123,15 +123,15 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
                 </button>
 
                 {permanentUser && dropdownOpen && (
-                  <div className="glass-panel right-0 mt-3 w-60 overflow-hidden rounded-2xl" style={{ position: "absolute" }}>
+                  <div className="right-0 mt-3 w-60 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl" style={{ position: "absolute" }}>
                     <div className="border-b border-[var(--color-border)] px-4 py-3">
                       <p className="text-xs text-[var(--color-muted)]">Signed in as</p>
                       <p className="mt-0.5 truncate text-sm font-medium">{user.user_metadata?.name || user.email}</p>
                     </div>
-                    <SpaLink href="/account" onNavigate={() => nav("account")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface)]"><User className="h-4 w-4" />My Account</SpaLink>
-                    <SpaLink href="/account/orders" onNavigate={() => nav("orders")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface)]"><Package className="h-4 w-4" />My Orders</SpaLink>
-                    {isAdmin && <SpaLink href="/admin" onNavigate={() => nav("admin")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface)]"><ShieldCheck className="h-4 w-4" />Admin Dashboard</SpaLink>}
-                    <button onClick={handleLogout} className="flex w-full items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-[var(--color-surface)]"><LogOut className="h-4 w-4" />Log Out</button>
+                    <SpaLink href="/account" onNavigate={() => nav("account")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface-muted)]"><User className="h-4 w-4" />My Account</SpaLink>
+                    <SpaLink href="/account/orders" onNavigate={() => nav("orders")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface-muted)]"><Package className="h-4 w-4" />My Orders</SpaLink>
+                    {isAdmin && <SpaLink href="/admin" onNavigate={() => nav("admin")} className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-[var(--color-surface-muted)]"><ShieldCheck className="h-4 w-4" />Admin Dashboard</SpaLink>}
+                    <button onClick={handleLogout} className="flex w-full items-center gap-2 px-4 py-3 text-sm text-[var(--color-danger)] hover:bg-[var(--color-surface-muted)]"><LogOut className="h-4 w-4" />Log Out</button>
                   </div>
                 )}
               </div>
@@ -164,7 +164,7 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
                   <SpaLink href="/account" onNavigate={() => nav("account")} className="block w-full px-1 py-3 text-left text-sm">My Account</SpaLink>
                   <SpaLink href="/account/orders" onNavigate={() => nav("orders")} className="block w-full px-1 py-3 text-left text-sm">My Orders</SpaLink>
                   {isAdmin && <SpaLink href="/admin" onNavigate={() => nav("admin")} className="block w-full px-1 py-3 text-left text-sm">Admin Dashboard</SpaLink>}
-                  <button onClick={handleLogout} className="block w-full px-1 py-3 text-left text-sm text-red-600">Log Out</button>
+                  <button onClick={handleLogout} className="block w-full px-1 py-3 text-left text-sm text-[var(--color-danger)]">Log Out</button>
                 </>
               ) : (
                 <SpaLink href="/login" onNavigate={() => nav("login")} className="block w-full px-1 py-3 text-left text-sm">Login / Sign Up</SpaLink>
