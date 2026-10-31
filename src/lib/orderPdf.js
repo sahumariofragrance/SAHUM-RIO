@@ -148,7 +148,7 @@ function orderPage(doc, order) {
   });
   // Free testers won on the spin wheel.
   (Array.isArray(order.free_testers) ? order.free_testers : []).forEach((tester) => {
-    const name = doc.splitTextToSize(pdfText(`${tester.name || "Perfume"} ${Number(tester.ml) || 10} ml tester (spin prize)`), cols.qty - MARGIN - 16);
+    const name = doc.splitTextToSize(pdfText(`${tester.name || "Perfume"} Jhalak · ${Number(tester.ml) || 10} ml (spin prize)`), cols.qty - MARGIN - 16);
     doc.text(name, cols.item, y, { lineHeightFactor: 1.4 });
     doc.text("1", cols.qty, y);
     doc.text("Free", cols.amount, y, { align: "right" });

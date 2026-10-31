@@ -44,7 +44,7 @@ async function checkDiscount(client, { code, email, phone }) {
   if (!row && isSpinCode(wanted)) {
     const checked = await checkSpinPrize(client, { code: wanted, email: normalizeEmail(email), phone: normalizePhone(phone) });
     if (!checked.ok) return checked;
-    if (!checked.prize.percent) return { ok: false, message: "This spin prize is a free tester, not a discount. Choose it at checkout." };
+    if (!checked.prize.percent) return { ok: false, message: "This spin prize is a free Jhalak, not a discount. Choose it at checkout." };
     return { ok: true, code: checked.prize.code, percent: checked.prize.percent, spin: true, includeTesters: false };
   }
   if (!row || !row.active) return { ok: false, message: "That discount code isn't valid." };

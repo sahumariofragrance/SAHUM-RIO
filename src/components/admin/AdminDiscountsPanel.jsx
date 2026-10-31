@@ -23,7 +23,7 @@ function expiryDateValue(value) {
 }
 
 // Before supabase/migrations/20261101140000_discount_codes_testers.sql has run.
-const TESTERS_SQL_MESSAGE = "“Also on 10 ml testers” needs the discount-testers SQL. Run it in Supabase (SQL Editor), then try again.";
+const TESTERS_SQL_MESSAGE = "“Also on Jhalak” needs the discount-testers SQL. Run it in Supabase (SQL Editor), then try again.";
 function testersSqlMissing(error) {
   return /include_testers/.test(error?.message || "");
 }
@@ -95,7 +95,7 @@ export default function AdminDiscountsPanel() {
       return;
     }
     setForm(emptyForm);
-    setMessage(`${code} created — ${percent}% off ${form.includeTesters ? "everything, testers too" : "50 ml perfumes"}, each customer once.`);
+    setMessage(`${code} created — ${percent}% off ${form.includeTesters ? "everything, Jhalak too" : "50 ml perfumes"}, each customer once.`);
     load();
   }
 
@@ -189,8 +189,8 @@ export default function AdminDiscountsPanel() {
         <label htmlFor="discount-testers" className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--color-border)] p-3">
           <input id="discount-testers" type="checkbox" checked={form.includeTesters} onChange={(e) => setForm((f) => ({ ...f, includeTesters: e.target.checked }))} className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-text)]" />
           <span>
-            <span className="block text-sm font-semibold">Also on 10 ml testers</span>
-            <span className="mt-0.5 block text-xs leading-5 text-[var(--color-muted)]">Off: the code takes its % off 50 ml perfumes only. Testers keep their price (any 5 for ₹549).</span>
+            <span className="block text-sm font-semibold">Also on Jhalak (10 ml)</span>
+            <span className="mt-0.5 block text-xs leading-5 text-[var(--color-muted)]">Off: the code takes its % off 50 ml perfumes only. Jhalak keep their price (any 5 for ₹549).</span>
           </span>
         </label>
         <Field label="Note (optional)" htmlFor="discount-note" hint="Only you see this, e.g. 'Instagram ad, October'.">
@@ -224,7 +224,7 @@ export default function AdminDiscountsPanel() {
                     <button type="button" onClick={() => copy(row.code)} className="rounded p-1 text-[var(--color-muted)] hover:text-[var(--color-text)]" aria-label={`Copy ${row.code}`} title="Copy code"><Copy className="h-3.5 w-3.5" /></button>
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${live ? "bg-green-100 text-green-800" : "bg-[var(--color-surface-muted)] text-[var(--color-muted)]"}`}>{live ? "Active" : expired ? "Expired" : "Off"}</span>
                   </div>
-                  <p className="mt-1 text-sm">{row.percent}% off {row.include_testers ? "everything, testers too" : "50 ml perfumes"} · {expiryLabel(row.expires_at)}</p>
+                  <p className="mt-1 text-sm">{row.percent}% off {row.include_testers ? "everything, Jhalak too" : "50 ml perfumes"} · {expiryLabel(row.expires_at)}</p>
                   {row.note && <p className="mt-0.5 text-xs text-[var(--color-muted)]">{row.note}</p>}
                   <button
                     type="button"

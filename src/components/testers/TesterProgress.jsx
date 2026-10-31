@@ -3,7 +3,7 @@ import { TESTER } from "../../lib/catalogue";
 import { testerSetSaving, testerUnits } from "../../lib/testerShop";
 import { formatINR } from "../../utils/money";
 
-/** Bar at the bottom of the tester page: how close the bag is to a set price. */
+/** Bar at the bottom of the Jhalak page: how close the bag is to a set price. */
 export default function TesterProgress({ items, onViewBag }) {
   const units = testerUnits(items);
   if (!units) return null;
@@ -19,7 +19,7 @@ export default function TesterProgress({ items, onViewBag }) {
             {Array.from({ length: TESTER.bundleSize }, (_, i) => <span key={i} className={`h-1.5 flex-1 rounded-full ${i < filled ? "bg-[var(--color-kesar)]" : "bg-[var(--color-border)]"}`} />)}
           </div>
           <p className="mt-1.5 truncate text-sm">
-            <span className="font-semibold">{units} tester{units === 1 ? "" : "s"}</span>
+            <span className="font-semibold">{units} Jhalak</span>
             {more
               ? <span className="text-[var(--color-muted)]"> · add {more} more and {TESTER.bundleSize} are {formatINR(TESTER.bundlePrice)}</span>
               : null}

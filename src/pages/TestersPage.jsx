@@ -9,7 +9,7 @@ import { TESTER } from "../lib/catalogue";
 import { SET_SAVING, testerSetsForSale, testersForSale } from "../lib/testerShop";
 import { formatINR } from "../utils/money";
 
-/** sahumario.com/testers: 10 ml testers, one by one or in sets of five. */
+/** sahumario.com/jhalak: Jhalak (10 ml testers), one by one or in sets of five. */
 export default function TestersPage({ setCurrentPage, onProductNavigate }) {
   const { products, loading } = useProducts();
   const { items, addToCart, updateQty } = useCart();
@@ -24,11 +24,11 @@ export default function TestersPage({ setCurrentPage, onProductNavigate }) {
     <div className="mx-auto max-w-[1440px] px-5 pb-32 sm:px-8 md:px-12">
       <header className="relative isolate mx-auto max-w-3xl pb-12 pt-14 text-center md:pt-20">
         <div className="motif-jaali" aria-hidden="true" />
-        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">The Tester Edit · {TESTER.ml} ml</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Jhalak · झलक · {TESTER.ml} ml</p>
         <h1 className="mt-5 font-serif text-[clamp(2.4rem,5vw,4rem)] font-normal leading-[1.05] tracking-[-0.02em]">Not sure yet?<br />Begin with a few drops.</h1>
         <div className="motif-patola mx-auto mt-6 w-36 opacity-70" aria-hidden="true" />
         <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-[var(--color-muted)]">
-          Every SAHUMäRIO perfume, in a {TESTER.ml} ml spray. Wear it for a few days, let it settle on your skin, then choose the bottle that feels like you.
+          Jhalak means a glimpse. Every SAHUMäRIO perfume in a {TESTER.ml} ml spray: wear it for a few days, let it settle on your skin, then choose the bottle that feels like you.
         </p>
         <div className="mx-auto mt-8 inline-flex flex-wrap items-center justify-center gap-x-6 gap-y-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3 text-sm">
           <span><strong className="font-semibold">{formatINR(TESTER.price)}</strong> <span className="text-[var(--color-muted)]">each</span></span>
@@ -41,8 +41,8 @@ export default function TestersPage({ setCurrentPage, onProductNavigate }) {
       {sets.length > 0 && (
         <section aria-labelledby="tester-sets-title" className="pt-4">
           <div className="text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--color-kesar)]">Curated sets</p>
-            <h2 id="tester-sets-title" className="mt-3 font-serif text-4xl font-normal">Five testers, chosen for you</h2>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--color-kesar)]">Jhalak sets</p>
+            <h2 id="tester-sets-title" className="mt-3 font-serif text-4xl font-normal">Five glimpses, chosen for you</h2>
           </div>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {sets.map((set) => <TesterSetCard key={set.id} set={set} onAdd={addSet} />)}
@@ -52,10 +52,10 @@ export default function TestersPage({ setCurrentPage, onProductNavigate }) {
 
       <section aria-labelledby="tester-own-title" className="pt-20 md:pt-28">
         <div className="text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--color-kesar)]">Your own set</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--color-kesar)]">Your own five</p>
           <h2 id="tester-own-title" className="mt-3 font-serif text-4xl font-normal">Or make your own five</h2>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[var(--color-muted)]">
-            Pick any {TESTER.bundleSize} testers and they cost {formatINR(TESTER.bundlePrice)} together. Add more, and every {TESTER.bundleSize} are {formatINR(TESTER.bundlePrice)} again.
+            Pick any {TESTER.bundleSize} Jhalak and they cost {formatINR(TESTER.bundlePrice)} together. Add more, and every {TESTER.bundleSize} are {formatINR(TESTER.bundlePrice)} again.
           </p>
         </div>
         <AudienceFilter products={testers} value={audience} onChange={setAudience} className="mt-8 sm:justify-center" />
@@ -73,10 +73,10 @@ export default function TestersPage({ setCurrentPage, onProductNavigate }) {
       </section>
 
       <section className="mx-auto mt-20 max-w-3xl border-t border-[var(--color-border)] pt-10 md:mt-28">
-        <h2 className="text-center font-serif text-2xl font-normal">How the tester edit works</h2>
+        <h2 className="text-center font-serif text-2xl font-normal">How Jhalak works</h2>
         <dl className="mt-8 grid gap-6 text-sm leading-6 sm:grid-cols-3">
           <div>
-            <dt className="text-[10px] font-semibold uppercase tracking-[0.16em]">{TESTER.ml} ml spray</dt>
+            <dt className="text-[10px] font-semibold uppercase tracking-[0.16em]">{TESTER.ml} ml Eau de Parfum</dt>
             <dd className="mt-2 text-[var(--color-muted)]">The same Eau de Parfum as the bottle, enough to wear it for days, at home and out.</dd>
           </div>
           <div>

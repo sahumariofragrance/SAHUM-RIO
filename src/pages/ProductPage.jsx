@@ -54,7 +54,7 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
   );
 
   const quantity = product ? (items.find((item) => item.product_id === product.id)?.qty || 0) : 0;
-  // Its 10 ml tester (src/data/testers.json), for visitors who want to try it first.
+  // Its Jhalak, the 10 ml tester (src/data/testers.json), for visitors who want to try it first.
   const tester = useMemo(() => (product && !isSampleSet(product) ? testerOf(product) : null), [product]);
   const testerQty = tester ? (items.find((item) => item.product_id === tester.id)?.qty || 0) : 0;
   const comingSoon = isComingSoon(product);
@@ -183,17 +183,17 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
             {tester && !comingSoon && (
               <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-dashed border-[var(--color-border)] px-4 py-3">
                 <p className="text-xs leading-5 text-[var(--color-muted)]">
-                  <span className="font-semibold text-[var(--color-text)]">Not sure yet? Try it first.</span><br />
-                  {TESTER.ml} ml tester, {formatINR(TESTER.price)} · any {TESTER.bundleSize} for {formatINR(TESTER.bundlePrice)}{" "}
-                  <SpaLink href="/testers" onNavigate={() => navigate("testers")} className="underline underline-offset-4 hover:text-[var(--color-text)]">See all testers</SpaLink>
+                  <span className="font-semibold text-[var(--color-text)]">Not sure yet? Try its Jhalak first.</span><br />
+                  A {TESTER.ml} ml glimpse, {formatINR(TESTER.price)} · any {TESTER.bundleSize} for {formatINR(TESTER.bundlePrice)}{" "}
+                  <SpaLink href="/jhalak" onNavigate={() => navigate("testers")} className="underline underline-offset-4 hover:text-[var(--color-text)]">See all Jhalak</SpaLink>
                 </p>
                 {testerQty === 0 ? (
-                  <button type="button" onClick={() => addToCart(tester)} className="shrink-0 rounded-full border border-[var(--color-text)] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] transition hover:bg-[var(--color-text)] hover:text-[var(--color-bg)]">Add tester</button>
+                  <button type="button" onClick={() => addToCart(tester)} className="shrink-0 rounded-full border border-[var(--color-text)] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] transition hover:bg-[var(--color-text)] hover:text-[var(--color-bg)]">Add Jhalak</button>
                 ) : (
                   <div className="grid h-9 shrink-0 grid-cols-[2rem_auto_2rem] items-center rounded-full border border-[var(--color-border)]">
-                    <button type="button" onClick={() => updateQty(tester.id, testerQty - 1)} aria-label={`Fewer ${product.name} testers`}>−</button>
-                    <span className="px-1 text-[10px] font-semibold uppercase tracking-[0.1em]">{testerQty} tester{testerQty === 1 ? "" : "s"}</span>
-                    <button type="button" onClick={() => updateQty(tester.id, testerQty + 1)} aria-label={`More ${product.name} testers`}>+</button>
+                    <button type="button" onClick={() => updateQty(tester.id, testerQty - 1)} aria-label={`Fewer ${product.name} Jhalak`}>−</button>
+                    <span className="px-1 text-[10px] font-semibold uppercase tracking-[0.1em]">{testerQty} Jhalak</span>
+                    <button type="button" onClick={() => updateQty(tester.id, testerQty + 1)} aria-label={`More ${product.name} Jhalak`}>+</button>
                   </div>
                 )}
               </div>

@@ -44,7 +44,7 @@ function Wheel({ rotation, durationMs, onStopped }) {
                 <text y="-67" className="font-serif" fontSize={segment.testers ? 13 : 18} fontWeight="700">
                   {segment.testers ? `${segment.testers === 1 ? "" : `${segment.testers} `}FREE` : `${segment.percent}%`}
                 </text>
-                <text y="-55" fontSize="5.8" fontWeight="700" letterSpacing="1">{segment.testers ? (segment.testers === 1 ? "TESTER" : "TESTERS") : "OFF"}</text>
+                <text y="-55" fontSize="5.8" fontWeight="700" letterSpacing="1">{segment.testers ? "JHALAK" : "OFF"}</text>
               </g>
             </g>
           );
@@ -266,7 +266,7 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], testerOt
             <div className="mt-5">
               <p className="inline-flex items-center gap-2 text-sm font-semibold">
                 <Gift className="h-4 w-4 shrink-0 text-[var(--color-kesar)]" aria-hidden="true" />
-                {spin.testers === 1 ? "Choose your free tester" : `Choose your ${spin.testers} free testers`}
+                {spin.testers === 1 ? "Choose your free Jhalak" : `Choose your ${spin.testers} free Jhalak`}
               </p>
               <p className="mt-1 text-xs text-[var(--color-muted)]">Packed free with your order. Use it by {prizeUseBy(spin)}.</p>
               <div className="mt-3">
@@ -281,7 +281,7 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], testerOt
           {won ? (
             <>
               <button type="button" onClick={close} disabled={!testersReady} className="w-full rounded-full bg-[var(--color-text)] px-5 py-3 font-semibold text-[var(--color-bg)] transition hover:opacity-90 disabled:opacity-40">
-                {testersReady ? "Continue to checkout" : spin.testers === 1 ? "Choose your tester" : `Choose ${spin.testers - picks.length} more`}
+                {testersReady ? "Continue to checkout" : spin.testers === 1 ? "Choose your Jhalak" : `Choose ${spin.testers - picks.length} more`}
               </button>
               {!testersReady && <button type="button" onClick={close} className="w-full py-2 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]">Choose {spin.testers === 1 ? "it" : "them"} at checkout</button>}
             </>
@@ -299,7 +299,7 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], testerOt
 
         <p className="mt-3 text-center text-[11px] leading-4 text-[var(--color-muted)]">
           One prize per customer, checked by email and phone number. Valid on one order for {WHEEL.validDays} days.
-          {TESTERS > 0 && ` ${TESTERS === 1 ? "The free tester comes" : "Free testers come"} with a perfume bottle.`}
+          {TESTERS > 0 && ` The free Jhalak comes with a perfume bottle.`}
         </p>
       </div>
     </div>

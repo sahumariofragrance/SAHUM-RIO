@@ -205,7 +205,7 @@ export default function OrderCard({ order, onSaved, defaultOpen = false, selecte
               {testers.length > 0 && (
                 <p className="mt-3 flex items-start gap-2 rounded-xl border border-[var(--color-kesar)] bg-[var(--color-surface-muted)] px-3 py-2 text-sm">
                   <Gift className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-kesar)]" aria-hidden="true" />
-                  <span>Spin prize, pack {testers.length === 1 ? "a free tester" : `${testers.length} free testers`}: <strong className="font-semibold">{testers.map((tester) => `${tester.name} ${tester.ml || 10} ml`).join(", ")}</strong></span>
+                  <span>Spin prize, pack {testers.length === 1 ? "a free Jhalak (10 ml tester)" : `${testers.length} free Jhalak (10 ml testers)`}: <strong className="font-semibold">{testers.map((tester) => `${tester.name} ${tester.ml || 10} ml`).join(", ")}</strong></span>
                 </p>
               )}
               {Number(order.discount_amount) > 0 && (

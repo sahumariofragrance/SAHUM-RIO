@@ -12,7 +12,7 @@ const PAGE_HREFS = {
   home: "/",
   perfumes: "/perfumes",
   about: "/about",
-  testers: "/testers",
+  testers: "/jhalak",
   cart: "/cart",
   account: "/account",
   orders: "/account/orders",
@@ -94,7 +94,7 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
               <nav className="hidden items-center gap-7 md:flex">
                 <NavLink id="home" active={currentPage === "home"} onNavigate={nav}>Home</NavLink>
                 <NavLink id="perfumes" active={currentPage === "perfumes" || currentPage === "product"} onNavigate={nav}>Perfumes</NavLink>
-                <NavLink id="testers" active={currentPage === "testers"} onNavigate={nav}>Testers</NavLink>
+                <NavLink id="testers" active={currentPage === "testers"} onNavigate={nav}>Jhalak</NavLink>
                 <NavLink id="about" active={currentPage === "about"} onNavigate={nav}>The House</NavLink>
               </nav>
             </div>
@@ -159,7 +159,7 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
             <nav className="glass-surface -mx-4 border-t px-4 py-3 sm:-mx-6 sm:px-6 md:hidden">
               <SpaLink href="/" onNavigate={() => nav("home")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Home</SpaLink>
               <SpaLink href="/perfumes" onNavigate={() => nav("perfumes")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Perfumes</SpaLink>
-              <SpaLink href="/testers" onNavigate={() => nav("testers")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Testers</SpaLink>
+              <SpaLink href="/jhalak" onNavigate={() => nav("testers")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Jhalak</SpaLink>
               <SpaLink href="/about" onNavigate={() => nav("about")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">The House</SpaLink>
               <SpaLink href="/cart" onNavigate={() => nav("cart")} className="block w-full px-1 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">Cart ({count})</SpaLink>
               {permanentUser ? (

@@ -41,9 +41,9 @@ export const PAGE_META = {
     changefreq: "monthly",
   },
   testers: {
-    path: "/testers",
-    title: "10 ml Perfume Testers — Any 5 for ₹549 | SAHUMäRIO®",
-    description: "Try SAHUMäRIO® Eau de Parfum in 10 ml testers before choosing a bottle: ₹150 each, or any 5 for ₹549. Curated sets and free delivery across India.",
+    path: "/jhalak",
+    title: "Jhalak — 10 ml Eau de Parfum, Any 5 for ₹549 | SAHUMäRIO®",
+    description: "Jhalak is a 10 ml glimpse of every SAHUMäRIO® Eau de Parfum: try it before choosing your bottle. ₹150 each or any 5 for ₹549, curated sets and free delivery across India.",
     priority: "0.8",
     changefreq: "weekly",
   },

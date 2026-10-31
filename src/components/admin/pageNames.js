@@ -4,7 +4,7 @@ const PAGE_NAMES = {
   "/perfumes": "The Collection",
   "/about": "About",
   "/bulk-orders": "Bulk orders",
-  "/testers": "Testers",
+  "/jhalak": "Jhalak",
   "/cart": "Bag",
   "/checkout": "Checkout",
   "/login": "Log in",

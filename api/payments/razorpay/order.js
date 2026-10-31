@@ -165,7 +165,7 @@ module.exports = async (req, res) => {
       if (!checked.prize.testers) return res.status(400).json({ message: "This spin prize is a discount. Apply it as a discount code.", spinRejected: true });
       const wanted = checked.prize.testers;
       if (!bottles.length) {
-        return res.status(400).json({ message: `${wanted === 1 ? "The free tester comes" : "Free testers come"} with a perfume bottle. Please add one to your bag.`, testersRejected: true });
+        return res.status(400).json({ message: `${wanted === 1 ? "The free Jhalak comes" : "The free Jhalak come"} with a perfume bottle. Please add one to your bag.`, testersRejected: true });
       }
       const chosen = testerIds.map((id) => catalogue.get(id));
       const valid = chosen.length === wanted
@@ -174,8 +174,8 @@ module.exports = async (req, res) => {
         && testerIds.every((id) => !seen.has(id));
       if (!valid) {
         const message = wanted === 1
-          ? "Please choose one perfume, not in your bag, for your free tester."
-          : `Please choose ${wanted} different perfumes, not in your bag, for your free testers.`;
+          ? "Please choose one perfume, not in your bag, for your free Jhalak."
+          : `Please choose ${wanted} different perfumes, not in your bag, for your free Jhalak.`;
         return res.status(400).json({ message, testersRejected: true });
       }
       freeTesters = testerIds.map((id) => ({ product_id: id, name: catalogue.get(id).name, ml: wheel.testerMl }));

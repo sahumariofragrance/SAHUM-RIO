@@ -3,7 +3,7 @@ import SpaLink from "../SpaLink";
 import { noteList } from "../../lib/scentQuiz";
 import { formatINR } from "../../utils/money";
 
-/** One 10 ml tester: add it, or change how many are in the bag. */
+/** One Jhalak (10 ml tester): add it, or change how many are in the bag. */
 export default function TesterCard({ tester, qty, onAdd, onQty, onOpenPerfume }) {
   const notes = noteList(tester.parent).slice(0, 3).join(", ");
   return (
@@ -20,14 +20,14 @@ export default function TesterCard({ tester, qty, onAdd, onQty, onOpenPerfume })
       </div>
       <div className="mt-3">
         {qty === 0 ? (
-          <button type="button" onClick={() => onAdd(tester)} className="flex h-10 w-full items-center justify-between rounded-full border border-[var(--color-text)] px-4 text-[10px] font-semibold uppercase tracking-[0.14em] transition hover:bg-[var(--color-text)] hover:text-[var(--color-bg)]" aria-label={`Add ${tester.shortName} tester`}>
-            <span>Add tester</span><span aria-hidden="true">+</span>
+          <button type="button" onClick={() => onAdd(tester)} className="flex h-10 w-full items-center justify-between rounded-full border border-[var(--color-text)] px-4 text-[10px] font-semibold uppercase tracking-[0.14em] transition hover:bg-[var(--color-text)] hover:text-[var(--color-bg)]" aria-label={`Add ${tester.shortName} Jhalak`}>
+            <span>Add Jhalak</span><span aria-hidden="true">+</span>
           </button>
         ) : (
           <div className="grid h-10 grid-cols-[2.5rem_1fr_2.5rem] rounded-full border border-[var(--color-border)]">
-            <button type="button" onClick={() => onQty(tester.id, qty - 1)} className="text-lg" aria-label={`Fewer ${tester.shortName} testers`}>−</button>
+            <button type="button" onClick={() => onQty(tester.id, qty - 1)} className="text-lg" aria-label={`Fewer ${tester.shortName} Jhalak`}>−</button>
             <span className="flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.12em]">{qty} in bag</span>
-            <button type="button" onClick={() => onQty(tester.id, qty + 1)} className="text-lg" aria-label={`More ${tester.shortName} testers`}>+</button>
+            <button type="button" onClick={() => onQty(tester.id, qty + 1)} className="text-lg" aria-label={`More ${tester.shortName} Jhalak`}>+</button>
           </div>
         )}
       </div>

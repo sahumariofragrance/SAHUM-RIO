@@ -42,7 +42,7 @@ export function useSpinWheelOpen() {
   return open;
 }
 
-/** What the wheel can give, e.g. "5% or 10% off, or 2 free 10 ml testers". */
+/** What the wheel can give, e.g. "5% or 10% off, or a free 10 ml Jhalak". */
 export function wheelPrizes() {
   const percents = [...new Set(wheel.segments.map((segment) => segment.percent).filter(Boolean))].sort((a, b) => a - b);
   const testers = wheel.segments.find((segment) => segment.testers)?.testers;
@@ -52,10 +52,10 @@ export function wheelPrizes() {
   return parts.join(", or ");
 }
 
-/** "10% off", "a free 10 ml tester" or "2 free 10 ml testers". */
+/** "10% off", "a free 10 ml Jhalak" or "2 free 10 ml Jhalak" (a Jhalak is a 10 ml tester). */
 export function prizeLabel(prize) {
   if (prize?.percent) return `${prize.percent}% off`;
-  return prize?.testers === 1 ? `a free ${wheel.testerMl} ml tester` : `${prize?.testers} free ${wheel.testerMl} ml testers`;
+  return prize?.testers === 1 ? `a free ${wheel.testerMl} ml Jhalak` : `${prize?.testers} free ${wheel.testerMl} ml Jhalak`;
 }
 
 /** The last day to use the prize, e.g. "6 Nov", in Indian time. */

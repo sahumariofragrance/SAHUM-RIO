@@ -38,7 +38,7 @@ const Footer = React.memo(({ setCurrentPage }) => {
             <h3 className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">Shop</h3>
             <div className="mt-5 space-y-3 text-sm">
               <p><FooterLink href="/perfumes" onClick={() => nav("perfumes")}>All Perfumes</FooterLink></p>
-              <p><FooterLink href="/testers" onClick={() => nav("testers")}>10 ml Testers</FooterLink></p>
+              <p><FooterLink href="/jhalak" onClick={() => nav("testers")}>Jhalak · 10 ml</FooterLink></p>
               <p><FooterLink href="/cart" onClick={() => nav("cart")}>Cart</FooterLink></p>
               <p><FooterLink href="/account" onClick={() => nav("account")}>My Account</FooterLink></p>
               <p><FooterLink href="/account/orders" onClick={() => nav("orders")}>My Orders</FooterLink></p>

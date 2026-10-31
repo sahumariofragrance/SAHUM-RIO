@@ -4,7 +4,7 @@ import SetBottles from "./SetBottles";
 import { TESTER } from "../../lib/catalogue";
 import { formatINR } from "../../utils/money";
 
-/** A curated set of testers: five perfumes, one set price. */
+/** A curated Jhalak set: five perfumes, one set price. */
 export default function TesterSetCard({ set, onAdd, compact = false }) {
   const [added, setAdded] = useState(false);
   useEffect(() => { if (!added) return undefined; const t = setTimeout(() => setAdded(false), 2500); return () => clearTimeout(t); }, [added]);
@@ -23,7 +23,7 @@ export default function TesterSetCard({ set, onAdd, compact = false }) {
             <span className="text-sm text-[var(--color-muted)] line-through">{formatINR(full)}</span>
             <span className="text-xs font-semibold text-green-600">Save {formatINR(full - TESTER.bundlePrice)}</span>
           </p>
-          <p className="mt-0.5 text-xs text-[var(--color-muted)]">{set.testers.length} × {TESTER.ml} ml testers</p>
+          <p className="mt-0.5 text-xs text-[var(--color-muted)]">{set.testers.length} Jhalak × {TESTER.ml} ml</p>
           <button
             type="button"
             onClick={() => { onAdd(set); setAdded(true); }}

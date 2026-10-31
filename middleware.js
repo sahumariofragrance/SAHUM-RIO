@@ -147,7 +147,7 @@ async function resolvePage(pathname) {
   let jsonLd = null;
   let links = [
     { href: "/perfumes", label: "Shop all perfumes" },
-    { href: "/testers", label: "10 ml testers: any 5 for ₹549" },
+    { href: "/jhalak", label: "Jhalak, 10 ml Eau de Parfum: any 5 for ₹549" },
     { href: "/about", label: "About SAHUMäRIO" },
     { href: "/bulk-orders", label: "Bulk orders & corporate gifting" },
   ];

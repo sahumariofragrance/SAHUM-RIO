@@ -16,10 +16,10 @@ function orderTotal(order) {
   return Number(order?.total ?? order?.subtotal ?? 0);
 }
 
-// Free testers won on the spin wheel, e.g. "Rasmalai 10 ml tester".
+// Free Jhalak (10 ml testers) won on the spin wheel, e.g. "Rasmalai Jhalak · 10 ml".
 function testerLines(order) {
   const testers = Array.isArray(order?.free_testers) ? order.free_testers : [];
-  return testers.map((tester) => `${tester.name || "Perfume"} ${Number(tester.ml) || 10} ml tester`);
+  return testers.map((tester) => `${tester.name || "Perfume"} Jhalak · ${Number(tester.ml) || 10} ml`);
 }
 
 function plainOrderLines(order) {

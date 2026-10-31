@@ -1,10 +1,10 @@
 "use strict";
 
-// 10 ml testers sold in the shop (src/data/testers.json, which the website
+// 10 ml testers sold in the shop as "Jhalak" (src/data/testers.json, which the website
 // uses too). A tester isn't a catalogue row: its id is its perfume's id plus
 // TESTER_ID_OFFSET, and it is on sale whenever its perfume is. Every
 // `bundleSize` testers in an order cost `bundlePrice` together and are saved
-// as one "Tester set" line, so emails, invoices and packing show the set.
+// as one "Jhalak set" line, so emails, invoices and packing show the set.
 
 const config = require("../../src/data/testers.json");
 
@@ -19,7 +19,7 @@ function perfumeIdOf(testerId) {
 }
 
 function testerName(perfumeName) {
-  return `${perfumeName} · ${config.ml} ml tester`;
+  return `${perfumeName} Jhalak · ${config.ml} ml`;
 }
 
 /**
@@ -41,7 +41,7 @@ function testerLines(testers) {
       const counts = new Map();
       for (const unit of group) counts.set(unit.perfume, (counts.get(unit.perfume) || 0) + 1);
       const contents = [...counts].map(([name, qty]) => (qty > 1 ? `${name} ×${qty}` : name)).join(", ");
-      lines.push({ product_id: 0, name: `Tester set (${config.bundleSize} × ${config.ml} ml): ${contents}`.slice(0, 250), price: setPaise / 100, qty: 1, set: true });
+      lines.push({ product_id: 0, name: `Jhalak set (${config.bundleSize} × ${config.ml} ml): ${contents}`.slice(0, 250), price: setPaise / 100, qty: 1, set: true });
     }
   }
   const singles = new Map();

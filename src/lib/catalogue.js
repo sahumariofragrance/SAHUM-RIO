@@ -12,7 +12,8 @@ export function isSampleSet(item) {
 }
 
 /**
- * 10 ml testers: every perfume on sale can be bought as a tester (price and
+ * Jhalak (झलक, "a glimpse"): 10 ml testers sold in the shop under that
+ * name. Every perfume on sale can be bought as a tester (price and
  * sets in src/data/testers.json). A tester isn't a catalogue row: it has its
  * perfume's id plus TESTER_ID_OFFSET and its slug plus "-tester", so it goes
  * on sale with its perfume. The server prices it the same way
@@ -33,14 +34,14 @@ export function testerOf(product) {
     id: Number(product.id) + TESTER_ID_OFFSET,
     slug,
     parent: product,
-    name: `${product.name} · ${TESTER.ml} ml tester`,
+    name: `${product.name} Jhalak · ${TESTER.ml} ml`,
     shortName: product.name,
     price: TESTER.price,
     size_volume: `${TESTER.ml} ml`,
     image: `/products/testers/${product.slug}.webp`,
     image_url: `/products/testers/${product.slug}.webp`,
     gallery: [`/products/testers/${product.slug}.webp`],
-    alt: `${product.name} ${TESTER.ml} ml tester spray`,
+    alt: `${product.name} Jhalak, ${TESTER.ml} ml spray`,
   };
 }
 

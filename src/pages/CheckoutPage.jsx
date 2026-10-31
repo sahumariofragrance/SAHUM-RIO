@@ -197,7 +197,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     if (!formValid) { setError("Please complete all required shipping fields before proceeding."); return; }
     if (discount?.demo) { setError(`That ${discount.percent}% off is a demo prize from the preview link's wheel, so it can't be used to pay. Remove it to continue.`); return; }
     if (sendTesters && testerPicks.length !== prize.testers) {
-      setTesterError(`Choose your ${prize.testers === 1 ? "free tester" : `${prize.testers} free testers`} in the order summary, or tap “Not now”.`);
+      setTesterError(`Choose your ${prize.testers === 1 ? "free Jhalak" : `${prize.testers} free Jhalak`} in the order summary, or tap “Not now”.`);
       return;
     }
     const razorpayKey = process.env.REACT_APP_RAZORPAY_KEY_ID;
@@ -273,7 +273,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100"><CheckCircle2 className="h-10 w-10 text-green-600" /></div>
       <h1 ref={successRef} tabIndex={-1} className="mt-6 text-3xl font-semibold outline-none">Payment successful</h1>
       <p className="mt-3 text-[var(--color-muted)]">Your payment was verified and your order is now waiting for SAHUMäRIO review.</p>
-      {packedTesters.length > 0 && <p className="mt-2 text-sm">Your free {WHEEL.testerMl} ml tester{packedTesters.length === 1 ? "" : "s"}, {packedTesters.join(" and ")}, will be packed with it.</p>}
+      {packedTesters.length > 0 && <p className="mt-2 text-sm">Your free {WHEEL.testerMl} ml Jhalak, {packedTesters.join(" and ")}, will be packed with it.</p>}
       {guestCheckout && <p className="mt-2 text-sm text-[var(--color-muted)]">We’ll send order updates to the email you provided. Keep your order number for reference.</p>}
       {confirmedOrderId && <p className="mt-2 font-mono text-xs text-[var(--color-muted)]">Order ID: {confirmedOrderId}</p>}
       <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
