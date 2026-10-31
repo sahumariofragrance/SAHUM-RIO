@@ -7,6 +7,7 @@ import PromoTicket from "../components/PromoTicket";
 import DiwaliOffer from "../components/DiwaliOffer";
 import ScentQuiz, { QuizInvite } from "../components/ScentQuiz";
 import SurpriseHint from "../components/SurpriseHint";
+import TesterEditBand from "../components/testers/TesterEditBand";
 import AudienceFilter from "../components/AudienceFilter";
 import { onSaleFirst } from "../lib/catalogue";
 import { useProducts } from "../context/ProductsContext";
@@ -85,6 +86,8 @@ export default function HomePage({ onProductNavigate, setCurrentPage, openQuiz =
       <div className="pb-24 pt-6 md:pb-32 md:pt-8">
         <ProductGrid products={products} loading={loading} onSelectProduct={onProductNavigate} onAddToCart={handleAdd} onUpdateQty={handleQty} />
       </div>
+
+      <TesterEditBand onOpen={() => setCurrentPage?.("testers")} />
 
       <div className="mb-24 flex flex-col items-center gap-5 text-center md:mb-32">
         <p className="text-sm leading-6 text-[var(--color-muted)]">Gifting for weddings, corporate and events — enquiries from ₹10,000.</p>

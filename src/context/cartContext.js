@@ -8,7 +8,8 @@ import React, {
 } from "react";
 import { trackEvent } from "../lib/analytics";
 import { pixelAddToCart } from "../lib/metaPixel";
-import { isComingSoon } from "../lib/catalogue";
+import { TESTER_ID_OFFSET, forSale, isComingSoon } from "../lib/catalogue";
+import { testerSetSaving } from "../lib/testerShop";
 import { useProducts } from "./ProductsContext";
 
 const CartCtx = createContext(null);
@@ -73,6 +74,8 @@ export function CartProvider({ children }) {
   useEffect(() => {
     if (productsLoading || productsError || !products.length) return;
     const buyable = new Set(products.filter((product) => !isComingSoon(product)).map((product) => product.id));
+    // A 10 ml tester can be bought while its perfume is on sale.
+    forSale(products).forEach((product) => buyable.add(product.id + TESTER_ID_OFFSET));
     setItems((prev) => (prev.every((item) => buyable.has(item.product_id)) ? prev : prev.filter((item) => buyable.has(item.product_id))));
   }, [products, productsLoading, productsError]);
 
@@ -132,10 +135,13 @@ export function CartProvider({ children }) {
 
   // Derived totals — no tax applied; add tax logic here if required
   const count = useMemo(() => items.reduce((sum, item) => sum + item.qty, 0), [items]);
-  const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.qty * item.price, 0), [items]);
+  // Every 5 testers cost ₹549 together (src/data/testers.json); the subtotal
+  // already has that taken off, and testerSaving says how much it is.
+  const testerSaving = useMemo(() => testerSetSaving(items), [items]);
+  const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.qty * item.price, 0) - testerSaving, [items, testerSaving]);
 
   return (
-    <CartCtx.Provider value={{ items, addToCart, updateQty, removeItem, clearCart, count, subtotal }}>
+    <CartCtx.Provider value={{ items, addToCart, updateQty, removeItem, clearCart, count, subtotal, testerSaving }}>
       {children}
     </CartCtx.Provider>
   );

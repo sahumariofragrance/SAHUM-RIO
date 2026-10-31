@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Check, Gift, Loader2, X } from "lucide-react";
+import { Check, ChevronDown, Gift, Loader2, Sparkles, X } from "lucide-react";
 import SafeImage from "./SafeImage";
 import { noteList } from "../lib/scentQuiz";
+import { testerImage } from "../lib/testers";
 import { WHEEL, prizeLabel, prizeUseBy, spinOnServer, wheelPrizes } from "../lib/spinWheel";
 
 const SEGMENT_DEG = 360 / WHEEL.segments.length;
@@ -43,7 +44,7 @@ function Wheel({ rotation, durationMs, onStopped }) {
                 <text y="-67" className="font-serif" fontSize={segment.testers ? 13 : 18} fontWeight="700">
                   {segment.testers ? `${segment.testers === 1 ? "" : `${segment.testers} `}FREE` : `${segment.percent}%`}
                 </text>
-                <text y="-55" fontSize="5.8" fontWeight="700" letterSpacing="1">{segment.testers ? (segment.testers === 1 ? "TESTER" : "TESTERS") : "OFF"}</text>
+                <text y="-55" fontSize="5.8" fontWeight="700" letterSpacing="1">{segment.testers ? "JHALAK" : "OFF"}</text>
               </g>
             </g>
           );
@@ -60,40 +61,88 @@ function Wheel({ rotation, durationMs, onStopped }) {
   );
 }
 
-/**
- * Choose free testers: one row per suggested perfume; `picks` are product ids.
- * With one tester to choose, tapping another perfume switches to it.
- */
-export function TesterPicker({ options, picks, count, onToggle, showImages = true }) {
-  const full = count > 1 && picks.length >= count;
+/** The 10 ml tester bottle with this perfume's name (public/products/testers/), or its bottle photo if there is none yet. */
+function TesterPhoto({ product, small = false }) {
+  const [failed, setFailed] = useState(false);
+  const size = small ? "h-10 w-8" : "h-16 w-[3.2rem]";
+  if (failed) return <SafeImage src={product.image} alt="" sizes="52px" maxWidth={320} className={`${size} shrink-0 rounded-lg object-cover`} />;
+  return <img src={testerImage(product)} alt="" loading="lazy" onError={() => setFailed(true)} className={`${size} shrink-0 rounded-lg object-cover`} />;
+}
+
+/** One perfume to choose as the free tester; `featured` rows are our suggestions. */
+function TesterRow({ product, chosen, disabled, featured, showImages, onToggle }) {
+  const id = Number(product.id);
+  const notes = noteList(product).slice(0, 3).join(", ");
+  const look = featured
+    ? chosen
+      ? "border-[var(--color-kesar)] ring-2 ring-[var(--color-kesar)]"
+      : "border-[var(--color-kesar)] hover:ring-1 hover:ring-[var(--color-kesar)]"
+    : chosen
+      ? "border-[var(--color-kesar)] ring-1 ring-[var(--color-kesar)]"
+      : "border-[var(--color-border)] hover:border-[var(--color-text)]";
   return (
-    <ul className="space-y-2">
-      {options.map((product) => {
-        const id = Number(product.id);
-        const chosen = picks.includes(id);
-        const notes = noteList(product).slice(0, 3).join(", ");
-        return (
-          <li key={id}>
-            <button
-              type="button"
-              onClick={() => onToggle(id)}
-              aria-pressed={chosen}
-              disabled={!chosen && full}
-              className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${chosen ? "border-[var(--color-kesar)] bg-[var(--color-surface)] ring-1 ring-[var(--color-kesar)]" : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-text)]"}`}
-            >
-              {showImages && <SafeImage src={product.image} alt="" sizes="40px" maxWidth={320} className="h-12 w-10 shrink-0 rounded-lg object-cover" />}
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold">{product.name}</span>
-                <span className="block truncate text-xs text-[var(--color-muted)]">{[product.fragrance_family, notes].filter(Boolean).join(" · ")}</span>
-              </span>
-              <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${chosen ? "border-[var(--color-kesar)] bg-[var(--color-kesar)] text-white" : "border-[var(--color-border)]"}`} aria-hidden="true">
-                {chosen && <Check className="h-3.5 w-3.5" />}
-              </span>
-            </button>
-          </li>
-        );
-      })}
-    </ul>
+    <li>
+      <button
+        type="button"
+        onClick={() => onToggle(id)}
+        aria-pressed={chosen}
+        disabled={disabled}
+        className={`flex w-full items-center gap-3 rounded-xl border bg-[var(--color-surface)] text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${featured ? "px-3 py-2.5" : "px-3 py-1.5"} ${look}`}
+      >
+        {showImages && <TesterPhoto product={product} small={!featured} />}
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2">
+            <span className="truncate text-sm font-semibold">{product.name}</span>
+            {featured && <span className="shrink-0 rounded-full bg-[var(--color-kesar)] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-bg)]">Recommended</span>}
+          </span>
+          <span className="block truncate text-xs text-[var(--color-muted)]">{[product.fragrance_family, notes].filter(Boolean).join(" · ")}</span>
+        </span>
+        <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${chosen ? "border-[var(--color-kesar)] bg-[var(--color-kesar)] text-white" : "border-[var(--color-border)]"}`} aria-hidden="true">
+          {chosen && <Check className="h-3.5 w-3.5" />}
+        </span>
+      </button>
+    </li>
+  );
+}
+
+/**
+ * Choose free testers; `picks` are product ids. Our suggestions (`options`,
+ * each a different family to the bag) come first and stand out; any other
+ * perfume on sale (`others`) is one tap away. With one tester to choose,
+ * tapping another perfume switches to it.
+ */
+export function TesterPicker({ options, others = [], picks, count, onToggle, showImages = true }) {
+  const full = count > 1 && picks.length >= count;
+  const pickedOther = others.some((product) => picks.includes(Number(product.id)));
+  const [showOthers, setShowOthers] = useState(pickedOther);
+  useEffect(() => { if (pickedOther) setShowOthers(true); }, [pickedOther]);
+  const row = (product, featured) => {
+    const chosen = picks.includes(Number(product.id));
+    return <TesterRow key={product.id} product={product} chosen={chosen} disabled={!chosen && full} featured={featured} showImages={showImages} onToggle={onToggle} />;
+  };
+  return (
+    <div>
+      {options.length > 0 && <>
+        <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-kesar)]">
+          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />Our picks for you: something new to try
+        </p>
+        <ul className="space-y-2">{options.map((product) => row(product, true))}</ul>
+      </>}
+      {others.length > 0 && (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => setShowOthers((open) => !open)}
+            aria-expanded={showOthers}
+            className="flex w-full items-center justify-center gap-1.5 py-1.5 text-xs font-semibold text-[var(--color-muted)] underline-offset-4 hover:text-[var(--color-text)] hover:underline"
+          >
+            {showOthers ? "Hide other perfumes" : `Or choose another perfume (${others.length})`}
+            <ChevronDown className={`h-3.5 w-3.5 transition ${showOthers ? "rotate-180" : ""}`} aria-hidden="true" />
+          </button>
+          {showOthers && <ul className="mt-2 max-h-72 space-y-1.5 overflow-y-auto pr-1">{others.map((product) => row(product, false))}</ul>}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -103,7 +152,7 @@ export function TesterPicker({ options, picks, count, onToggle, showImages = tru
  * mid-spin). A testers prize is chosen from `testerOptions` here or later in
  * the order summary.
  */
-export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = [], onTogglePick, demo = false }) {
+export default function SpinWheel({ onClose, onWon, testerOptions = [], testerOthers = [], picks = [], onTogglePick, demo = false }) {
   const [phase, setPhase] = useState("ready"); // ready | spinning | won | error
   const [spin, setSpin] = useState(null);
   // At rest the pointer sits in the middle of the first segment.
@@ -203,7 +252,7 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = 
 
         <div aria-live="polite">
           {won && spin.demo && (
-            <p className="mt-4 rounded-xl bg-[var(--color-surface-muted)] px-3 py-2 text-center text-xs text-[var(--color-muted)]">Preview link only: a demo prize. It shows in the order summary but can’t be used to pay. The real wheel starts once its database update has run.</p>
+            <p className="mt-4 rounded-xl bg-[var(--color-surface-muted)] px-3 py-2 text-center text-xs text-[var(--color-muted)]">Preview link only: a demo prize. It shows in the order summary but can’t be used to pay. On sahumario.com the wheel gives real prizes.</p>
           )}
           {won && spin.percent && (
             <div className="mt-5 rounded-2xl border border-dashed border-[var(--color-kesar)] bg-[var(--color-surface)] px-5 py-4 text-center">
@@ -217,11 +266,11 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = 
             <div className="mt-5">
               <p className="inline-flex items-center gap-2 text-sm font-semibold">
                 <Gift className="h-4 w-4 shrink-0 text-[var(--color-kesar)]" aria-hidden="true" />
-                {spin.testers === 1 ? "Choose your tester, from a different family to your bag" : `Choose ${spin.testers}, each a different family to your bag`}
+                {spin.testers === 1 ? "Choose your free Jhalak" : `Choose your ${spin.testers} free Jhalak`}
               </p>
               <p className="mt-1 text-xs text-[var(--color-muted)]">Packed free with your order. Use it by {prizeUseBy(spin)}.</p>
               <div className="mt-3">
-                <TesterPicker options={testerOptions} picks={picks} count={spin.testers} onToggle={onTogglePick} />
+                <TesterPicker options={testerOptions} others={testerOthers} picks={picks} count={spin.testers} onToggle={onTogglePick} />
               </div>
             </div>
           )}
@@ -232,7 +281,7 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = 
           {won ? (
             <>
               <button type="button" onClick={close} disabled={!testersReady} className="w-full rounded-full bg-[var(--color-text)] px-5 py-3 font-semibold text-[var(--color-bg)] transition hover:opacity-90 disabled:opacity-40">
-                {testersReady ? "Continue to checkout" : spin.testers === 1 ? "Choose your tester" : `Choose ${spin.testers - picks.length} more`}
+                {testersReady ? "Continue to checkout" : spin.testers === 1 ? "Choose your Jhalak" : `Choose ${spin.testers - picks.length} more`}
               </button>
               {!testersReady && <button type="button" onClick={close} className="w-full py-2 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]">Choose {spin.testers === 1 ? "it" : "them"} at checkout</button>}
             </>
@@ -250,7 +299,7 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = 
 
         <p className="mt-3 text-center text-[11px] leading-4 text-[var(--color-muted)]">
           One prize per customer, checked by email and phone number. Valid on one order for {WHEEL.validDays} days.
-          {TESTERS > 0 && ` ${TESTERS === 1 ? "The free tester comes" : "Free testers come"} with a perfume bottle.`}
+          {TESTERS > 0 && ` The free Jhalak comes with a perfume bottle.`}
         </p>
       </div>
     </div>

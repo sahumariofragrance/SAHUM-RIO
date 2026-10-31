@@ -1,4 +1,5 @@
 // Which perfumes can be bought now, and who each one is for.
+import testerConfig from "../data/testers.json";
 
 /**
  * A discovery box: a catalogue product whose URL starts with "discovery"
@@ -10,9 +11,43 @@ export function isSampleSet(item) {
   return /^discovery/.test(String(item?.slug || ""));
 }
 
-/** Cart items or products that are perfume bottles, without discovery boxes. */
+/**
+ * Jhalak (झलक, "a glimpse"): 10 ml testers sold in the shop under that
+ * name. Every perfume on sale can be bought as a tester (price and
+ * sets in src/data/testers.json). A tester isn't a catalogue row: it has its
+ * perfume's id plus TESTER_ID_OFFSET and its slug plus "-tester", so it goes
+ * on sale with its perfume. The server prices it the same way
+ * (api/_lib/testers.js).
+ */
+export const TESTER = testerConfig;
+export const TESTER_ID_OFFSET = 1000000;
+
+export function isTester(item) {
+  return /-tester$/.test(String(item?.slug || ""));
+}
+
+/** The 10 ml tester of a perfume, shaped like a product for the bag. */
+export function testerOf(product) {
+  const slug = `${product.slug}-tester`;
+  return {
+    ...product,
+    id: Number(product.id) + TESTER_ID_OFFSET,
+    slug,
+    parent: product,
+    name: `${product.name} Jhalak · ${TESTER.ml} ml`,
+    shortName: product.name,
+    price: TESTER.price,
+    size_volume: `${TESTER.ml} ml`,
+    image: `/products/testers/${product.slug}.webp`,
+    image_url: `/products/testers/${product.slug}.webp`,
+    gallery: [`/products/testers/${product.slug}.webp`],
+    alt: `${product.name} Jhalak, ${TESTER.ml} ml spray`,
+  };
+}
+
+/** Cart items or products that are perfume bottles, without discovery boxes or testers. */
 export function bottlesOnly(list) {
-  return list.filter((item) => !isSampleSet(item));
+  return list.filter((item) => !isSampleSet(item) && !isTester(item));
 }
 
 /**
@@ -24,7 +59,7 @@ export function isComingSoon(product) {
   return Boolean(product?.coming_soon);
 }
 
-/** Perfume bottles that can be bought now: no discovery boxes, nothing coming soon. */
+/** Perfume bottles that can be bought now: no discovery boxes or testers, nothing coming soon. */
 export function forSale(list) {
   return bottlesOnly(list).filter((product) => !isComingSoon(product));
 }

@@ -16,10 +16,10 @@ function orderTotal(order) {
   return Number(order?.total ?? order?.subtotal ?? 0);
 }
 
-// Free testers won on the spin wheel, e.g. "Rasmalai 10 ml tester".
+// Free Jhalak (10 ml testers) won on the spin wheel, e.g. "Rasmalai Jhalak · 10 ml".
 function testerLines(order) {
   const testers = Array.isArray(order?.free_testers) ? order.free_testers : [];
-  return testers.map((tester) => `${tester.name || "Perfume"} ${Number(tester.ml) || 10} ml tester`);
+  return testers.map((tester) => `${tester.name || "Perfume"} Jhalak · ${Number(tester.ml) || 10} ml`);
 }
 
 function plainOrderLines(order) {
@@ -450,6 +450,7 @@ async function sendNewOrderAlert(order) {
   const address = order?.address || {};
   const name = String(address.name || "").trim() || "A customer";
   const items = Array.isArray(order?.items) ? order.items : [];
+  // Bottles, testers and tester sets (a set counts once).
   const bottles = items.reduce((sum, item) => sum + Number(item.qty || 1), 0);
   const total = money(orderTotal(order));
   const phone = String(address.phone || "").trim();
@@ -468,7 +469,7 @@ async function sendNewOrderAlert(order) {
   const html = layout({
     eyebrow: "NEW ORDER",
     title: `${total} from ${name}`,
-    intro: `${bottles} perfume${bottles === 1 ? "" : "s"}${place ? `, to ${place}` : ""}. The payment is confirmed and the order is waiting in your admin dashboard.`,
+    intro: `${bottles} item${bottles === 1 ? "" : "s"}${place ? `, to ${place}` : ""}. The payment is confirmed and the order is waiting in your admin dashboard.`,
     preheader: `${items.map((item) => `${item.name} × ${Number(item.qty || 1)}`).join(", ")} · ${total}`,
     bodyHtml: orderCard(order)
       + cardRow(detailsCard("CUSTOMER", rows), { top: 12 })

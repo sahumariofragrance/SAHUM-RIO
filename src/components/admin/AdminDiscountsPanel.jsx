@@ -7,7 +7,7 @@ import AdminSpinWheelCard from "./AdminSpinWheelCard";
 import { formatINR } from "../../utils/money";
 
 const CODE_PATTERN = /^[A-Z0-9]{3,20}$/;
-const emptyForm = { code: "", percent: "10", expires: "", note: "" };
+const emptyForm = { code: "", percent: "10", expires: "", note: "", includeTesters: false };
 
 function expiryLabel(value) {
   if (!value) return "No expiry";
@@ -20,6 +20,12 @@ function expiryLabel(value) {
 function expiryDateValue(value) {
   if (!value) return "";
   return new Date(value).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+}
+
+// Before supabase/migrations/20261101140000_discount_codes_testers.sql has run.
+const TESTERS_SQL_MESSAGE = "“Also on Jhalak” needs the discount-testers SQL. Run it in Supabase (SQL Editor), then try again.";
+function testersSqlMissing(error) {
+  return /include_testers/.test(error?.message || "");
 }
 
 function isExpired(value) {
@@ -54,7 +60,7 @@ export default function AdminDiscountsPanel() {
   function startEdit(row) {
     setError(""); setMessage("");
     setEditing(row);
-    setForm({ code: row.code, percent: String(row.percent), expires: expiryDateValue(row.expires_at), note: row.note || "" });
+    setForm({ code: row.code, percent: String(row.percent), expires: expiryDateValue(row.expires_at), note: row.note || "", includeTesters: row.include_testers === true });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -80,14 +86,16 @@ export default function AdminDiscountsPanel() {
       expires_at: form.expires ? `${form.expires}T23:59:59+05:30` : null,
       note: form.note.trim() || null,
       created_by: userData?.user?.id || null,
+      // Sent only when on, so codes can still be made before the testers SQL has run.
+      ...(form.includeTesters ? { include_testers: true } : {}),
     });
     setSaving(false);
     if (insertError) {
-      setError(insertError.code === "23505" ? `${code} already exists or was used before. Choose another code.` : insertError.message);
+      setError(insertError.code === "23505" ? `${code} already exists or was used before. Choose another code.` : testersSqlMissing(insertError) ? TESTERS_SQL_MESSAGE : insertError.message);
       return;
     }
     setForm(emptyForm);
-    setMessage(`${code} created — ${percent}% off, each customer once.`);
+    setMessage(`${code} created — ${percent}% off ${form.includeTesters ? "everything, Jhalak too" : "50 ml perfumes"}, each customer once.`);
     load();
   }
 
@@ -98,12 +106,13 @@ export default function AdminDiscountsPanel() {
       expires_at: form.expires ? `${form.expires}T23:59:59+05:30` : null,
       note: form.note.trim() || null,
     };
+    if (form.includeTesters || editing.include_testers) changes.include_testers = form.includeTesters;
     // A used code keeps its name: orders and the one-use-per-customer check refer to it.
     if (Number(editing.uses) === 0) changes.code = code;
     const { error: updateError } = await supabase.from("discount_codes").update(changes).eq("id", editing.id);
     setSaving(false);
     if (updateError) {
-      setError(updateError.code === "23505" ? `${code} already exists. Choose another code.` : updateError.message);
+      setError(updateError.code === "23505" ? `${code} already exists. Choose another code.` : testersSqlMissing(updateError) ? TESTERS_SQL_MESSAGE : updateError.message);
       return;
     }
     const name = changes.code || editing.code;
@@ -177,6 +186,13 @@ export default function AdminDiscountsPanel() {
         <Field label="Expires on (optional)" htmlFor="discount-expires" hint="Works until the end of this day. Leave empty for no expiry.">
           <input id="discount-expires" type="date" value={form.expires} onChange={(e) => setForm((f) => ({ ...f, expires: e.target.value }))} className={inputClass} />
         </Field>
+        <label htmlFor="discount-testers" className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--color-border)] p-3">
+          <input id="discount-testers" type="checkbox" checked={form.includeTesters} onChange={(e) => setForm((f) => ({ ...f, includeTesters: e.target.checked }))} className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-text)]" />
+          <span>
+            <span className="block text-sm font-semibold">Also on Jhalak (10 ml)</span>
+            <span className="mt-0.5 block text-xs leading-5 text-[var(--color-muted)]">Off: the code takes its % off 50 ml perfumes only. Jhalak keep their price (any 5 for ₹549).</span>
+          </span>
+        </label>
         <Field label="Note (optional)" htmlFor="discount-note" hint="Only you see this, e.g. 'Instagram ad, October'.">
           <input id="discount-note" value={form.note} maxLength={120} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} className={inputClass} />
         </Field>
@@ -208,7 +224,7 @@ export default function AdminDiscountsPanel() {
                     <button type="button" onClick={() => copy(row.code)} className="rounded p-1 text-[var(--color-muted)] hover:text-[var(--color-text)]" aria-label={`Copy ${row.code}`} title="Copy code"><Copy className="h-3.5 w-3.5" /></button>
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${live ? "bg-green-100 text-green-800" : "bg-[var(--color-surface-muted)] text-[var(--color-muted)]"}`}>{live ? "Active" : expired ? "Expired" : "Off"}</span>
                   </div>
-                  <p className="mt-1 text-sm">{row.percent}% off · {expiryLabel(row.expires_at)}</p>
+                  <p className="mt-1 text-sm">{row.percent}% off {row.include_testers ? "everything, Jhalak too" : "50 ml perfumes"} · {expiryLabel(row.expires_at)}</p>
                   {row.note && <p className="mt-0.5 text-xs text-[var(--color-muted)]">{row.note}</p>}
                   <button
                     type="button"

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Lock, ShieldCheck, Loader2, Sparkles, FlaskConical, Gift, Tag, X } from "lucide-react";
 import SafeImage from "./SafeImage";
 import ComboNudge from "./ComboNudge";
+import TesterSetSaving from "./TesterSetSaving";
 import { TesterPicker } from "./SpinWheel";
 import { prizeLabel } from "../lib/spinWheel";
 import { formatINR } from "../utils/money";
@@ -9,12 +10,12 @@ import { formatINR } from "../utils/money";
 const SPIN_CODE = /^SPIN[A-Z0-9]{6}$/;
 
 /** A spin wheel prize of free testers: choose them, or keep them for another order. */
-function FreeTesters({ count, useBy, options, picks, needsBottle, skipped, error, onToggle, onSkip, onUnskip }) {
+function FreeTesters({ count, useBy, options, others, picks, needsBottle, skipped, error, onToggle, onSkip, onUnskip }) {
   const one = count === 1;
   const note = skipped
     ? `Saved for another order until ${useBy}.`
     : needsBottle ? `${one ? "It comes" : "They come"} with a perfume bottle: add one to your bag.`
-      : one ? "Choose one from a different fragrance family to your bag." : `Choose ${count}, each a different fragrance family to your bag.`;
+      : one ? "Try one of our picks, or choose any perfume you like." : `Choose ${count}: try our picks, or any perfumes you like.`;
   return (
     <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-3">
       <div className="flex items-start justify-between gap-3">
@@ -33,7 +34,7 @@ function FreeTesters({ count, useBy, options, picks, needsBottle, skipped, error
       </div>
       {!skipped && !needsBottle && (
         <div className="mt-3">
-          <TesterPicker options={options} picks={picks} count={count} onToggle={onToggle} showImages={false} />
+          <TesterPicker options={options} others={others} picks={picks} count={count} onToggle={onToggle} />
         </div>
       )}
       {error && <p className="mt-2 text-sm text-red-600" role="alert">{error}</p>}
@@ -51,6 +52,7 @@ const CartSummary = React.memo(
     onContinueShopping,
     loading = false,
     total = subtotal,
+    testerSaving = 0,
     discountPercent = 0,
     discountCode = "",
     onApplyCode,
@@ -58,6 +60,8 @@ const CartSummary = React.memo(
     codeError = "",
     applyingCode = false,
     codeUnused = false,
+    codeUnusedReason = "offer",
+    codeOnPerfumesOnly = false,
     offerAmount = 0,
     offerLabel = "",
     onSpin,
@@ -99,6 +103,7 @@ const CartSummary = React.memo(
 
         {/* Totals breakdown */}
         <div className="mt-4 space-y-2 border-t border-[var(--color-border)] pt-4">
+          <TesterSetSaving saving={testerSaving} />
           <div className="flex justify-between text-sm">
             <span className="text-[var(--color-muted)]">Subtotal</span>
             <span>{formatINR(subtotal)}</span>
@@ -139,12 +144,12 @@ const CartSummary = React.memo(
           <div className="mt-4">
             {discountCode && codeUnused ? (
               <div className="flex items-start justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-2 text-sm">
-                <span className="inline-flex items-start gap-2"><Tag className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span><span className="font-semibold">{codeName}</span> not used: the any-2 offer saves you more. Keep the code for another order.</span></span>
+                <span className="inline-flex items-start gap-2"><Tag className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span><span className="font-semibold">{codeName}</span> {codeUnusedReason === "testers" ? "is for 50 ml perfumes, not Jhalak. Add a perfume to use it, or keep it for another order." : "not used: the any-2 offer saves you more. Keep the code for another order."}</span></span>
                 <button type="button" onClick={() => { onRemoveCode?.(); setCodeInput(""); }} className="rounded p-1 hover:bg-[var(--color-border)]" aria-label="Remove discount code"><X className="h-4 w-4" /></button>
               </div>
             ) : discountCode ? (
               <div className="flex items-center justify-between gap-3 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
-                <span className="inline-flex items-center gap-2 font-medium"><Tag className="h-4 w-4" aria-hidden="true" />{codeName} applied — {discountPercent}% off</span>
+                <span className="inline-flex items-center gap-2 font-medium"><Tag className="h-4 w-4" aria-hidden="true" />{codeName} applied — {discountPercent}% off{codeOnPerfumesOnly ? " 50 ml perfumes" : ""}</span>
                 <button type="button" onClick={() => { onRemoveCode?.(); setCodeInput(""); }} className="rounded p-1 hover:bg-green-100" aria-label="Remove discount code"><X className="h-4 w-4" /></button>
               </div>
             ) : codeOpen ? (

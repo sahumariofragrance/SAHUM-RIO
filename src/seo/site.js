@@ -40,6 +40,13 @@ export const PAGE_META = {
     priority: "0.6",
     changefreq: "monthly",
   },
+  testers: {
+    path: "/jhalak",
+    title: "Jhalak — 10 ml Eau de Parfum, Any 5 for ₹549 | SAHUMäRIO®",
+    description: "Jhalak is a 10 ml glimpse of every SAHUMäRIO® Eau de Parfum: try it before choosing your bottle. ₹150 each or any 5 for ₹549, curated sets and free delivery across India.",
+    priority: "0.8",
+    changefreq: "weekly",
+  },
   "bulk-orders": {
     path: "/bulk-orders",
     title: "Bulk Perfume Orders & Corporate Gifting — SAHUMäRIO®",
