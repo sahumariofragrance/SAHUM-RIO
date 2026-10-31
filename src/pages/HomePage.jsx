@@ -6,6 +6,7 @@ import IndiaFlag from "../components/IndiaFlag";
 import PromoTicket from "../components/PromoTicket";
 import DiwaliOffer from "../components/DiwaliOffer";
 import ScentQuiz, { QuizInvite } from "../components/ScentQuiz";
+import SurpriseHint from "../components/SurpriseHint";
 import AudienceFilter from "../components/AudienceFilter";
 import { onSaleFirst } from "../lib/catalogue";
 import { useProducts } from "../context/ProductsContext";
@@ -57,6 +58,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage, openQuiz =
         </p>
         <DiwaliOffer />
         <QuizInvite onStart={() => setQuizOpen(true)} />
+        <SurpriseHint />
         <PromoTicket />
       </div>
 
