@@ -11,8 +11,6 @@ import DiscoverMore from "../components/DiscoverMore";
 import { pixelContact, pixelViewContent } from "../lib/metaPixel";
 import { productJsonLd } from "../seo/site";
 import { setPageJsonLd } from "../seo/head";
-import { useTheme } from "../context/ThemeContext";
-import { loadImageHue, tonePalette } from "../utils/imageTone";
 import { optimizedSrc } from "../utils/optimizedImage";
 import SpaLink from "../components/SpaLink";
 import { isSampleSet } from "../lib/samples";
@@ -30,28 +28,7 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
   const sampleSet = useMemo(() => products.find(isSampleSet) || null, [products]);
   // The box holds the perfumes already made, not those coming soon.
   const perfumeCount = useMemo(() => forSale(products).length, [products]);
-  const { theme } = useTheme();
 
-  // Tint the whole page with the dominant colour of the perfume's photo.
-  const toneImage = product?.image_url || product?.image;
-  useEffect(() => {
-    if (!toneImage) return undefined;
-    let cancelled = false;
-    const root = document.documentElement;
-    let applied = [];
-    loadImageHue(toneImage).then((hue) => {
-      if (cancelled || !hue) return;
-      const palette = tonePalette(hue, theme);
-      Object.entries(palette).forEach(([name, value]) => root.style.setProperty(name, value));
-      applied = Object.keys(palette);
-      root.setAttribute("data-product-tone", "");
-    });
-    return () => {
-      cancelled = true;
-      applied.forEach((name) => root.style.removeProperty(name));
-      root.removeAttribute("data-product-tone");
-    };
-  }, [toneImage, theme]);
   const galleryUrls = useMemo(() => product?.gallery || [], [product]);
   const [activeImage, setActiveImage] = useState("");
   const [failedImages, setFailedImages] = useState([]);

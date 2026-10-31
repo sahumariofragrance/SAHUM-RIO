@@ -19,12 +19,12 @@ export default function DiwaliOffer() {
       <div className="diwali-card relative flex items-center gap-4 overflow-hidden rounded-2xl px-5 py-4 text-left sm:px-6">
         <span className="diwali-sparks" aria-hidden="true" />
         <div className="shrink-0 text-center">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#e9c98f]">Any 2</p>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#CCD0CF]">Any 2</p>
           <p className="mt-1 font-serif text-[2rem] leading-none">{formatINR(offer.pairPrice)}</p>
         </div>
-        <div className="h-12 shrink-0 border-l border-dashed border-[#e9c98f]/50" aria-hidden="true" />
+        <div className="h-12 shrink-0 border-l border-dashed border-[#CCD0CF]/50" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#e9c98f]">{offer.label}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#CCD0CF]">{offer.label}</p>
           <p className="mt-1 text-sm leading-5">
             Mix any two{saving > 0 ? `, save ${formatINR(saving)}` : " perfumes"}.{offerEnds(offer) && ` ${offerEnds(offer)}.`}
           </p>
@@ -32,7 +32,7 @@ export default function DiwaliOffer() {
         <button
           type="button"
           onClick={() => document.getElementById("collection")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          className="shrink-0 rounded-full bg-[#e9c98f] px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1d130c] transition hover:bg-[#f3dcae]"
+          className="shrink-0 rounded-full bg-[#CCD0CF] px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#06141B] transition hover:bg-[#EEF1F1]"
         >
           Shop
         </button>

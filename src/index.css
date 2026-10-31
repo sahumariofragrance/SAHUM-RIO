@@ -1,33 +1,34 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-/* Palette drawn from Indian materials: chandan (sandalwood) grounds,
-   kesar (saffron) and indigo accents. */
+/* Midnight palette: misty grey #CCD0CF and slate #4A5C6A, down to the
+   night blues #253745, #11212D and #06141B. --color-kesar is the accent
+   (named after the earlier saffron one). */
 :root {
-  --color-bg: #F4EBDD;
-  --color-text: #1E1914;
-  --color-surface: #FAF5EC;
-  --color-surface-muted: #EADFCC;
-  --color-border: #DBCCB3;
-  --color-muted: #6B5F50;
-  --color-kesar: #A24B14;
+  --color-bg: #CCD0CF;
+  --color-text: #06141B;
+  --color-surface: #DDE1E0;
+  --color-surface-muted: #BFC5C4;
+  --color-border: #A7B1B2;
+  --color-muted: #3E4F5B;
+  --color-kesar: #3D4F5D;
   /* Chart marks (validated vs --color-surface: lightness band, 3:1 contrast). */
-  --color-chart: #A24B14;
-  --color-indigo: #27336B;
-  --color-sage: #8D927C;
-  --color-hero-overlay: rgba(23, 22, 20, 0.14);
+  --color-chart: #4A5C6A;
+  --color-indigo: #253745;
+  --color-sage: #9BA8AB;
+  --color-hero-overlay: rgba(6, 20, 27, 0.16);
 }
 
 :root[data-theme="dark"] {
-  --color-bg: #17120E;
-  --color-text: #F5ECDF;
-  --color-surface: #1F1813;
-  --color-surface-muted: #2B221A;
-  --color-border: rgba(245, 236, 223, 0.14);
-  --color-muted: #C1B19C;
-  --color-kesar: #E3964A;
-  --color-chart: #CF7F36;
-  --color-indigo: #9AA8E6;
-  --color-sage: #A7AE9A;
+  --color-bg: #06141B;
+  --color-text: #CCD0CF;
+  --color-surface: #11212D;
+  --color-surface-muted: #1B2D3A;
+  --color-border: rgba(204, 208, 207, 0.14);
+  --color-muted: #9BA8AB;
+  --color-kesar: #A3B8C4;
+  --color-chart: #8FA6B5;
+  --color-indigo: #A3B8C4;
+  --color-sage: #9BA8AB;
   --color-hero-overlay: rgba(0, 0, 0, 0.38);
 }
 
@@ -90,7 +91,7 @@ footer {
 
 ::selection {
   background: var(--color-kesar);
-  color: #FFF8EF;
+  color: #F1F3F3;
 }
 
 
@@ -100,16 +101,16 @@ footer {
   --glass-bg: rgba(255, 255, 255, 0.46);
   --glass-bg-strong: rgba(255, 255, 255, 0.64);
   --glass-border: rgba(255, 255, 255, 0.82);
-  --glass-shadow: 0 18px 50px rgba(64, 53, 42, 0.12), 0 2px 12px rgba(64, 53, 42, 0.05);
-  --glass-highlight: rgba(255, 255, 255, 0.92);
+  --glass-shadow: 0 18px 50px rgba(6, 20, 27, 0.12), 0 2px 12px rgba(6, 20, 27, 0.05);
+  --glass-highlight: rgba(255, 255, 255, 0.85);
 }
 
 :root[data-theme="dark"] {
-  --glass-bg: rgba(38, 31, 28, 0.46);
-  --glass-bg-strong: rgba(56, 46, 41, 0.60);
-  --glass-border: rgba(255, 244, 235, 0.18);
+  --glass-bg: rgba(17, 33, 45, 0.46);
+  --glass-bg-strong: rgba(37, 55, 69, 0.60);
+  --glass-border: rgba(204, 208, 207, 0.16);
   --glass-shadow: 0 28px 80px rgba(0, 0, 0, 0.42), 0 4px 20px rgba(0, 0, 0, 0.22);
-  --glass-highlight: rgba(255, 248, 240, 0.18);
+  --glass-highlight: rgba(204, 208, 207, 0.14);
 }
 
 /* The page backdrop lives on fixed, GPU-composited layers (body::after for
@@ -117,7 +118,7 @@ footer {
    with background-attachment: fixed, which made the browser repaint the
    whole screen on every scroll frame. */
 body {
-  background-color: #F2E8D8;
+  background-color: #CCD0CF;
 }
 
 body::after {
@@ -128,12 +129,12 @@ body::after {
   pointer-events: none;
   transform: translateZ(0);
   background-image:
-    radial-gradient(ellipse at 4% 8%, rgba(92, 108, 170, 0.10) 0%, rgba(92, 108, 170, 0.04) 18%, transparent 43%),
-    radial-gradient(ellipse at 96% 18%, rgba(226, 140, 60, 0.20) 0%, rgba(226, 140, 60, 0.08) 20%, transparent 45%),
-    radial-gradient(ellipse at 52% 52%, rgba(255, 250, 240, 0.85) 0%, rgba(255, 250, 240, 0.40) 24%, transparent 56%),
-    radial-gradient(ellipse at 18% 86%, rgba(214, 176, 120, 0.20) 0%, rgba(214, 176, 120, 0.08) 20%, transparent 44%),
-    radial-gradient(ellipse at 88% 92%, rgba(232, 164, 70, 0.14) 0%, rgba(232, 164, 70, 0.05) 18%, transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,0.28), rgba(244,235,221,0.08));
+    radial-gradient(ellipse at 4% 8%, rgba(74, 92, 106, 0.16) 0%, rgba(74, 92, 106, 0.06) 18%, transparent 43%),
+    radial-gradient(ellipse at 96% 18%, rgba(37, 55, 69, 0.14) 0%, rgba(37, 55, 69, 0.05) 20%, transparent 45%),
+    radial-gradient(ellipse at 52% 52%, rgba(232, 236, 236, 0.70) 0%, rgba(232, 236, 236, 0.30) 24%, transparent 56%),
+    radial-gradient(ellipse at 18% 86%, rgba(155, 168, 171, 0.24) 0%, rgba(155, 168, 171, 0.08) 20%, transparent 44%),
+    radial-gradient(ellipse at 88% 92%, rgba(74, 92, 106, 0.14) 0%, rgba(74, 92, 106, 0.05) 18%, transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,0.18), rgba(204,208,207,0.08));
   background-size: 125% 125%, 120% 120%, 145% 145%, 120% 120%, 120% 120%, 100% 100%;
   background-position: center top;
 }
@@ -146,38 +147,38 @@ body::before {
   pointer-events: none;
   transform: translateZ(0);
   background:
-    linear-gradient(115deg, rgba(255,255,255,0.24), transparent 28%, rgba(255,255,255,0.12) 52%, transparent 72%),
-    radial-gradient(circle at 50% -8%, rgba(255,255,255,0.68), transparent 38%);
+    linear-gradient(115deg, rgba(255,255,255,0.18), transparent 28%, rgba(255,255,255,0.08) 52%, transparent 72%),
+    radial-gradient(circle at 50% -8%, rgba(255,255,255,0.45), transparent 38%);
   opacity: 0.9;
 }
 
 :root[data-theme="dark"] body {
-  background-color: #151210;
+  background-color: #06141B;
 }
 
 :root[data-theme="dark"] body::after {
   background-image:
-    radial-gradient(ellipse at 7% 8%, rgba(74, 88, 160, 0.16) 0%, rgba(74, 88, 160, 0.06) 18%, transparent 42%),
-    radial-gradient(ellipse at 94% 18%, rgba(200, 112, 40, 0.20) 0%, rgba(200, 112, 40, 0.07) 19%, transparent 43%),
-    radial-gradient(ellipse at 52% 46%, rgba(214, 170, 118, 0.07) 0%, rgba(214, 170, 118, 0.02) 30%, transparent 56%),
-    radial-gradient(ellipse at 18% 84%, rgba(150, 96, 40, 0.14) 0%, rgba(150, 96, 40, 0.04) 20%, transparent 46%),
-    radial-gradient(ellipse at 86% 90%, rgba(60, 72, 140, 0.12) 0%, transparent 43%),
-    linear-gradient(155deg, #120e0b 0%, #1a140f 44%, #221a12 72%, #130f0c 100%);
+    radial-gradient(ellipse at 7% 8%, rgba(74, 92, 106, 0.24) 0%, rgba(74, 92, 106, 0.08) 18%, transparent 42%),
+    radial-gradient(ellipse at 94% 18%, rgba(37, 55, 69, 0.40) 0%, rgba(37, 55, 69, 0.12) 19%, transparent 43%),
+    radial-gradient(ellipse at 52% 46%, rgba(155, 168, 171, 0.06) 0%, rgba(155, 168, 171, 0.02) 30%, transparent 56%),
+    radial-gradient(ellipse at 18% 84%, rgba(37, 55, 69, 0.30) 0%, rgba(37, 55, 69, 0.08) 20%, transparent 46%),
+    radial-gradient(ellipse at 86% 90%, rgba(74, 92, 106, 0.18) 0%, transparent 43%),
+    linear-gradient(155deg, #06141B 0%, #0B1A23 44%, #11212D 72%, #06141B 100%);
   background-size: 125% 125%, 120% 120%, 145% 145%, 125% 125%, 120% 120%, 100% 100%;
 }
 
 :root[data-theme="dark"] body::before {
   background:
-    linear-gradient(118deg, rgba(255,245,236,0.05), transparent 24%, rgba(255,255,255,0.018) 51%, transparent 72%),
-    radial-gradient(circle at 50% -12%, rgba(255,235,220,0.09), transparent 38%),
-    radial-gradient(circle at 48% 110%, rgba(172,129,103,0.06), transparent 42%);
+    linear-gradient(118deg, rgba(204,208,207,0.05), transparent 24%, rgba(255,255,255,0.018) 51%, transparent 72%),
+    radial-gradient(circle at 50% -12%, rgba(204,208,207,0.08), transparent 38%),
+    radial-gradient(circle at 48% 110%, rgba(74,92,106,0.10), transparent 42%);
   opacity: 1;
 }
 
 /* While the site's script is still loading (no data-theme yet), dark-mode
    phones get the dark background straight away instead of a light flash. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) body { background-color: #151210; }
+  :root:not([data-theme]) body { background-color: #06141B; }
   :root:not([data-theme]) body::after,
   :root:not([data-theme]) body::before { display: none; }
 }
@@ -192,7 +193,7 @@ body::before {
 .glass-surface {
   background: color-mix(in srgb, var(--color-bg) 78%, transparent);
   border-color: var(--glass-border);
-  box-shadow: 0 8px 28px rgba(55, 45, 36, 0.07), inset 0 1px 0 var(--glass-highlight);
+  box-shadow: 0 8px 28px rgba(6, 20, 27, 0.07), inset 0 1px 0 var(--glass-highlight);
   /* Kept light: the sticky header re-blurs everything scrolling beneath it. */
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   backdrop-filter: blur(14px) saturate(140%);
@@ -223,7 +224,7 @@ body::before {
   background:
     linear-gradient(145deg, var(--glass-bg-strong), var(--glass-bg));
   border: 1px solid var(--glass-border);
-  box-shadow: 0 12px 34px rgba(55, 45, 36, 0.08), inset 0 1px 0 var(--glass-highlight);
+  box-shadow: 0 12px 34px rgba(6, 20, 27, 0.08), inset 0 1px 0 var(--glass-highlight);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   backdrop-filter: blur(16px) saturate(140%);
 }
@@ -241,8 +242,8 @@ body::before {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at 16% 28%, rgba(181, 194, 171, 0.40), transparent 22rem),
-    radial-gradient(circle at 86% 68%, rgba(224, 196, 177, 0.36), transparent 24rem),
+    radial-gradient(circle at 16% 28%, rgba(155, 168, 171, 0.40), transparent 22rem),
+    radial-gradient(circle at 86% 68%, rgba(74, 92, 106, 0.22), transparent 24rem),
     radial-gradient(circle at 50% 10%, rgba(255,255,255,0.78), transparent 30rem),
     var(--color-bg);
 }
@@ -262,13 +263,13 @@ body::before {
 .glass-quote-stage::before {
   left: -6rem;
   top: 8%;
-  background: rgba(172, 189, 160, 0.42);
+  background: rgba(155, 168, 171, 0.42);
 }
 
 .glass-quote-stage::after {
   right: -5rem;
   bottom: 2%;
-  background: rgba(219, 190, 169, 0.40);
+  background: rgba(74, 92, 106, 0.30);
 }
 
 .glass-card-meta {
@@ -279,38 +280,38 @@ body::before {
   border-radius: 1.15rem;
   background: rgba(255,255,255,0.64);
   border: 1px solid rgba(255,255,255,0.82);
-  box-shadow: 0 14px 36px rgba(55,45,36,0.12), inset 0 1px 0 rgba(255,255,255,0.95);
+  box-shadow: 0 14px 36px rgba(6,20,27,0.12), inset 0 1px 0 rgba(255,255,255,0.95);
   -webkit-backdrop-filter: blur(12px) saturate(145%);
   backdrop-filter: blur(12px) saturate(145%);
 }
 
 :root[data-theme="dark"] .glass-card-meta {
-  background: linear-gradient(145deg, rgba(57,46,41,0.70), rgba(31,27,25,0.60));
-  border-color: rgba(255,244,235,0.18);
-  box-shadow: 0 18px 46px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,248,240,0.15);
+  background: linear-gradient(145deg, rgba(37,55,69,0.70), rgba(17,33,45,0.60));
+  border-color: rgba(204,208,207,0.16);
+  box-shadow: 0 18px 46px rgba(0,0,0,0.38), inset 0 1px 0 rgba(204,208,207,0.12);
 }
 
 :root[data-theme="dark"] .glass-quote-stage {
   background:
-    radial-gradient(circle at 14% 30%, rgba(116, 132, 101, 0.24), transparent 22rem),
-    radial-gradient(circle at 88% 70%, rgba(153, 103, 78, 0.22), transparent 24rem),
-    radial-gradient(circle at 50% 4%, rgba(255,235,220,0.09), transparent 30rem),
-    linear-gradient(145deg, #161310, #201916 55%, #141210);
+    radial-gradient(circle at 14% 30%, rgba(74, 92, 106, 0.30), transparent 22rem),
+    radial-gradient(circle at 88% 70%, rgba(37, 55, 69, 0.40), transparent 24rem),
+    radial-gradient(circle at 50% 4%, rgba(204,208,207,0.08), transparent 30rem),
+    linear-gradient(145deg, #06141B, #11212D 55%, #06141B);
 }
 
 
 :root[data-theme="dark"] .glass-panel::before {
   background:
-    linear-gradient(118deg, rgba(255,248,240,0.15) 0%, rgba(255,248,240,0.035) 34%, transparent 58%);
+    linear-gradient(118deg, rgba(204,208,207,0.12) 0%, rgba(204,208,207,0.03) 34%, transparent 58%);
 }
 
 :root[data-theme="dark"] .glass-soft::after {
-  background: linear-gradient(125deg, rgba(255,248,240,0.10), transparent 44%);
+  background: linear-gradient(125deg, rgba(204,208,207,0.08), transparent 44%);
 }
 
 :root[data-theme="dark"] ::selection {
   background: var(--color-kesar);
-  color: #17120E;
+  color: #06141B;
 }
 
 /* ── Admin: status tones (readable in light and dark themes) ─────────── */
@@ -334,25 +335,6 @@ body::before {
 :root[data-theme="dark"] .tone-green { --tone: #86EFAC; }
 :root[data-theme="dark"] .tone-red { --tone: #FCA5A5; }
 :root[data-theme="dark"] .tone-stone { --tone: #D6D3D1; }
-
-/* ── Product pages: page tinted with the perfume's colour ───────────────
-   ProductPage sets data-product-tone and the --color-* / --tone-glow values
-   from the product photo (src/utils/imageTone.js). */
-body {
-  transition: background-color 0.7s ease;
-}
-:root[data-product-tone] body {
-  background-color: var(--color-bg);
-}
-:root[data-product-tone] body::after {
-  background-image:
-    radial-gradient(ellipse at 18% 12%, var(--tone-glow) 0%, transparent 55%),
-    radial-gradient(ellipse at 90% 88%, var(--tone-glow) 0%, transparent 50%);
-  background-size: 100% 100%;
-}
-:root[data-product-tone] body::before {
-  opacity: 0.35;
-}
 
 /* ── Indian motifs ─────────────────────────────────────────────────────
    Drawn as masks so they take their colour from --color-kesar. */
@@ -419,26 +401,26 @@ body {
   .promo-ticket-in { animation: none; }
 }
 
-/* Diwali offer card: a lamp-lit night, the same in light and dark themes. */
+/* Any-2 offer card: a starry midnight, the same in light and dark themes. */
 .diwali-card {
-  color: #f8ecdc;
+  color: #E6EAEA;
   background:
-    radial-gradient(90% 120% at 0% 0%, rgba(233, 165, 72, 0.32), transparent 60%),
-    radial-gradient(70% 90% at 100% 100%, rgba(196, 86, 52, 0.22), transparent 65%),
-    #1d130c;
-  border: 1px solid rgba(233, 201, 143, 0.45);
-  box-shadow: 0 10px 30px -18px rgba(120, 60, 10, 0.55);
+    radial-gradient(90% 120% at 0% 0%, rgba(74, 92, 106, 0.55), transparent 60%),
+    radial-gradient(70% 90% at 100% 100%, rgba(37, 55, 69, 0.70), transparent 65%),
+    #06141B;
+  border: 1px solid rgba(204, 208, 207, 0.35);
+  box-shadow: 0 10px 30px -18px rgba(6, 20, 27, 0.65);
 }
 .diwali-sparks {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(1.5px 1.5px at 18% 22%, rgba(255, 220, 160, 0.9), transparent),
-    radial-gradient(1px 1px at 62% 14%, rgba(255, 220, 160, 0.7), transparent),
-    radial-gradient(1.5px 1.5px at 88% 30%, rgba(255, 220, 160, 0.8), transparent),
-    radial-gradient(1px 1px at 40% 86%, rgba(255, 220, 160, 0.6), transparent),
-    radial-gradient(1px 1px at 76% 78%, rgba(255, 220, 160, 0.6), transparent);
+    radial-gradient(1.5px 1.5px at 18% 22%, rgba(220, 228, 232, 0.9), transparent),
+    radial-gradient(1px 1px at 62% 14%, rgba(220, 228, 232, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 88% 30%, rgba(220, 228, 232, 0.8), transparent),
+    radial-gradient(1px 1px at 40% 86%, rgba(220, 228, 232, 0.6), transparent),
+    radial-gradient(1px 1px at 76% 78%, rgba(220, 228, 232, 0.6), transparent);
 }
 
 /* "Find your scent" quiz. */

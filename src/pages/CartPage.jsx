@@ -37,7 +37,7 @@ export default function CartPage({ setCurrentPage }) {
       <section className="mx-auto max-w-4xl px-4 py-20 text-center">
         <h1 className="font-serif text-4xl font-semibold">Your Cart</h1>
         <p className="mt-4 text-[var(--color-muted)]">Your cart is empty.</p>
-        <button onClick={() => setCurrentPage("perfumes")} className="mt-8 rounded-full bg-[#24160f] px-6 py-3 font-medium text-white hover:bg-amber-800">Explore Perfumes</button>
+        <button onClick={() => setCurrentPage("perfumes")} className="mt-8 rounded-full bg-[#11212D] px-6 py-3 font-medium text-white hover:bg-amber-800">Explore Perfumes</button>
       </section>
     );
   }
@@ -102,7 +102,7 @@ export default function CartPage({ setCurrentPage }) {
             <div className="flex items-center gap-2"><MailCheck className="h-4 w-4 shrink-0 text-amber-700" /><span>Order updates by email</span></div>
           </div>
 
-          <button onClick={() => setCurrentPage("checkout")} className="mt-6 w-full rounded-full bg-[#24160f] px-5 py-3 font-semibold text-white hover:bg-amber-800">Proceed to Checkout</button>
+          <button onClick={() => setCurrentPage("checkout")} className="mt-6 w-full rounded-full bg-[#11212D] px-5 py-3 font-semibold text-white hover:bg-amber-800">Proceed to Checkout</button>
           {wheelWaiting && <p className="mt-2 flex items-start justify-center gap-1.5 text-center text-xs text-[var(--color-muted)]"><Gift className="mt-px h-3.5 w-3.5 shrink-0 text-amber-700" aria-hidden="true" /><span>Spin the wheel at checkout: {wheelPrizes()}</span></p>}
           <button onClick={() => setCurrentPage("perfumes")} className="mt-3 w-full px-5 py-2.5 text-sm font-medium text-[var(--color-muted)] hover:text-amber-700">Continue Shopping</button>
         </aside>

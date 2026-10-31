@@ -6,8 +6,8 @@ import { noteList } from "./scentQuiz";
 
 const W = 1080;
 const H = 1920;
-const GOLD = "#e9c98f";
-const CREAM = "#f8ecdc";
+const GOLD = "#CCD0CF";
+const CREAM = "#E6EAEA";
 const SERIF = '"Cormorant Garamond", Georgia, serif';
 const SANS = '"DM Sans", -apple-system, "Segoe UI", Arial, sans-serif';
 
@@ -86,26 +86,26 @@ export async function drawScentCard(product) {
   const ctx = canvas.getContext("2d");
 
   // Lamp-lit night, like the offer card on the site.
-  ctx.fillStyle = "#1d130c";
+  ctx.fillStyle = "#06141B";
   ctx.fillRect(0, 0, W, H);
   const warm = ctx.createRadialGradient(0, 0, 0, 0, 0, 1300);
-  warm.addColorStop(0, "rgba(233, 165, 72, 0.34)");
-  warm.addColorStop(1, "rgba(233, 165, 72, 0)");
+  warm.addColorStop(0, "rgba(74, 92, 106, 0.55)");
+  warm.addColorStop(1, "rgba(74, 92, 106, 0)");
   ctx.fillStyle = warm;
   ctx.fillRect(0, 0, W, H);
   const ember = ctx.createRadialGradient(W, H, 0, W, H, 1100);
-  ember.addColorStop(0, "rgba(196, 86, 52, 0.26)");
-  ember.addColorStop(1, "rgba(196, 86, 52, 0)");
+  ember.addColorStop(0, "rgba(37, 55, 69, 0.70)");
+  ember.addColorStop(1, "rgba(37, 55, 69, 0)");
   ctx.fillStyle = ember;
   ctx.fillRect(0, 0, W, H);
 
-  ctx.strokeStyle = "rgba(233, 201, 143, 0.45)";
+  ctx.strokeStyle = "rgba(204, 208, 207, 0.35)";
   ctx.lineWidth = 2;
   roundedRect(ctx, 44, 44, W - 88, H - 88, 40);
   ctx.stroke();
 
   centred(ctx, "SAHUMäRIO", 178, { font: `600 SIZE ${SANS}`, size: 34, color: GOLD, spacing: 12 });
-  centred(ctx, "MY SIGNATURE SCENT", 262, { font: `600 SIZE ${SANS}`, size: 26, color: "rgba(248, 236, 220, 0.72)", spacing: 9 });
+  centred(ctx, "MY SIGNATURE SCENT", 262, { font: `600 SIZE ${SANS}`, size: 26, color: "rgba(230, 234, 234, 0.72)", spacing: 9 });
   centred(ctx, product.name, 420, { font: `500 SIZE ${SERIF}`, size: 164, color: CREAM, maxWidth: W - 180 });
 
   const profile = String(product.scent_profile || product.description || "").split(/[.;]/)[0].trim();
@@ -120,7 +120,7 @@ export async function drawScentCard(product) {
   const box = { x: 190, y: 640, w: 700, h: 875 };
   ctx.save();
   roundedRect(ctx, box.x, box.y, box.w, box.h, 32);
-  ctx.fillStyle = "#2b1d13";
+  ctx.fillStyle = "#11212D";
   ctx.fill();
   ctx.clip();
   if (photo) {
@@ -130,7 +130,7 @@ export async function drawScentCard(product) {
     ctx.drawImage(photo, box.x + (box.w - dw) / 2, box.y + (box.h - dh) / 2, dw, dh);
   }
   ctx.restore();
-  ctx.strokeStyle = "rgba(233, 201, 143, 0.6)";
+  ctx.strokeStyle = "rgba(204, 208, 207, 0.6)";
   roundedRect(ctx, box.x, box.y, box.w, box.h, 32);
   ctx.stroke();
 

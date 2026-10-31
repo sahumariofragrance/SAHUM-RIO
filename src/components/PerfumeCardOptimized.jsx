@@ -66,7 +66,7 @@ const PerfumeCardOptimized = React.memo(({
             <button
               onClick={() => onAdd(product)}
               aria-label={"Add " + name + " to bag"}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-bg)] text-[var(--color-text)] shadow-sm transition duration-300 hover:scale-110 hover:bg-[var(--color-kesar)] hover:text-[#FFF8EF] md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-bg)] text-[var(--color-text)] shadow-sm transition duration-300 hover:scale-110 hover:bg-[var(--color-kesar)] hover:text-[#F1F3F3] md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
             >
               <Plus className="h-4 w-4" />
             </button>

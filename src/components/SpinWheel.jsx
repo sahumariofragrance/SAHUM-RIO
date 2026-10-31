@@ -7,16 +7,16 @@ import { WHEEL, prizeLabel, prizeUseBy, spinOnServer, wheelPrizes } from "../lib
 const SEGMENT_DEG = 360 / WHEEL.segments.length;
 const TURNS = 6;
 const SPIN_MS = 4800;
-const GOLD = "#C9A35A";
+const GOLD = "#9BA8AB";
 const TESTERS = WHEEL.segments.find((segment) => segment.testers)?.testers || 0;
 
 const sentence = (text) => text.charAt(0).toUpperCase() + text.slice(1);
 
-// Tester slices sit side by side, so they alternate two shades of kesar.
+// Tester slices sit side by side, so they alternate two shades of slate.
 function segmentColours(segment, index) {
-  if (segment.testers) return { fill: index % 2 ? "#A24B14" : "#7E3A12", text: "#FFF4E6" };
-  if (segment.percent >= 10) return { fill: "#24160F", text: "#F4EBDD" };
-  return { fill: "#F4EBDD", text: "#24160F" };
+  if (segment.testers) return { fill: index % 2 ? "#4A5C6A" : "#3A4B58", text: "#F1F3F3" };
+  if (segment.percent >= 10) return { fill: "#06141B", text: "#CCD0CF" };
+  return { fill: "#CCD0CF", text: "#06141B" };
 }
 
 /** "x y" on a circle of `radius`, `deg` degrees clockwise from the top. */
@@ -50,12 +50,12 @@ function Wheel({ rotation, durationMs, onStopped }) {
         })}
         {Array.from({ length: WHEEL.segments.length * 2 }, (_, index) => {
           const [x, y] = point(101, index * (SEGMENT_DEG / 2)).split(" ");
-          return <circle key={index} cx={x} cy={y} r="1.7" fill="#FFF1CC" />;
+          return <circle key={index} cx={x} cy={y} r="1.7" fill="#E6EAEA" />;
         })}
       </g>
-      <circle r="17" fill="#24160F" stroke={GOLD} strokeWidth="2.5" />
-      <text y="2.2" fill="#F4EBDD" fontSize="6" fontWeight="700" letterSpacing="1.2" textAnchor="middle">SPIN</text>
-      <path d="M0 -83L-9.5 -109H9.5Z" fill="#A24B14" stroke="#FFF4E6" strokeWidth="2" strokeLinejoin="round" />
+      <circle r="17" fill="#06141B" stroke={GOLD} strokeWidth="2.5" />
+      <text y="2.2" fill="#CCD0CF" fontSize="6" fontWeight="700" letterSpacing="1.2" textAnchor="middle">SPIN</text>
+      <path d="M0 -83L-9.5 -109H9.5Z" fill="#253745" stroke="#E6EAEA" strokeWidth="2" strokeLinejoin="round" />
     </svg>
   );
 }

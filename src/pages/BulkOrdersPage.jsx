@@ -98,17 +98,17 @@ export default function BulkOrdersPage() {
 
   return (
     <div>
-      <section className="overflow-hidden bg-[#24160f] text-[#fff8ed]">
+      <section className="overflow-hidden bg-[#11212D] text-[#E6EAEA]">
         <div className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
           <div className="grid gap-12 md:grid-cols-[1.15fr_0.85fr] md:items-end">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-300">Bulk orders · Corporate gifting</p>
               <h1 className="mt-5 max-w-4xl font-serif text-[clamp(3.6rem,8vw,7rem)] font-semibold leading-[0.86] tracking-[-0.045em]">
                 Fragrance,{" "}
-                <span className="block italic font-medium text-stone-300">at scale.</span>
+                <span className="block italic font-medium text-[#B5C0C3]">at scale.</span>
               </h1>
             </div>
-            <p className="max-w-xl text-sm leading-7 text-stone-300 md:text-base">
+            <p className="max-w-xl text-sm leading-7 text-[#B5C0C3] md:text-base">
               Planning corporate gifts, celebrations, events, or a larger fragrance order? Tell us what you need and we’ll help shape the right order.
             </p>
           </div>
@@ -179,7 +179,7 @@ export default function BulkOrdersPage() {
 
               {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
 
-              <button disabled={submitting} type="submit" className="inline-flex items-center gap-2 rounded-full bg-[#24160f] px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:opacity-50">
+              <button disabled={submitting} type="submit" className="inline-flex items-center gap-2 rounded-full bg-[#11212D] px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:opacity-50">
                 {submitting ? "Submitting…" : "Submit enquiry"} <ArrowRight className="h-4 w-4" />
               </button>
             </form>
@@ -187,7 +187,7 @@ export default function BulkOrdersPage() {
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-[2rem] bg-[#24160f] p-6 text-[#fff8ed] md:p-8">
+          <div className="rounded-[2rem] bg-[#11212D] p-6 text-[#E6EAEA] md:p-8">
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-amber-300">Terms & conditions</p>
             <div className="mt-6 divide-y divide-white/10 border-y border-white/10">
               {TERMS.map((term, index) => (
@@ -195,12 +195,12 @@ export default function BulkOrdersPage() {
                   <span className="pt-1 text-[10px] font-semibold tracking-[0.18em] text-amber-300">0{index + 1}</span>
                   <div>
                     <h3 className="font-serif text-xl font-semibold">{term.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-stone-300">{term.text}</p>
+                    <p className="mt-2 text-sm leading-6 text-[#B5C0C3]">{term.text}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <p className="mt-6 text-xs leading-5 text-stone-400">
+            <p className="mt-6 text-xs leading-5 text-[#9BA8AB]">
               Submitting an enquiry does not by itself create a confirmed order. Final products, pricing, availability, shipping, and payment details are confirmed separately by SAHUMäRIO.
             </p>
           </div>
