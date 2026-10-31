@@ -183,15 +183,15 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], picks = 
       <div className="absolute inset-0 bg-black/45" onClick={close} aria-hidden="true" />
       <div className="quiz-sheet-in relative flex max-h-[100dvh] w-full flex-col overflow-y-auto bg-[var(--color-bg)] px-5 pb-6 pt-4 sm:max-h-[92vh] sm:max-w-md sm:rounded-3xl sm:px-7 sm:pb-7">
         <div className="flex items-center justify-between pb-2">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em]">Before you pay</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em]">Before checkout</p>
           <button type="button" onClick={close} disabled={phase === "spinning" && !spin} className="-mr-2 rounded-full p-2 transition hover:bg-[var(--color-surface-muted)] disabled:opacity-30" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <div className="text-center">
-          <h2 className="font-serif text-3xl font-semibold">{won ? "You won!" : "Spin for a gift"}</h2>
-          <p className="mx-auto mt-1 max-w-xs text-sm text-[var(--color-muted)]">{won ? sentence(prizeLabel(spin)) : `One spin per customer: ${wheelPrizes()}.`}</p>
+          <h2 className="font-serif text-3xl font-semibold">{won ? "You won!" : "A small gesture of thanks"}</h2>
+          <p className="mx-auto mt-1 max-w-xs text-sm text-[var(--color-muted)]">{won ? sentence(prizeLabel(spin)) : `Spin once for ${wheelPrizes()}.`}</p>
         </div>
 
         {!won && (
