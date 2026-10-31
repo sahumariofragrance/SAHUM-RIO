@@ -1,6 +1,11 @@
 // The free 10 ml tester won on the spin wheel: which perfumes to suggest.
 import { forSale } from "./catalogue";
 
+/** Photo of the 10 ml tester bottle with this perfume's name on its label. */
+export function testerImage(product) {
+  return `/products/testers/${product.slug}.webp`;
+}
+
 /** The words of a perfume's fragrance family, e.g. "Spicy woody" → spicy, woody. */
 function familyWords(product) {
   return new Set(String(product?.fragrance_family || "").toLowerCase().match(/[a-z]+/g) || []);
