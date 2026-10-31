@@ -15,6 +15,18 @@ function normalizeEmail(value) {
   return email;
 }
 
+// Remembers that this browser has signed in to an account before, so the
+// sign-in page only says "Welcome back" to people who really are back.
+const SIGNED_IN_BEFORE_KEY = "sahumario:signed-in-before";
+
+export function hasSignedInBefore() {
+  try { return window.localStorage.getItem(SIGNED_IN_BEFORE_KEY) === "1"; } catch { return false; }
+}
+
+function rememberSignedIn() {
+  try { window.localStorage.setItem(SIGNED_IN_BEFORE_KEY, "1"); } catch { /* storage blocked */ }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +52,8 @@ export function AuthProvider({ children }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => { if (user) rememberSignedIn(); }, [user]);
 
   // Customers (not guests, not the admin) are signed out after IDLE_LIMIT_MS
   // without activity, across all tabs and including time the site was closed.
