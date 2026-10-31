@@ -12,8 +12,9 @@ const TESTERS = WHEEL.segments.find((segment) => segment.testers)?.testers || 0;
 
 const sentence = (text) => text.charAt(0).toUpperCase() + text.slice(1);
 
-function segmentColours(segment) {
-  if (segment.testers) return { fill: "#A24B14", text: "#FFF4E6" };
+// Tester slices sit side by side, so they alternate two shades of kesar.
+function segmentColours(segment, index) {
+  if (segment.testers) return { fill: index % 2 ? "#A24B14" : "#7E3A12", text: "#FFF4E6" };
   if (segment.percent >= 10) return { fill: "#24160F", text: "#F4EBDD" };
   return { fill: "#F4EBDD", text: "#24160F" };
 }
@@ -33,16 +34,16 @@ function Wheel({ rotation, durationMs, onStopped }) {
         onTransitionEnd={onStopped}
       >
         {WHEEL.segments.map((segment, index) => {
-          const colours = segmentColours(segment);
+          const colours = segmentColours(segment, index);
           const from = index * SEGMENT_DEG;
           return (
             <g key={index}>
               <path d={`M0 0L${point(98, from)}A98 98 0 0 1 ${point(98, from + SEGMENT_DEG)}Z`} fill={colours.fill} stroke={GOLD} strokeWidth="0.8" />
               <g transform={`rotate(${from + SEGMENT_DEG / 2})`} fill={colours.text} textAnchor="middle">
-                <text y="-63" className="font-serif" fontSize={segment.testers ? 14 : 19} fontWeight="700">
+                <text y="-67" className="font-serif" fontSize={segment.testers ? 13 : 18} fontWeight="700">
                   {segment.testers ? `${segment.testers === 1 ? "" : `${segment.testers} `}FREE` : `${segment.percent}%`}
                 </text>
-                <text y="-50" fontSize="6.2" fontWeight="700" letterSpacing="1.3">{segment.testers ? (segment.testers === 1 ? "TESTER" : "TESTERS") : "OFF"}</text>
+                <text y="-55" fontSize="5.8" fontWeight="700" letterSpacing="1">{segment.testers ? (segment.testers === 1 ? "TESTER" : "TESTERS") : "OFF"}</text>
               </g>
             </g>
           );

@@ -3,7 +3,14 @@ import { Gift, Loader2 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { Notice } from "./AdminUI";
 import { formatINR } from "../../utils/money";
-import { WHEEL, wheelPrizes } from "../../lib/spinWheel";
+import { WHEEL, prizeLabel, wheelPrizes } from "../../lib/spinWheel";
+
+/** "a free 10 ml tester 70%, 10% off 20%, 5% off 10%": each slice is as likely. */
+function odds() {
+  const counts = new Map();
+  WHEEL.segments.forEach((segment) => { const label = prizeLabel(segment); counts.set(label, (counts.get(label) || 0) + 1); });
+  return [...counts].sort((a, b) => b[1] - a[1]).map(([label, count]) => `${label} ${Math.round((count / WHEEL.segments.length) * 100)}%`).join(", ");
+}
 
 /** Admin → Discounts: the spin wheel before checkout, on or off, and what it has given away. */
 export default function AdminSpinWheelCard() {
@@ -53,7 +60,7 @@ export default function AdminSpinWheelCard() {
         <div>
           <h2 className="inline-flex items-center gap-2 font-serif text-2xl"><Gift className="h-5 w-5 text-[var(--color-kesar)]" aria-hidden="true" />Spin wheel</h2>
           <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--color-muted)]">
-            Opens once at checkout when there’s a perfume in the bag: {wheelPrizes()}, each slice as likely.
+            Opens once at checkout when there’s a perfume in the bag: {wheelPrizes()}. Odds: {odds()}.
             One prize per customer (email or phone number), for one order within {WHEEL.validDays} days. A tester the customer chooses shows on the order to pack.
           </p>
         </div>
