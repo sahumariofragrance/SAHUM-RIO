@@ -252,7 +252,7 @@ export default function SpinWheel({ onClose, onWon, testerOptions = [], testerOt
 
         <div aria-live="polite">
           {won && spin.demo && (
-            <p className="mt-4 rounded-xl bg-[var(--color-surface-muted)] px-3 py-2 text-center text-xs text-[var(--color-muted)]">Preview link only: a demo prize. It shows in the order summary but can’t be used to pay. The real wheel starts once its database update has run.</p>
+            <p className="mt-4 rounded-xl bg-[var(--color-surface-muted)] px-3 py-2 text-center text-xs text-[var(--color-muted)]">Preview link only: a demo prize. It shows in the order summary but can’t be used to pay. On sahumario.com the wheel gives real prizes.</p>
           )}
           {won && spin.percent && (
             <div className="mt-5 rounded-2xl border border-dashed border-[var(--color-kesar)] bg-[var(--color-surface)] px-5 py-4 text-center">

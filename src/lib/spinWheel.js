@@ -121,6 +121,9 @@ export async function spinOnServer(demo = false) {
     body: "{}",
   });
   const payload = await response.json().catch(() => ({}));
+  // Preview links have no database key for the server (only the live site
+  // does, so previews can't touch real prizes): spin a demo prize instead.
+  if (response.status === 503 && previewDemo()) return demoSpin();
   if (!response.ok) {
     const error = new Error(payload.message || "The wheel couldn't spin just now. Please try again.");
     error.closed = Boolean(payload.closed);
