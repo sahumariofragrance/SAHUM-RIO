@@ -33,7 +33,7 @@ function FreeTesters({ count, useBy, options, picks, needsBottle, skipped, error
       </div>
       {!skipped && !needsBottle && (
         <div className="mt-3">
-          <TesterPicker options={options} picks={picks} count={count} onToggle={onToggle} />
+          <TesterPicker options={options} picks={picks} count={count} onToggle={onToggle} showImages={false} />
         </div>
       )}
       {error && <p className="mt-2 text-sm text-red-600" role="alert">{error}</p>}

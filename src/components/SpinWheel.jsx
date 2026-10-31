@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { Check, Gift, Loader2, X } from "lucide-react";
 import SafeImage from "./SafeImage";
 import { noteList } from "../lib/scentQuiz";
-import { testerImage } from "../lib/testers";
 import { WHEEL, prizeLabel, prizeUseBy, spinOnServer, wheelPrizes } from "../lib/spinWheel";
 
 const SEGMENT_DEG = 360 / WHEEL.segments.length;
@@ -61,13 +60,6 @@ function Wheel({ rotation, durationMs, onStopped }) {
   );
 }
 
-/** The 10 ml tester bottle with this perfume's name (public/products/testers/), or its bottle photo if there is none yet. */
-function TesterPhoto({ product }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) return <SafeImage src={product.image} alt="" sizes="40px" maxWidth={320} className="h-12 w-10 shrink-0 rounded-lg object-cover" />;
-  return <img src={testerImage(product)} alt="" loading="lazy" onError={() => setFailed(true)} className="h-12 w-10 shrink-0 rounded-lg object-cover" />;
-}
-
 /**
  * Choose free testers: one row per suggested perfume; `picks` are product ids.
  * With one tester to choose, tapping another perfume switches to it.
@@ -89,7 +81,7 @@ export function TesterPicker({ options, picks, count, onToggle, showImages = tru
               disabled={!chosen && full}
               className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${chosen ? "border-[var(--color-kesar)] bg-[var(--color-surface)] ring-1 ring-[var(--color-kesar)]" : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-text)]"}`}
             >
-              {showImages && <TesterPhoto product={product} />}
+              {showImages && <SafeImage src={product.image} alt="" sizes="40px" maxWidth={320} className="h-12 w-10 shrink-0 rounded-lg object-cover" />}
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-semibold">{product.name}</span>
                 <span className="block truncate text-xs text-[var(--color-muted)]">{[product.fragrance_family, notes].filter(Boolean).join(" · ")}</span>
