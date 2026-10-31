@@ -42,23 +42,23 @@ function layout({ eyebrow, title, intro, bodyHtml = "", footerHtml, preheader = 
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>${escapeHtml(title)}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f4f0e8;">${preheader ? `
+<body style="margin:0;padding:0;background-color:#DDE1E0;">${preheader ? `
   <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(preheader)}</div>` : ""}
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#f4f0e8;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#DDE1E0;">
     <tr>
       <td align="center" style="padding-top:32px;padding-right:16px;padding-bottom:32px;padding-left:16px;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;max-width:600px;background-color:#fffdf9;border:1px solid #e4ddd1;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;max-width:600px;background-color:#F4F6F6;border:1px solid #C3CACB;">
           <tr>
-            <td align="center" bgcolor="#241f1a" style="background-color:#241f1a;padding-top:24px;padding-right:24px;padding-bottom:24px;padding-left:24px;">
-              <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:30px;letter-spacing:2px;color:#fffdf9;font-weight:bold;">SAHUMäRIO</p>
-              <p style="margin-top:6px;margin-right:0;margin-bottom:0;margin-left:0;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;letter-spacing:2px;color:#cdbb9e;">FRAGRANCE</p>
+            <td align="center" bgcolor="#11212D" style="background-color:#11212D;padding-top:24px;padding-right:24px;padding-bottom:24px;padding-left:24px;">
+              <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:30px;letter-spacing:2px;color:#F4F6F6;font-weight:bold;">SAHUMäRIO</p>
+              <p style="margin-top:6px;margin-right:0;margin-bottom:0;margin-left:0;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;letter-spacing:2px;color:#9BA8AB;">FRAGRANCE</p>
             </td>
           </tr>
           <tr>
             <td style="padding-top:36px;padding-right:32px;padding-bottom:12px;padding-left:32px;">
-              <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:16px;letter-spacing:1.8px;color:#9b6a31;font-weight:bold;">${escapeHtml(eyebrow)}</p>
-              <h1 style="margin-top:10px;margin-right:0;margin-bottom:12px;margin-left:0;font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:38px;color:#241f1a;font-weight:normal;">${escapeHtml(title)}</h1>
-              <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:24px;color:#625b52;">${escapeHtml(intro)}</p>
+              <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:16px;letter-spacing:1.8px;color:#4A5C6A;font-weight:bold;">${escapeHtml(eyebrow)}</p>
+              <h1 style="margin-top:10px;margin-right:0;margin-bottom:12px;margin-left:0;font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:38px;color:#11212D;font-weight:normal;">${escapeHtml(title)}</h1>
+              <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:24px;color:#3E4F5B;">${escapeHtml(intro)}</p>
             </td>
           </tr>
 ${bodyHtml}          <tr>
@@ -77,11 +77,11 @@ function orderCard(order, extraHtml = "") {
   const items = Array.isArray(order?.items) ? order.items : [];
   const itemRows = items.map((item) => `
     <tr>
-      <td style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#29251f;">${escapeHtml(item.name || "Item")} × ${Number(item.qty || 1)}</td>
-      <td align="right" style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#29251f;white-space:nowrap;">${money(Number(item.price || 0) * Number(item.qty || 1))}</td>
+      <td style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#06141B;">${escapeHtml(item.name || "Item")} × ${Number(item.qty || 1)}</td>
+      <td align="right" style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#06141B;white-space:nowrap;">${money(Number(item.price || 0) * Number(item.qty || 1))}</td>
     </tr>`).join("") + testerLines(order).map((line) => `
     <tr>
-      <td style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#29251f;">${escapeHtml(line)} <span style="color:#7a6f62;">(spin prize)</span></td>
+      <td style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#06141B;">${escapeHtml(line)} <span style="color:#5E707D;">(spin prize)</span></td>
       <td align="right" style="padding-top:12px;padding-bottom:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#2f7a3d;white-space:nowrap;">Free</td>
     </tr>`).join("") + (Number(order?.discount_amount) > 0 ? `
     <tr>
@@ -91,19 +91,19 @@ function orderCard(order, extraHtml = "") {
 
   const bodyHtml = `          <tr>
             <td style="padding-top:16px;padding-right:32px;padding-bottom:8px;padding-left:32px;">
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#f8f5ef;border:1px solid #e9e1d5;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#E9ECEC;border:1px solid #CCD0CF;">
                 <tr>
-                  <td colspan="2" style="padding-top:18px;padding-right:18px;padding-bottom:12px;padding-left:18px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#8a8176;letter-spacing:1px;">ORDER</td>
+                  <td colspan="2" style="padding-top:18px;padding-right:18px;padding-bottom:12px;padding-left:18px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#5E707D;letter-spacing:1px;">ORDER</td>
                 </tr>
                 <tr>
-                  <td colspan="2" style="padding-top:0;padding-right:18px;padding-bottom:6px;padding-left:18px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;color:#29251f;font-weight:bold;">#${escapeHtml(order?.id)}</td>
+                  <td colspan="2" style="padding-top:0;padding-right:18px;padding-bottom:6px;padding-left:18px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;color:#06141B;font-weight:bold;">#${escapeHtml(order?.id)}</td>
                 </tr>
                 <tr>
                   <td colspan="2" style="padding-top:0;padding-right:18px;padding-bottom:2px;padding-left:18px;">
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;border-collapse:collapse;">${itemRows}
                       <tr>
-                        <td style="border-top:1px solid #ded5c8;padding-top:14px;padding-bottom:16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;color:#29251f;font-weight:bold;">Total</td>
-                        <td align="right" style="border-top:1px solid #ded5c8;padding-top:14px;padding-bottom:16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;color:#29251f;font-weight:bold;white-space:nowrap;">${money(orderTotal(order))}</td>
+                        <td style="border-top:1px solid #C3CACB;padding-top:14px;padding-bottom:16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;color:#06141B;font-weight:bold;">Total</td>
+                        <td align="right" style="border-top:1px solid #C3CACB;padding-top:14px;padding-bottom:16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;color:#06141B;font-weight:bold;white-space:nowrap;">${money(orderTotal(order))}</td>
                       </tr>
                     </table>
                   </td>
@@ -118,8 +118,8 @@ function orderCard(order, extraHtml = "") {
 
 function template({ eyebrow = "ORDER UPDATE", title, intro, order, extraHtml = "" }) {
   const bodyHtml = orderCard(order, extraHtml);
-  const footerHtml = `              <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:21px;color:#837a70;">Thank you for choosing SAHUMäRIO.</p>
-              <p style="margin-top:8px;margin-right:0;margin-bottom:0;margin-left:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#a0978d;">Questions? Reply to this email or write to <a href="mailto:${SUPPORT_EMAIL}" style="color:#9b6a31;">${SUPPORT_EMAIL}</a>. Keep your order number for reference.</p>
+  const footerHtml = `              <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:21px;color:#5E707D;">Thank you for choosing SAHUMäRIO.</p>
+              <p style="margin-top:8px;margin-right:0;margin-bottom:0;margin-left:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#6B7C87;">Questions? Reply to this email or write to <a href="mailto:${SUPPORT_EMAIL}" style="color:#4A5C6A;">${SUPPORT_EMAIL}</a>. Keep your order number for reference.</p>
 `;
   return layout({ eyebrow, title, intro, bodyHtml, footerHtml });
 }
@@ -196,10 +196,10 @@ async function sendShipped(order) {
   const tracking = escapeHtml(order.tracking_number || "");
   const hasTrackingLink = Boolean(order.tracking_url && /^https:\/\//i.test(order.tracking_url));
   const link = hasTrackingLink
-    ? `<table cellpadding="0" cellspacing="0" border="0" role="presentation"><tr><td bgcolor="#9b6a31" style="background-color:#9b6a31;"><a href="${escapeHtml(order.tracking_url)}" style="display:inline-block;padding-top:12px;padding-right:18px;padding-bottom:12px;padding-left:18px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#ffffff;text-decoration:none;font-weight:bold;">Track your order</a></td></tr></table>`
+    ? `<table cellpadding="0" cellspacing="0" border="0" role="presentation"><tr><td bgcolor="#4A5C6A" style="background-color:#4A5C6A;"><a href="${escapeHtml(order.tracking_url)}" style="display:inline-block;padding-top:12px;padding-right:18px;padding-bottom:12px;padding-left:18px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#ffffff;text-decoration:none;font-weight:bold;">Track your order</a></td></tr></table>`
     : "";
 
-  const extraHtml = `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#fffdf9;border:1px solid #e9e1d5;"><tr><td style="padding-top:18px;padding-right:18px;padding-bottom:18px;padding-left:18px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:23px;color:#514a42;"><strong style="color:#29251f;">Courier:</strong> ${courier}<br><strong style="color:#29251f;">Tracking number:</strong> ${tracking}${link ? `<br><br>${link}` : ""}</td></tr></table>`;
+  const extraHtml = `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#F4F6F6;border:1px solid #CCD0CF;"><tr><td style="padding-top:18px;padding-right:18px;padding-bottom:18px;padding-left:18px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:23px;color:#253745;"><strong style="color:#06141B;">Courier:</strong> ${courier}<br><strong style="color:#06141B;">Tracking number:</strong> ${tracking}${link ? `<br><br>${link}` : ""}</td></tr></table>`;
   const title = "Your order is on the way";
   const intro = "Your parcel has shipped. Keep the tracking details below handy while it makes its way to you.";
   const textExtra = `Courier: ${order.courier || "Courier"}\nTracking number: ${order.tracking_number || ""}${hasTrackingLink ? `\nTrack: ${order.tracking_url}` : ""}`;
@@ -251,12 +251,12 @@ ${innerHtml}
 function detailsCard(heading, rows) {
   const body = rows.map(([label, valueHtml], index) => `
                 <tr>
-                  <td valign="top" style="${index ? "border-top:1px solid #ece4d8;" : ""}padding-top:11px;padding-right:12px;padding-bottom:11px;padding-left:18px;${SANS}font-size:13px;line-height:20px;color:#8a8176;width:38%;">${escapeHtml(label)}</td>
-                  <td valign="top" style="${index ? "border-top:1px solid #ece4d8;" : ""}padding-top:11px;padding-right:18px;padding-bottom:11px;padding-left:0;${SANS}font-size:14px;line-height:20px;color:#29251f;">${valueHtml}</td>
+                  <td valign="top" style="${index ? "border-top:1px solid #D5DADA;" : ""}padding-top:11px;padding-right:12px;padding-bottom:11px;padding-left:18px;${SANS}font-size:13px;line-height:20px;color:#5E707D;width:38%;">${escapeHtml(label)}</td>
+                  <td valign="top" style="${index ? "border-top:1px solid #D5DADA;" : ""}padding-top:11px;padding-right:18px;padding-bottom:11px;padding-left:0;${SANS}font-size:14px;line-height:20px;color:#06141B;">${valueHtml}</td>
                 </tr>`).join("");
-  return `              <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#f8f5ef;border:1px solid #e9e1d5;border-collapse:collapse;">
+  return `              <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#E9ECEC;border:1px solid #CCD0CF;border-collapse:collapse;">
                 <tr>
-                  <td colspan="2" style="padding-top:16px;padding-right:18px;padding-bottom:6px;padding-left:18px;${SANS}font-size:12px;line-height:18px;color:#8a8176;letter-spacing:1px;">${escapeHtml(heading)}</td>
+                  <td colspan="2" style="padding-top:16px;padding-right:18px;padding-bottom:6px;padding-left:18px;${SANS}font-size:12px;line-height:18px;color:#5E707D;letter-spacing:1px;">${escapeHtml(heading)}</td>
                 </tr>${body}
                 <tr><td colspan="2" style="padding-bottom:6px;font-size:0;line-height:0;">&nbsp;</td></tr>
               </table>`;
@@ -265,7 +265,7 @@ function detailsCard(heading, rows) {
 function buttons(links) {
   const cells = links.map(([href, label, primary]) => `
                   <td style="padding-right:10px;padding-bottom:8px;">
-                    <table cellpadding="0" cellspacing="0" border="0" role="presentation"><tr><td bgcolor="${primary ? "#9b6a31" : "#fffdf9"}" style="background-color:${primary ? "#9b6a31" : "#fffdf9"};border:1px solid #9b6a31;"><a href="${escapeHtml(href)}" style="display:inline-block;padding-top:12px;padding-right:20px;padding-bottom:12px;padding-left:20px;${SANS}font-size:14px;line-height:20px;color:${primary ? "#ffffff" : "#9b6a31"};text-decoration:none;font-weight:bold;">${escapeHtml(label)}</a></td></tr></table>
+                    <table cellpadding="0" cellspacing="0" border="0" role="presentation"><tr><td bgcolor="${primary ? "#4A5C6A" : "#F4F6F6"}" style="background-color:${primary ? "#4A5C6A" : "#F4F6F6"};border:1px solid #4A5C6A;"><a href="${escapeHtml(href)}" style="display:inline-block;padding-top:12px;padding-right:20px;padding-bottom:12px;padding-left:20px;${SANS}font-size:14px;line-height:20px;color:${primary ? "#ffffff" : "#4A5C6A"};text-decoration:none;font-weight:bold;">${escapeHtml(label)}</a></td></tr></table>
                   </td>`).join("");
   return `              <table cellpadding="0" cellspacing="0" border="0" role="presentation">
                 <tr>${cells}
@@ -274,12 +274,12 @@ function buttons(links) {
 }
 
 function footerLines(lines) {
-  return lines.map((line, index) => `              <p style="margin-top:${index ? 8 : 0}px;margin-right:0;margin-bottom:0;margin-left:0;${SANS}font-size:${index ? 12 : 13}px;line-height:${index ? 19 : 21}px;color:${index ? "#a0978d" : "#837a70"};">${line}</p>
+  return lines.map((line, index) => `              <p style="margin-top:${index ? 8 : 0}px;margin-right:0;margin-bottom:0;margin-left:0;${SANS}font-size:${index ? 12 : 13}px;line-height:${index ? 19 : 21}px;color:${index ? "#6B7C87" : "#5E707D"};">${line}</p>
 `).join("");
 }
 
 function link(href, text) {
-  return `<a href="${escapeHtml(href)}" style="color:#9b6a31;text-decoration:underline;">${escapeHtml(text)}</a>`;
+  return `<a href="${escapeHtml(href)}" style="color:#4A5C6A;text-decoration:underline;">${escapeHtml(text)}</a>`;
 }
 
 /** Notifies SAHUMäRIO of a new bulk enquiry and confirms it to the customer. */
@@ -357,7 +357,7 @@ async function sendBulkEnquiryEmails(enquiry) {
       intro: customerIntro,
       preheader: `Your enquiry #${ref} is with our team.`,
       bodyHtml: cardRow(detailsCard(`YOUR ENQUIRY #${ref}`, customerRows))
-        + cardRow(`              <p style="margin:0;${SANS}font-size:14px;line-height:22px;color:#625b52;">Questions in the meantime? Call or WhatsApp us on ${link(`tel:${BRAND_PHONE_LINK}`, BRAND_PHONE)}, write to ${link(`mailto:${SUPPORT_EMAIL}`, SUPPORT_EMAIL)}, or message us on Instagram ${link(INSTAGRAM_URL, INSTAGRAM_HANDLE)}.</p>`, { top: 12 }),
+        + cardRow(`              <p style="margin:0;${SANS}font-size:14px;line-height:22px;color:#3E4F5B;">Questions in the meantime? Call or WhatsApp us on ${link(`tel:${BRAND_PHONE_LINK}`, BRAND_PHONE)}, write to ${link(`mailto:${SUPPORT_EMAIL}`, SUPPORT_EMAIL)}, or message us on Instagram ${link(INSTAGRAM_URL, INSTAGRAM_HANDLE)}.</p>`, { top: 12 }),
       footerHtml: footerLines([
         "Thank you for choosing SAHUMäRIO.",
         `Please keep your reference #${ref} for any follow-up.`,
@@ -391,12 +391,12 @@ function productReviewCard(product) {
   const image = product.image && /^https:\/\//i.test(product.image)
     ? `<td width="76" valign="middle" style="width:76px;padding-right:16px;"><img src="${escapeHtml(product.image)}" width="76" height="95" alt="${escapeHtml(product.name)}" style="display:block;width:76px;height:95px;object-fit:cover;border:0;"></td>`
     : "";
-  return `              <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#f8f5ef;border:1px solid #e9e1d5;">
+  return `              <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#E9ECEC;border:1px solid #CCD0CF;">
                 <tr>
                   <td style="padding-top:14px;padding-right:16px;padding-bottom:14px;padding-left:14px;">
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr>${image}
                       <td valign="middle">
-                        <p style="margin:0 0 10px 0;font-family:Georgia,'Times New Roman',serif;font-size:20px;line-height:26px;color:#241f1a;">${escapeHtml(product.name)}</p>
+                        <p style="margin:0 0 10px 0;font-family:Georgia,'Times New Roman',serif;font-size:20px;line-height:26px;color:#11212D;">${escapeHtml(product.name)}</p>
 ${buttons([[href, "Write a review", true]])}
                       </td>
                     </tr></table>
