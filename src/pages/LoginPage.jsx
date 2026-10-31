@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { hasSignedInBefore, useAuth } from "../context/AuthContext";
 
 export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home", initialMessage = null }) {
   const { login, requestEmailOtp, verifyEmailOtp, requestPasswordReset } = useAuth();
@@ -13,6 +13,7 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(initialMessage);
+  const [returning] = useState(hasSignedInBefore);
 
   const isLogin = mode === "login";
   const isSignup = mode === "signup";
@@ -80,7 +81,7 @@ export default function LoginPage({ setCurrentPage, redirectAfterLogin = "home",
   return (
     <section className="mx-auto max-w-md px-4 py-12">
       <h1 className="text-center text-2xl font-semibold md:text-3xl">
-        {mode === "forgot" ? "Reset Password" : isLogin ? "Welcome Back" : "Create Account"}
+        {mode === "forgot" ? "Reset Password" : isLogin ? (returning ? "Welcome back" : "Sign in") : "Create Account"}
       </h1>
 
       {isLogin && mode !== "forgot" && (
