@@ -9,12 +9,12 @@ import { formatINR } from "../utils/money";
 const SPIN_CODE = /^SPIN[A-Z0-9]{6}$/;
 
 /** A spin wheel prize of free testers: choose them, or keep them for another order. */
-function FreeTesters({ count, useBy, options, picks, needsBottle, skipped, error, onToggle, onSkip, onUnskip }) {
+function FreeTesters({ count, useBy, options, others, picks, needsBottle, skipped, error, onToggle, onSkip, onUnskip }) {
   const one = count === 1;
   const note = skipped
     ? `Saved for another order until ${useBy}.`
     : needsBottle ? `${one ? "It comes" : "They come"} with a perfume bottle: add one to your bag.`
-      : one ? "Choose one from a different fragrance family to your bag." : `Choose ${count}, each a different fragrance family to your bag.`;
+      : one ? "Try one of our picks, or choose any perfume you like." : `Choose ${count}: try our picks, or any perfumes you like.`;
   return (
     <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-3">
       <div className="flex items-start justify-between gap-3">
@@ -33,7 +33,7 @@ function FreeTesters({ count, useBy, options, picks, needsBottle, skipped, error
       </div>
       {!skipped && !needsBottle && (
         <div className="mt-3">
-          <TesterPicker options={options} picks={picks} count={count} onToggle={onToggle} />
+          <TesterPicker options={options} others={others} picks={picks} count={count} onToggle={onToggle} />
         </div>
       )}
       {error && <p className="mt-2 text-sm text-red-600" role="alert">{error}</p>}

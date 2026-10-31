@@ -21,10 +21,11 @@ function sharesWord(words, others) {
  * of the family in common, so "Woody spicy" counts as the same family as
  * "Spicy woody"). Each suggestion has a family of its own, so the choices
  * really differ from each other too. Perfumes for the same people as the bag
- * come first (him or her, and unisex), then the catalogue order. If the bag
+ * come first (him or her, and unisex), newest first so customers discover the
+ * latest perfumes (a newer perfume has a higher id). If the bag
  * already covers almost every family, other perfumes fill the list up to two.
  */
-export function suggestTesters(items, products, limit = 6) {
+export function suggestTesters(items, products, limit = 3) {
   const byId = new Map(products.map((product) => [Number(product.id), product]));
   const bag = items.map((item) => byId.get(Number(item.product_id))).filter(Boolean);
   const inBag = new Set(bag.map((product) => Number(product.id)));
@@ -32,7 +33,9 @@ export function suggestTesters(items, products, limit = 6) {
   const forHer = bag.some((product) => product.audience === "Women");
   const fits = (product) => forHim === forHer || product.audience === "Unisex" || product.audience === (forHim ? "Men" : "Women");
 
-  const candidates = forSale(products).filter((product) => !inBag.has(Number(product.id)));
+  const candidates = forSale(products)
+    .filter((product) => !inBag.has(Number(product.id)))
+    .sort((a, b) => Number(b.id) - Number(a.id));
   const ordered = [...candidates.filter(fits), ...candidates.filter((product) => !fits(product))];
 
   const taken = new Set(bag.flatMap((product) => [...familyWords(product)]));
@@ -49,4 +52,13 @@ export function suggestTesters(items, products, limit = 6) {
     if (!suggestions.includes(product)) suggestions.push(product);
   }
   return suggestions;
+}
+
+/**
+ * Every other perfume the customer may choose instead of our suggestions:
+ * on sale, not in the bag and not already suggested, in catalogue order.
+ */
+export function otherTesters(items, products, suggested) {
+  const skip = new Set([...items.map((item) => Number(item.product_id)), ...suggested.map((product) => Number(product.id))]);
+  return forSale(products).filter((product) => !skip.has(Number(product.id)));
 }

@@ -16,7 +16,7 @@ import { forgetSavedCode, savedCode } from "../lib/promo";
 import { comboDiscount, useOffer } from "../lib/offers";
 import { bottlesOnly } from "../lib/samples";
 import { WHEEL, markSpinUsed, prizeUseBy, savedSpin, saveSpin, spinLater, spinPutOff, useSpinWheelOpen } from "../lib/spinWheel";
-import { suggestTesters } from "../lib/testers";
+import { otherTesters, suggestTesters } from "../lib/testers";
 import { formatINR } from "../utils/money";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
@@ -60,11 +60,14 @@ export default function CheckoutPage({ setCurrentPage }) {
   const prize = spin && !spin.used ? spin : null;
   const hasBottle = bottlesOnly(items).length > 0;
   const canSpin = wheelOn && !spin && hasBottle;
+  // Our suggestions come first; the customer may choose any other perfume too.
   const testerOptions = useMemo(() => (prize?.testers ? suggestTesters(items, products) : []), [prize?.testers, items, products]);
+  const testerOthers = useMemo(() => (prize?.testers ? otherTesters(items, products, testerOptions) : []), [prize?.testers, items, products, testerOptions]);
+  const testerChoices = useMemo(() => [...testerOptions, ...testerOthers], [testerOptions, testerOthers]);
   // Picks still on offer: a perfume added to the bag since can't be a tester too.
   const testerPicks = useMemo(() => (prize?.testers
-    ? (prize.chosen || []).filter((id) => testerOptions.some((product) => Number(product.id) === id)).slice(0, prize.testers)
-    : []), [prize, testerOptions]);
+    ? (prize.chosen || []).filter((id) => testerChoices.some((product) => Number(product.id) === id)).slice(0, prize.testers)
+    : []), [prize, testerChoices]);
   const sendTesters = Boolean(prize?.testers) && !prize.demo && hasBottle && !testersSkipped;
   // Same whole-rupee formula as the server (api/_lib/discounts.js).
   const codeAmount = discount ? Math.round((subtotal * discount.percent) / 100) : 0;
@@ -249,7 +252,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       forgetSavedCode();
       // The spin prize is used once the order is paid with it.
       if (prize && ((useCode && discount.code === prize.code) || sendTesters)) {
-        if (sendTesters) setPackedTesters(testerOptions.filter((product) => testerPicks.includes(Number(product.id))).map((product) => product.name));
+        if (sendTesters) setPackedTesters(testerChoices.filter((product) => testerPicks.includes(Number(product.id))).map((product) => product.name));
         markSpinUsed();
         setSpin(savedSpin());
       }
@@ -258,7 +261,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       const msg = friendlyPaymentError(err) || err?.message || "Checkout failed. Please try again.";
       setError(msg); paymentLog("error", "FAILED", { message: err?.message });
     } finally { processingRef.current = false; setLoading(false); }
-  }, [user, isGuest, guestCheckout, startGuestSession, formValid, formData, items, total, discount, useCode, saveToProfile, saveAddress, refreshOrders, clearCart, prize, sendTesters, testerPicks, testerOptions, dropPrize]);
+  }, [user, isGuest, guestCheckout, startGuestSession, formValid, formData, items, total, discount, useCode, saveToProfile, saveAddress, refreshOrders, clearCart, prize, sendTesters, testerPicks, dropPrize, testerChoices]);
 
   if (success) return (
     <section className="mx-auto max-w-3xl px-4 py-16 text-center">
@@ -275,7 +278,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     </section>
   );
   const wheel = wheelShown && items.length > 0 && (
-    <SpinWheel onClose={closeWheel} onWon={takePrize} testerOptions={testerOptions} picks={testerPicks} onTogglePick={toggleTester} demo={wheelOn === "demo"} />
+    <SpinWheel onClose={closeWheel} onWon={takePrize} testerOptions={testerOptions} testerOthers={testerOthers} picks={testerPicks} onTogglePick={toggleTester} demo={wheelOn === "demo"} />
   );
   if (!user && !guestCheckout) return <section className="mx-auto max-w-md px-4 py-16 text-center"><h1 className="text-2xl font-semibold">Checkout</h1><p className="mt-2 text-[var(--color-muted)]">Continue as a guest or sign in to keep your orders linked to your account.</p><div className="mt-6 space-y-3"><button onClick={() => { setGuestCheckout(true); setSaveToProfile(false); setAddressLoaded(true); }} className="w-full rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white hover:bg-amber-700">Checkout as Guest</button><button onClick={() => setCurrentPage?.("login", { redirectAfterLogin: "checkout" })} className="w-full rounded-lg border border-[var(--color-border)] px-4 py-2.5 font-medium hover:bg-[var(--color-surface-muted)]">Log In or Sign Up</button></div>{wheel}</section>;
   if (!items.length) return <section className="mx-auto max-w-3xl px-4 py-16 text-center"><Package className="mx-auto h-14 w-14 text-[var(--color-muted)]" /><h1 className="mt-4 text-2xl font-semibold">Your cart is empty</h1><button onClick={() => setCurrentPage?.("perfumes")} className="mt-6 rounded-xl bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700">Browse Collection</button></section>;
@@ -294,7 +297,7 @@ export default function CheckoutPage({ setCurrentPage }) {
         <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={summaryItems} subtotal={subtotal} total={total} discountPercent={discount?.percent || 0} discountCode={discount?.code || ""} codeUnused={Boolean(discount) && !useCode} offerAmount={useCode ? 0 : offerAmount} offerLabel={anyTwo ? `${anyTwo.label} · any 2 for ${formatINR(anyTwo.pairPrice)}` : ""} onApplyCode={applyCode} onRemoveCode={removeCode} codeError={codeError} applyingCode={applyingCode} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading}
           onSpin={canSpin && !wheelShown ? () => setWheelShown(true) : undefined}
           freeTesters={prize?.testers ? {
-            count: prize.testers, useBy: prizeUseBy(prize), options: testerOptions, picks: testerPicks,
+            count: prize.testers, useBy: prizeUseBy(prize), options: testerOptions, others: testerOthers, picks: testerPicks,
             needsBottle: !hasBottle, skipped: testersSkipped, error: testerError,
             onToggle: toggleTester, onSkip: () => { setTestersSkipped(true); setTesterError(""); }, onUnskip: () => setTestersSkipped(false),
           } : undefined}
