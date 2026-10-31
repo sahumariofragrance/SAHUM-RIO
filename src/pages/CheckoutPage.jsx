@@ -143,7 +143,10 @@ export default function CheckoutPage({ setCurrentPage }) {
   // already applied; then the prize stays saved for another order.
   const takePrize = useCallback((won) => {
     setSpin(won);
-    if (won.percent && !won.demo && !(discount && discount.percent > won.percent)) applyCode(won.code);
+    if (!won.percent || (discount && discount.percent > won.percent)) return;
+    // A preview link's demo prize shows in the summary but can't be paid with.
+    if (won.demo) { setDiscount({ code: won.code, percent: won.percent, demo: true }); setCodeError(""); }
+    else applyCode(won.code);
   }, [discount, applyCode]);
 
   const closeWheel = useCallback((putOff) => {
@@ -183,6 +186,7 @@ export default function CheckoutPage({ setCurrentPage }) {
     if (processingRef.current) return;
     const usingGuestCheckout = !user || isGuest || guestCheckout;
     if (!formValid) { setError("Please complete all required shipping fields before proceeding."); return; }
+    if (discount?.demo) { setError(`That ${discount.percent}% off is a demo prize from the preview link's wheel, so it can't be used to pay. Remove it to continue.`); return; }
     if (sendTesters && testerPicks.length !== prize.testers) {
       setTesterError(`Choose your ${prize.testers === 1 ? "free tester" : `${prize.testers} free testers`} in the order summary, or tap “Not now”.`);
       return;
