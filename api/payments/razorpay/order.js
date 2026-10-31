@@ -6,7 +6,7 @@ const { requireCustomer } = require("../../_lib/customerAuth");
 const { getServiceClient, setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../../_lib/security");
 const { rejectBots } = require("../../_lib/botCheck");
 const { checkDiscount, discountPaise, normalizeEmail, normalizePhone } = require("../../_lib/discounts");
-const { combo, comboDiscountPaise, isSampleSetSlug } = require("../../_lib/offers");
+const { loadOffer, comboDiscountPaise, isSampleSetSlug } = require("../../_lib/offers");
 const { checkSpinPrize, isSpinCode, wheel } = require("../../_lib/spin");
 
 const MAX_QTY_PER_ITEM = 20;
@@ -119,8 +119,10 @@ module.exports = async (req, res) => {
 
     // A discount code is checked here, on the server, for this email and phone.
     // Offers don't combine: a code is used only when it saves more than the
-    // Diwali offer, otherwise the offer applies and the code stays unused.
-    const comboPaise = comboDiscountPaise(normalizedItems.filter((item) => !isSampleSetSlug(catalogue.get(item.product_id)?.slug)));
+    // any-2 offer (switched on in Admin → Discounts), otherwise the offer
+    // applies and the code stays unused.
+    const combo = await loadOffer(serviceClient);
+    const comboPaise = comboDiscountPaise(normalizedItems.filter((item) => !isSampleSetSlug(catalogue.get(item.product_id)?.slug)), combo);
     let discount = null;
     let spinDiscountCode = false;
     if (discountCode) {

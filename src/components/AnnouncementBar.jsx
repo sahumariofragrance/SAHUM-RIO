@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { saveCode, usePromo } from "../lib/promo";
-import { COMBO, comboActive } from "../lib/offers";
+import { useOffer } from "../lib/offers";
 import { formatINR } from "../utils/money";
 import { useProducts } from "../context/ProductsContext";
 import { forSale } from "../lib/catalogue";
 
 const DELIVERY = "Complimentary delivery across India";
 
-/** Top bar: free delivery, taking turns with the Diwali offer and the promoted code. */
+/** Top bar: free delivery, taking turns with the any-2 offer and the promoted code. */
 export default function AnnouncementBar() {
   const promo = usePromo();
   const { products } = useProducts();
   // The any-2 offer needs at least two perfumes on sale.
-  const combo = comboActive() && forSale(products).length >= 2;
+  const offer = useOffer();
+  const combo = Boolean(offer) && forSale(products).length >= 2;
   const slides = ["delivery", ...(combo ? ["combo"] : []), ...(promo ? ["promo"] : [])];
   const [index, setIndex] = useState(0);
   const [saved, setSaved] = useState(false);
@@ -44,7 +45,7 @@ export default function AnnouncementBar() {
       <p className={`${base} ${shown("delivery")}`} aria-hidden={active !== "delivery"}>{DELIVERY}</p>
       {combo && (
         <p className={`${base} text-[var(--color-kesar)] ${shown("combo")}`} aria-hidden={active !== "combo"}>
-          {COMBO.short || COMBO.label} · any 2 for {formatINR(COMBO.pairPrice)}
+          {offer.label} · any 2 for {formatINR(offer.pairPrice)}
         </p>
       )}
       {promo && (

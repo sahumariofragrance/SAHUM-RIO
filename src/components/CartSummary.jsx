@@ -3,7 +3,6 @@ import { Lock, ShieldCheck, Loader2, Sparkles, FlaskConical, Gift, Tag, X } from
 import SafeImage from "./SafeImage";
 import ComboNudge from "./ComboNudge";
 import { TesterPicker } from "./SpinWheel";
-import { COMBO } from "../lib/offers";
 import { prizeLabel } from "../lib/spinWheel";
 import { formatINR } from "../utils/money";
 
@@ -140,7 +139,7 @@ const CartSummary = React.memo(
           <div className="mt-4">
             {discountCode && codeUnused ? (
               <div className="flex items-start justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-2 text-sm">
-                <span className="inline-flex items-start gap-2"><Tag className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span><span className="font-semibold">{codeName}</span> not used: the {COMBO.label} saves you more. Keep the code for another order.</span></span>
+                <span className="inline-flex items-start gap-2"><Tag className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span><span className="font-semibold">{codeName}</span> not used: the any-2 offer saves you more. Keep the code for another order.</span></span>
                 <button type="button" onClick={() => { onRemoveCode?.(); setCodeInput(""); }} className="rounded p-1 hover:bg-[var(--color-border)]" aria-label="Remove discount code"><X className="h-4 w-4" /></button>
               </div>
             ) : discountCode ? (

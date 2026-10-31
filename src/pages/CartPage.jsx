@@ -5,14 +5,15 @@ import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
 import { formatINR } from "../utils/money";
 import ComboNudge from "../components/ComboNudge";
-import { COMBO, comboDiscount } from "../lib/offers";
+import { comboDiscount, useOffer } from "../lib/offers";
 import { bottlesOnly } from "../lib/samples";
 import { savedSpin, useSpinWheelOpen, wheelPrizes } from "../lib/spinWheel";
 
 export default function CartPage({ setCurrentPage }) {
   const { items, updateQty, removeItem, subtotal } = useCart();
   const { products } = useProducts();
-  const offer = comboDiscount(bottlesOnly(items));
+  const anyTwo = useOffer();
+  const offer = comboDiscount(bottlesOnly(items), anyTwo);
   // The spin wheel waits at checkout for anyone who hasn't spun yet.
   const wheelOn = useSpinWheelOpen();
   const wheelWaiting = wheelOn && !savedSpin() && bottlesOnly(items).length > 0;
@@ -84,7 +85,7 @@ export default function CartPage({ setCurrentPage }) {
             </div>
             {offer > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-[var(--color-muted)]">{COMBO.label} · any 2 for {formatINR(COMBO.pairPrice)}</span>
+                <span className="text-[var(--color-muted)]">{anyTwo?.label} · any 2 for {formatINR(anyTwo?.pairPrice || 0)}</span>
                 <span className="font-medium text-green-600">- {formatINR(offer)}</span>
               </div>
             )}

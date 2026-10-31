@@ -3,7 +3,7 @@ import { ArrowLeft, Check, Instagram, RotateCcw, X } from "lucide-react";
 import SafeImage from "./SafeImage";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
-import { COMBO, comboActive } from "../lib/offers";
+import { useOffer } from "../lib/offers";
 import { QUESTIONS, noteList, rankPerfumes } from "../lib/scentQuiz";
 import { shareScentCard } from "../lib/scentCard";
 import { bottlesOnly, isSampleSet } from "../lib/samples";
@@ -64,7 +64,8 @@ function Result({ match, pair, alternative, sampleSet, perfumeCount, onViewProdu
   const inBag = (product) => items.some((item) => item.product_id === product.id);
   const notes = noteList(match);
   const profile = String(match.scent_profile || match.description || "").split(/[.;]/)[0].trim();
-  const showPair = pair && comboActive();
+  const offer = useOffer();
+  const showPair = pair && offer;
 
   async function share() {
     setSharing("working");
@@ -151,7 +152,7 @@ function Result({ match, pair, alternative, sampleSet, perfumeCount, onViewProdu
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium leading-5">Layer it with {pair.name}</p>
-            <p className="text-xs leading-5 text-[var(--color-muted)]">Any 2 for {formatINR(COMBO.pairPrice)} · {COMBO.short || COMBO.label}</p>
+            <p className="text-xs leading-5 text-[var(--color-muted)]">Any 2 for {formatINR(offer.pairPrice)} · {offer.label}</p>
           </div>
           {inBag(match) && inBag(pair) ? (
             <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-kesar)]">Added</span>
