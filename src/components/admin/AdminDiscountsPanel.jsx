@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Copy, Globe, Loader2, Plus, RefreshCw } from "lucide-react";
+import { Copy, Globe, Loader2, Pencil, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { AdminButton, Field, Notice, inputClass } from "./AdminUI";
 import AdminOfferCard from "./AdminOfferCard";
@@ -16,6 +16,12 @@ function expiryLabel(value) {
   return date.getTime() <= Date.now() ? `Expired ${text}` : `Until ${text}`;
 }
 
+// The date input's value (YYYY-MM-DD) for a stored expiry, in Indian time.
+function expiryDateValue(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+}
+
 function isExpired(value) {
   return Boolean(value) && new Date(value).getTime() <= Date.now();
 }
@@ -24,6 +30,9 @@ function isExpired(value) {
 export default function AdminDiscountsPanel() {
   const [codes, setCodes] = useState([]);
   const [form, setForm] = useState(emptyForm);
+  // The code being edited in the form on the left, or null for a new code.
+  const [editing, setEditing] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ready | missing | error
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -42,13 +51,26 @@ export default function AdminDiscountsPanel() {
 
   useEffect(() => { load(); }, [load]);
 
-  async function create(event) {
+  function startEdit(row) {
+    setError(""); setMessage("");
+    setEditing(row);
+    setForm({ code: row.code, percent: String(row.percent), expires: expiryDateValue(row.expires_at), note: row.note || "" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEdit() {
+    setEditing(null);
+    setForm(emptyForm);
+  }
+
+  async function save(event) {
     event.preventDefault();
     setError(""); setMessage("");
     const code = form.code.trim().toUpperCase();
     const percent = Number(form.percent);
     if (!CODE_PATTERN.test(code)) { setError("Use 3–20 letters or numbers, no spaces (e.g. WELCOME10)."); return; }
     if (!Number.isInteger(percent) || percent < 1 || percent > 90) { setError("Discount must be a whole number from 1 to 90%."); return; }
+    if (editing) { await update(code, percent); return; }
     setSaving(true);
     const { data: userData } = await supabase.auth.getUser();
     const { error: insertError } = await supabase.from("discount_codes").insert({
@@ -61,11 +83,53 @@ export default function AdminDiscountsPanel() {
     });
     setSaving(false);
     if (insertError) {
-      setError(insertError.code === "23505" ? `${code} already exists. Choose another code.` : insertError.message);
+      setError(insertError.code === "23505" ? `${code} already exists or was used before. Choose another code.` : insertError.message);
       return;
     }
     setForm(emptyForm);
     setMessage(`${code} created — ${percent}% off, each customer once.`);
+    load();
+  }
+
+  async function update(code, percent) {
+    setSaving(true);
+    const changes = {
+      percent,
+      expires_at: form.expires ? `${form.expires}T23:59:59+05:30` : null,
+      note: form.note.trim() || null,
+    };
+    // A used code keeps its name: orders and the one-use-per-customer check refer to it.
+    if (Number(editing.uses) === 0) changes.code = code;
+    const { error: updateError } = await supabase.from("discount_codes").update(changes).eq("id", editing.id);
+    setSaving(false);
+    if (updateError) {
+      setError(updateError.code === "23505" ? `${code} already exists. Choose another code.` : updateError.message);
+      return;
+    }
+    const name = changes.code || editing.code;
+    setEditing(null);
+    setForm(emptyForm);
+    setMessage(`${name} saved — ${percent}% off · ${expiryLabel(changes.expires_at)}.`);
+    load();
+  }
+
+  async function remove(row) {
+    setError(""); setMessage("");
+    const used = Number(row.uses) > 0;
+    const question = used
+      ? `Delete ${row.code}? It stops working straight away and leaves this list. Past orders that used it keep their discount. This can't be undone.`
+      : `Delete ${row.code}? This can't be undone.`;
+    if (!window.confirm(question)) return;
+    setDeletingId(row.id);
+    const { error: deleteError } = await supabase.rpc("admin_delete_discount_code", { p_id: row.id });
+    setDeletingId(null);
+    if (deleteError) {
+      const missing = deleteError.code === "PGRST202" || /admin_delete_discount_code/.test(deleteError.message || "");
+      setError(missing ? "Deleting codes isn’t switched on yet. Run the delete-discount-code SQL in Supabase (SQL Editor), then try again." : deleteError.message);
+      return;
+    }
+    if (editing?.id === row.id) cancelEdit();
+    setMessage(`${row.code} deleted.`);
     load();
   }
 
@@ -101,11 +165,11 @@ export default function AdminDiscountsPanel() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[22rem_1fr]">
-      <form onSubmit={create} className="space-y-4 self-start rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-        <h2 className="font-serif text-2xl">New discount code</h2>
+      <form onSubmit={save} className="space-y-4 self-start rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+        <h2 className="font-serif text-2xl">{editing ? `Edit ${editing.code}` : "New discount code"}</h2>
         <p className="text-xs leading-5 text-[var(--color-muted)]">Anyone can use the code once. A customer’s email or phone number can’t use the same code twice.</p>
         <Field label="Code" htmlFor="discount-code-new" hint="Letters and numbers only, e.g. WELCOME10 or DIWALI15.">
-          <input id="discount-code-new" value={form.code} maxLength={20} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "") }))} placeholder="WELCOME10" className={`${inputClass} uppercase tracking-wide`} />
+          <input id="discount-code-new" value={form.code} disabled={Boolean(editing) && Number(editing.uses) > 0} title={editing && Number(editing.uses) > 0 ? "A code that has been used keeps its name." : undefined} maxLength={20} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "") }))} placeholder="WELCOME10" className={`${inputClass} uppercase tracking-wide`} />
         </Field>
         <Field label="Discount (%)" htmlFor="discount-percent">
           <input id="discount-percent" type="number" min="1" max="90" step="1" value={form.percent} onChange={(e) => setForm((f) => ({ ...f, percent: e.target.value }))} className={inputClass} />
@@ -117,8 +181,9 @@ export default function AdminDiscountsPanel() {
           <input id="discount-note" value={form.note} maxLength={120} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} className={inputClass} />
         </Field>
         <AdminButton type="submit" variant="primary" disabled={saving} className="w-full justify-center">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}Create code
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : editing ? <Save className="h-4 w-4" /> : <Plus className="h-4 w-4" />}{editing ? "Save changes" : "Create code"}
         </AdminButton>
+        {editing && <AdminButton variant="ghost" onClick={cancelEdit} className="w-full justify-center">Cancel</AdminButton>}
       </form>
 
       <section>
@@ -154,6 +219,18 @@ export default function AdminDiscountsPanel() {
                     <Globe className="h-3.5 w-3.5" aria-hidden="true" />
                     {row.show_on_site ? (live ? "Shown on website" : "Shown on website (hidden while off/expired)") : "Show on website"}
                   </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <AdminButton size="sm" onClick={() => startEdit(row)} aria-label={`Edit ${row.code}`}><Pencil className="h-3.5 w-3.5" />Edit</AdminButton>
+                  <AdminButton
+                    size="sm"
+                    variant="danger"
+                    onClick={() => remove(row)}
+                    disabled={deletingId === row.id}
+                    aria-label={`Delete ${row.code}`}
+                  >
+                    {deletingId === row.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}Delete
+                  </AdminButton>
                 </div>
                 <div className="text-right text-sm">
                   <div className="font-semibold tabular-nums">{Number(row.uses)} use{Number(row.uses) === 1 ? "" : "s"}</div>
