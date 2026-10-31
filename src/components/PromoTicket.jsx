@@ -38,7 +38,7 @@ export default function PromoTicket() {
         </button>
       </div>
       <p className="mt-2 text-center text-xs text-[var(--color-muted)]" aria-live="polite">
-        {saved ? "Saved — we’ll apply it at checkout." : "One use per customer."}
+        {saved ? "Saved — we’ll apply it at checkout." : ""}
       </p>
     </div>
   );
