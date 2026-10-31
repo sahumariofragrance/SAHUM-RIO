@@ -1,10 +1,13 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import ProductGrid from "../components/ProductGrid";
 import SpaLink from "../components/SpaLink";
 import IndiaFlag from "../components/IndiaFlag";
 import PromoTicket from "../components/PromoTicket";
 import DiwaliOffer from "../components/DiwaliOffer";
+import ScentQuiz, { QuizInvite } from "../components/ScentQuiz";
+import AudienceFilter from "../components/AudienceFilter";
+import { onSaleFirst } from "../lib/catalogue";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
 
@@ -15,18 +18,30 @@ const SORTS = {
   name: { label: "Name: A to Z", compare: (a, b) => a.name.localeCompare(b.name) },
 };
 
-export default function HomePage({ onProductNavigate, setCurrentPage }) {
+export default function HomePage({ onProductNavigate, setCurrentPage, openQuiz = false }) {
   const { items, addToCart, updateQty } = useCart();
   const { products: catalogueProducts, loading } = useProducts();
   const [sort, setSort] = useState("featured");
+  const [audience, setAudience] = useState("all");
+  // sahumario.com/quiz opens the homepage with the quiz already showing.
+  const [quizOpen, setQuizOpen] = useState(openQuiz);
   const itemQtyById = useMemo(() => items.reduce((acc, item) => { acc[item.product_id] = item.qty; return acc; }, {}), [items]);
   const products = useMemo(() => {
-    const list = catalogueProducts.map((product) => ({ ...product, qty: itemQtyById[product.id] ?? 0 }));
+    const list = catalogueProducts
+      .filter((product) => audience === "all" || product.audience === audience)
+      .map((product) => ({ ...product, qty: itemQtyById[product.id] ?? 0 }));
     const { compare } = SORTS[sort];
-    return compare ? [...list].sort(compare) : list;
-  }, [catalogueProducts, itemQtyById, sort]);
+    // Perfumes that can be bought now come before those coming soon.
+    return onSaleFirst(compare ? [...list].sort(compare) : list);
+  }, [catalogueProducts, itemQtyById, sort, audience]);
   const handleAdd = useCallback((product) => addToCart(product), [addToCart]);
   const handleQty = useCallback((productId, qty) => updateQty(productId, qty), [updateQty]);
+  // Also when coming back to /quiz with the browser's back button.
+  useEffect(() => { if (openQuiz) setQuizOpen(true); }, [openQuiz]);
+  const closeQuiz = useCallback(() => {
+    setQuizOpen(false);
+    if (openQuiz) setCurrentPage?.("home");
+  }, [openQuiz, setCurrentPage]);
 
   return <>
     <div className="mx-auto max-w-[1440px] px-5 sm:px-8 md:px-12">
@@ -41,6 +56,7 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
           Made in India
         </p>
         <DiwaliOffer />
+        <QuizInvite onStart={() => setQuizOpen(true)} />
         <PromoTicket />
       </div>
 
@@ -62,6 +78,8 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
         </label>
       </div>
 
+      <AudienceFilter products={catalogueProducts} value={audience} onChange={setAudience} className="mt-4" />
+
       <div className="pb-24 pt-6 md:pb-32 md:pt-8">
         <ProductGrid products={products} loading={loading} onSelectProduct={onProductNavigate} onAddToCart={handleAdd} onUpdateQty={handleQty} />
       </div>
@@ -73,5 +91,6 @@ export default function HomePage({ onProductNavigate, setCurrentPage }) {
         </SpaLink>
       </div>
     </div>
+    <ScentQuiz open={quizOpen} onClose={closeQuiz} onProductNavigate={onProductNavigate} onGoToBag={() => setCurrentPage?.("cart")} />
   </>;
 }

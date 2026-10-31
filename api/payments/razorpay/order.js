@@ -5,8 +5,9 @@ const crypto = require("crypto");
 const { requireCustomer } = require("../../_lib/customerAuth");
 const { getServiceClient, setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../../_lib/security");
 const { rejectBots } = require("../../_lib/botCheck");
-const { checkDiscount, discountPaise } = require("../../_lib/discounts");
-const { combo, comboDiscountPaise } = require("../../_lib/offers");
+const { checkDiscount, discountPaise, normalizeEmail, normalizePhone } = require("../../_lib/discounts");
+const { loadOffer, comboDiscountPaise, isSampleSetSlug } = require("../../_lib/offers");
+const { checkSpinPrize, isSpinCode, wheel } = require("../../_lib/spin");
 
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
@@ -59,19 +60,21 @@ module.exports = async (req, res) => {
       identifier: user.id,
     }))) return;
     const body = plain(req.body) ? req.body : {};
-    const { items, frontendAmount, currency = "INR", customer = {}, address, discount_code: discountCode } = body;
+    const { items, frontendAmount, currency = "INR", customer = {}, address, discount_code: discountCode, spin_code: spinCode, testers } = body;
     if (currency !== "INR") return res.status(400).json({ message: "Unsupported currency" });
     if (!Array.isArray(items) || !items.length) return res.status(400).json({ message: "items must be a non-empty array" });
 
     const ids = items.map((item) => safeInt(item?.product_id));
     if (ids.some((id) => !Number.isInteger(id) || id <= 0)) return res.status(400).json({ message: "Invalid product ID" });
-    const { data: catalogueRows, error: catalogueError } = await serverClient
-      .from("products")
-      .select("id,name,price,active")
-      .in("id", ids)
-      .eq("active", true);
+    // Free testers won on the spin wheel are looked up with the bag.
+    const testerIds = spinCode && Array.isArray(testers) ? testers.slice(0, 10).map((id) => safeInt(id)) : [];
+    const lookupIds = [...new Set([...ids, ...testerIds.filter((id) => Number.isInteger(id) && id > 0)])];
+    const catalogueQuery = (fields) => serverClient.from("products").select(fields).in("id", lookupIds).eq("active", true);
+    let { data: catalogueRows, error: catalogueError } = await catalogueQuery("id,name,slug,price,active,coming_soon");
+    // Before the coming-soon migration runs there is no such column: every perfume is on sale.
+    if (catalogueError && /coming_soon/.test(catalogueError.message || "")) ({ data: catalogueRows, error: catalogueError } = await catalogueQuery("id,name,slug,price,active"));
     if (catalogueError) throw catalogueError;
-    const catalogue = new Map((catalogueRows || []).map((product) => [Number(product.id), { name: product.name, price: Number(product.price) }]));
+    const catalogue = new Map((catalogueRows || []).map((product) => [Number(product.id), { name: product.name, slug: product.slug, price: Number(product.price), comingSoon: Boolean(product.coming_soon) }]));
 
     const seen = new Set(); let count = 0; let amountPaise = 0;
     const normalizedItems = [];
@@ -79,6 +82,7 @@ module.exports = async (req, res) => {
       if (!plain(item)) return res.status(400).json({ message: "Invalid item" });
       const id = safeInt(item.product_id); const qty = safeInt(item.qty); const product = catalogue.get(id);
       if (!product) return res.status(400).json({ message: `Product ${item.product_id} is unavailable` });
+      if (product.comingSoon) return res.status(400).json({ message: `${product.name} is coming soon and can't be ordered yet. Please remove it from your bag.` });
       if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY_PER_ITEM) return res.status(400).json({ message: "Invalid quantity" });
       if (seen.has(id)) return res.status(400).json({ message: `Duplicate product_id ${id}` });
       const unitPaise = Math.round(Number(product.price) * 100);
@@ -115,14 +119,50 @@ module.exports = async (req, res) => {
 
     // A discount code is checked here, on the server, for this email and phone.
     // Offers don't combine: a code is used only when it saves more than the
-    // Diwali offer, otherwise the offer applies and the code stays unused.
-    const comboPaise = comboDiscountPaise(normalizedItems);
+    // any-2 offer (switched on in Admin → Discounts), otherwise the offer
+    // applies and the code stays unused.
+    const combo = await loadOffer(serviceClient);
+    const comboPaise = comboDiscountPaise(normalizedItems.filter((item) => !isSampleSetSlug(catalogue.get(item.product_id)?.slug)), combo);
     let discount = null;
+    let spinDiscountCode = false;
     if (discountCode) {
       const checked = await checkDiscount(serviceClient, { code: discountCode, email: shipping.email, phone: shipping.phone });
       if (!checked.ok) return res.status(400).json({ message: checked.message, discountRejected: true });
+      spinDiscountCode = checked.spin;
       const off = discountPaise(amountPaise, checked.percent);
-      if (off > comboPaise) discount = { code: checked.code, percent: checked.percent, paise: off };
+      if (off > comboPaise) discount = { code: checked.code, percent: checked.percent, paise: off, spin: checked.spin };
+    }
+
+    // A spin wheel prize (../../_lib/spin.js). A percentage off comes in as the
+    // discount code above and, like any code, is used only when it saves the
+    // most. A free tester comes in as spin_code with the perfume chosen: a
+    // gift, so it goes with any offer or code. One spin prize per order.
+    let spinUsed = discount?.spin ? discount.code : null;
+    let freeTesters = null;
+    if (spinCode) {
+      const code = String(spinCode).trim().toUpperCase();
+      if (spinDiscountCode) return res.status(400).json({ message: "Only one spin-wheel prize can be used per order.", spinRejected: true });
+      if (!isSpinCode(code)) return res.status(400).json({ message: "That spin prize code isn't valid.", spinRejected: true });
+      const checked = await checkSpinPrize(serviceClient, { code, email: normalizeEmail(shipping.email), phone: normalizePhone(shipping.phone) });
+      if (!checked.ok) return res.status(400).json({ message: checked.message, spinRejected: true });
+      if (!checked.prize.testers) return res.status(400).json({ message: "This spin prize is a discount. Apply it as a discount code.", spinRejected: true });
+      const wanted = checked.prize.testers;
+      if (!normalizedItems.some((item) => !isSampleSetSlug(catalogue.get(item.product_id)?.slug))) {
+        return res.status(400).json({ message: `${wanted === 1 ? "The free tester comes" : "Free testers come"} with a perfume bottle. Please add one to your bag.`, testersRejected: true });
+      }
+      const chosen = testerIds.map((id) => catalogue.get(id));
+      const valid = chosen.length === wanted
+        && new Set(testerIds).size === wanted
+        && chosen.every((product) => product && !product.comingSoon && !isSampleSetSlug(product.slug))
+        && testerIds.every((id) => !seen.has(id));
+      if (!valid) {
+        const message = wanted === 1
+          ? "Please choose one perfume, not in your bag, for your free tester."
+          : `Please choose ${wanted} different perfumes, not in your bag, for your free testers.`;
+        return res.status(400).json({ message, testersRejected: true });
+      }
+      freeTesters = testerIds.map((id) => ({ product_id: id, name: catalogue.get(id).name, ml: wheel.testerMl }));
+      spinUsed = checked.prize.code;
     }
     // The offer has no code: its name is saved in the code field so the order
     // card, emails and PDF show it. No discount code has that name (codes are
@@ -154,6 +194,8 @@ module.exports = async (req, res) => {
         intent_version: "3",
         ...(discount && !discount.offer ? { discount_code: discount.code, discount_percent: String(discount.percent) } : {}),
         ...(discount?.offer ? { offer: discount.code, offer_discount_inr: String(discount.paise / 100) } : {}),
+        ...(spinUsed ? { spin_code: spinUsed } : {}),
+        ...(freeTesters ? { free_testers: freeTesters.map((tester) => `${tester.name} ${tester.ml} ml`).join(", ").slice(0, 250) } : {}),
       },
     });
 
@@ -167,8 +209,10 @@ module.exports = async (req, res) => {
       address: shipping,
       customer_email: shipping.email,
       status: "created",
-      // Only when a code or offer is used, so checkout never depends on these columns otherwise.
+      // Only when a code, offer or spin prize is used, so checkout never depends on these columns otherwise.
       ...(discount ? { discount_code: discount.code, discount_percent: discount.percent, discount_amount: discount.paise / 100 } : {}),
+      ...(spinUsed ? { spin_code: spinUsed } : {}),
+      ...(freeTesters ? { free_testers: freeTesters } : {}),
     });
     if (intent.error) {
       console.error("[order] payment intent persistence failed", intent.error.message);

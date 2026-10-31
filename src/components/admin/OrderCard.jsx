@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from "react";
-import { AlertCircle, Check, CheckCircle2, ChevronDown, Copy, Download, Loader2, Mail, MessageCircle, Phone, RotateCcw, Trash2, Truck, XCircle } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, ChevronDown, Copy, Download, Gift, Loader2, Mail, MessageCircle, Phone, RotateCcw, Trash2, Truck, XCircle } from "lucide-react";
 import { updateAdminOrder } from "../../lib/adminOrders";
 import { formatINR } from "../../utils/money";
 import { AdminButton, Field, Notice, ORDER_FLOW, ORDER_STATUSES, StatusPill, inputClass } from "./AdminUI";
@@ -89,6 +89,8 @@ export default function OrderCard({ order, onSaved, defaultOpen = false, selecte
   const detailsChanged =
     courier !== (order.courier || "") || trackingNumber !== (order.tracking_number || "") || trackingUrl !== (order.tracking_url || "");
   const whatsapp = whatsappLink(address.phone);
+  // Free testers the customer won on the spin wheel and chose at checkout.
+  const testers = Array.isArray(order.free_testers) ? order.free_testers : [];
 
   async function save(nextStatus, { confirm = false } = {}) {
     setError("");
@@ -200,6 +202,12 @@ export default function OrderCard({ order, onSaved, defaultOpen = false, selecte
                   </li>
                 ))}
               </ul>
+              {testers.length > 0 && (
+                <p className="mt-3 flex items-start gap-2 rounded-xl border border-[var(--color-kesar)] bg-[var(--color-surface-muted)] px-3 py-2 text-sm">
+                  <Gift className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-kesar)]" aria-hidden="true" />
+                  <span>Spin prize, pack {testers.length === 1 ? "a free tester" : `${testers.length} free testers`}: <strong className="font-semibold">{testers.map((tester) => `${tester.name} ${tester.ml || 10} ml`).join(", ")}</strong></span>
+                </p>
+              )}
               {Number(order.discount_amount) > 0 && (
                 <div className="mt-3 flex items-baseline justify-between text-sm text-green-700">
                   <span>Discount{order.discount_code ? ` · ${order.discount_code}` : ""}</span>

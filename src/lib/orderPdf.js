@@ -146,6 +146,14 @@ function orderPage(doc, order) {
     doc.text(money(qty * price), cols.amount, y, { align: "right" });
     y += Math.max(1, name.length) * 14 + 8;
   });
+  // Free testers won on the spin wheel.
+  (Array.isArray(order.free_testers) ? order.free_testers : []).forEach((tester) => {
+    const name = doc.splitTextToSize(pdfText(`${tester.name || "Perfume"} ${Number(tester.ml) || 10} ml tester (spin prize)`), cols.qty - MARGIN - 16);
+    doc.text(name, cols.item, y, { lineHeightFactor: 1.4 });
+    doc.text("1", cols.qty, y);
+    doc.text("Free", cols.amount, y, { align: "right" });
+    y += Math.max(1, name.length) * 14 + 8;
+  });
 
   doc.line(MARGIN, y - 4, right, y - 4);
   if (Number(order.discount_amount) > 0) {

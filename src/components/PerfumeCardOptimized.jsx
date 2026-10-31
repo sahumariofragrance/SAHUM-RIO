@@ -3,6 +3,7 @@ import { Minus, Plus } from "lucide-react";
 import SafeImage from "./SafeImage";
 import SpaLink from "./SpaLink";
 import { formatINR } from "../utils/money";
+import { isComingSoon } from "../lib/catalogue";
 
 // Tiles are two columns on phones, three from 1024px.
 const TILE_SIZES = "(min-width: 1024px) 30vw, 48vw";
@@ -24,6 +25,7 @@ const PerfumeCardOptimized = React.memo(({
   const { id, name, price, image, alt } = product;
   const hoverImage = Array.isArray(product.gallery) && product.gallery.length > 1 ? product.gallery[1] : null;
   const href = `/product/${product.slug}`;
+  const comingSoon = isComingSoon(product);
 
   return (
     <article className="group">
@@ -47,7 +49,13 @@ const PerfumeCardOptimized = React.memo(({
           )}
         </SpaLink>
 
-        <div className="absolute bottom-3 right-3 z-10">
+        {comingSoon && (
+          <p className="pointer-events-none absolute left-2.5 top-2.5 z-10 rounded-full bg-black/60 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur-[2px]">
+            Coming soon
+          </p>
+        )}
+
+        {!comingSoon && <div className="absolute bottom-3 right-3 z-10">
           {quantity > 0 ? (
             <div className="flex items-center rounded-full bg-[var(--color-bg)] text-[var(--color-text)] shadow-sm">
               <button onClick={() => onUpdateQty(id, quantity - 1)} className={roundButton} aria-label={"Decrease " + name}><Minus className="h-3.5 w-3.5" /></button>
@@ -58,12 +66,12 @@ const PerfumeCardOptimized = React.memo(({
             <button
               onClick={() => onAdd(product)}
               aria-label={"Add " + name + " to bag"}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-bg)] text-[var(--color-text)] shadow-sm transition duration-300 hover:scale-110 hover:bg-[var(--color-kesar)] hover:text-[#FFF8EF] md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-bg)] text-[var(--color-text)] shadow-sm transition duration-300 hover:scale-110 hover:bg-[var(--color-kesar)] hover:text-[#F1F3F3] md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
             >
               <Plus className="h-4 w-4" />
             </button>
           )}
-        </div>
+        </div>}
       </div>
 
       <div className="pt-4">

@@ -12,6 +12,8 @@ const FIELDS = [
   "id", "slug", "name", "description", "price", "image_url", "gallery_urls", "alt", "notes",
   "size_volume", "fragrance_family", "scent_profile", "occasion", "display_order", "updated_at",
 ];
+// Which perfumes are coming soon, and who each is for (coming-soon migration).
+const AVAILABILITY_FIELDS = ["coming_soon", "audience"];
 const OUTPUT = path.join(__dirname, "..", "src", "data", "products.json");
 
 async function main() {
@@ -19,10 +21,12 @@ async function main() {
   const key = process.env.SUPABASE_ANON_KEY;
   if (!url || !key) throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY must be set");
 
-  const query = `select=${FIELDS.join(",")}&active=eq.true&order=display_order.asc,id.asc`;
-  const response = await fetch(`${url}/rest/v1/products?${query}`, {
+  const request = (fields) => fetch(`${url}/rest/v1/products?select=${fields.join(",")}&active=eq.true&order=display_order.asc,id.asc`, {
     headers: { apikey: key, Authorization: `Bearer ${key}` },
   });
+  let response = await request([...FIELDS, ...AVAILABILITY_FIELDS]);
+  // Before the coming-soon migration runs there are no such columns.
+  if (response.status === 400) response = await request(FIELDS);
   if (!response.ok) throw new Error(`Supabase returned ${response.status}: ${(await response.text()).slice(0, 200)}`);
   const rows = await response.json();
 

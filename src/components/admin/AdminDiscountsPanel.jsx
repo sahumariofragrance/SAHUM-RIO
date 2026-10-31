@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Copy, Globe, Loader2, Plus, RefreshCw } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { AdminButton, Field, Notice, inputClass } from "./AdminUI";
+import AdminOfferCard from "./AdminOfferCard";
+import AdminSpinWheelCard from "./AdminSpinWheelCard";
 import { formatINR } from "../../utils/money";
 
 const CODE_PATTERN = /^[A-Z0-9]{3,20}$/;
@@ -120,6 +122,7 @@ export default function AdminDiscountsPanel() {
       </form>
 
       <section>
+        <div className="mb-8 space-y-8"><AdminOfferCard /><AdminSpinWheelCard /></div>
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-serif text-2xl">Your codes</h2>
           <AdminButton variant="secondary" onClick={load} aria-label="Refresh codes"><RefreshCw className="h-4 w-4" /></AdminButton>

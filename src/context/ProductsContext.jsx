@@ -5,6 +5,8 @@ import fallbackProducts from "../data/products.json";
 const ProductsContext = createContext(null);
 
 const PRODUCT_FIELDS = "id,slug,name,description,price,image_url,alt,notes,size_volume,fragrance_family,scent_profile,occasion,active,display_order,updated_at";
+// Added by supabase/migrations/20261029120000_coming_soon_and_new_collection.sql.
+const AVAILABILITY_FIELDS = "coming_soon,audience";
 
 function withImageVersion(url, updatedAt) {
   const value = String(url || "");
@@ -50,8 +52,28 @@ export function ProductsProvider({ children }) {
       .eq("active", true)
       .order("display_order", { ascending: true })
       .order("id", { ascending: true });
-    let { data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls`);
-    // Before the gallery_urls migration runs, load without it rather than falling back.
+    let { data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls,${AVAILABILITY_FIELDS}`);
+    const beforeMigration = Boolean(queryError) && /coming_soon|audience/.test(queryError.message || "");
+    // Vercel preview links only (*.vercel.app; the live site's vercel.app
+    // addresses redirect to sahumario.com): until the migration has run, show
+    // the shop as it will leave it, from src/data/new-collection.json: the
+    // database's perfumes with the "For" it gives them, then the new ones it
+    // puts on sale, so the shop can be checked before going live.
+    if (beforeMigration && window.location.hostname.endsWith(".vercel.app")) {
+      const [{ default: collection }, current] = await Promise.all([
+        import("../data/new-collection.json"),
+        query(`${PRODUCT_FIELDS},gallery_urls`),
+      ]);
+      if (!current.error) {
+        const existing = (current.data || []).map((product) => ({ ...product, audience: collection.audience[product.slug] ?? null }));
+        setProducts([...existing, ...collection.products].map(normalizeProduct));
+        setLoading(false);
+        return;
+      }
+    }
+    // Before the coming-soon migration runs, load without those columns
+    // (then every perfume is on sale), and likewise before the gallery one.
+    if (beforeMigration) ({ data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls`));
     if (queryError && /gallery_urls/.test(queryError.message || "")) ({ data, error: queryError } = await query(PRODUCT_FIELDS));
 
     if (queryError) {

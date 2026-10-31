@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { saveCode, usePromo } from "../lib/promo";
-import { COMBO, comboActive } from "../lib/offers";
+import { useOffer } from "../lib/offers";
 import { formatINR } from "../utils/money";
+import { useProducts } from "../context/ProductsContext";
+import { forSale } from "../lib/catalogue";
 
 const DELIVERY = "Complimentary delivery across India";
 
-/** Top bar: free delivery, taking turns with the Diwali offer and the promoted code. */
+/** Top bar: free delivery, taking turns with the any-2 offer and the promoted code. */
 export default function AnnouncementBar() {
   const promo = usePromo();
-  const combo = comboActive();
+  const { products } = useProducts();
+  // The any-2 offer needs at least two perfumes on sale.
+  const offer = useOffer();
+  const combo = Boolean(offer) && forSale(products).length >= 2;
   const slides = ["delivery", ...(combo ? ["combo"] : []), ...(promo ? ["promo"] : [])];
   const [index, setIndex] = useState(0);
   const [saved, setSaved] = useState(false);
@@ -36,11 +41,11 @@ export default function AnnouncementBar() {
   const base = "absolute inset-0 flex items-center justify-center px-4 transition-opacity duration-700";
   const shown = (slide) => (active === slide ? "opacity-100" : "pointer-events-none opacity-0");
   return (
-    <div className="relative h-8 overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-bg)] text-center text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+    <div className="band-flip relative h-8 overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-bg)] text-center text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
       <p className={`${base} ${shown("delivery")}`} aria-hidden={active !== "delivery"}>{DELIVERY}</p>
       {combo && (
         <p className={`${base} text-[var(--color-kesar)] ${shown("combo")}`} aria-hidden={active !== "combo"}>
-          {COMBO.short || COMBO.label} · any 2 for {formatINR(COMBO.pairPrice)}
+          {offer.label} · any 2 for {formatINR(offer.pairPrice)}
         </p>
       )}
       {promo && (

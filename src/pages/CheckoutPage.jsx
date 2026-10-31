@@ -3,6 +3,7 @@ import { AlertCircle, CheckCircle2, ChevronLeft, Package, X } from "lucide-react
 import { Card } from "../components/ui";
 import ShippingForm from "../components/ShippingForm";
 import CartSummary from "../components/CartSummary";
+import SpinWheel from "../components/SpinWheel";
 import { useCart } from "../context/cartContext";
 import { useOrders } from "../context/OrdersContext";
 import { useAuth } from "../context/AuthContext";
@@ -12,7 +13,10 @@ import { completeVerifiedOrder } from "../lib/completeOrder";
 import { trackEvent } from "../lib/analytics";
 import { pixelInitiateCheckout, pixelPurchase } from "../lib/metaPixel";
 import { forgetSavedCode, savedCode } from "../lib/promo";
-import { COMBO, comboDiscount } from "../lib/offers";
+import { comboDiscount, useOffer } from "../lib/offers";
+import { bottlesOnly } from "../lib/samples";
+import { WHEEL, markSpinUsed, prizeUseBy, savedSpin, saveSpin, spinLater, spinPutOff, useSpinWheelOpen } from "../lib/spinWheel";
+import { suggestTesters } from "../lib/testers";
 import { formatINR } from "../utils/money";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
@@ -46,11 +50,28 @@ export default function CheckoutPage({ setCurrentPage }) {
   const [discount, setDiscount] = useState(null); // { code, percent }
   const [codeError, setCodeError] = useState("");
   const [applyingCode, setApplyingCode] = useState(false);
+  // Spin wheel (src/lib/spinWheel.js): the prize won on this device, if any.
+  const wheelOn = useSpinWheelOpen();
+  const [spin, setSpin] = useState(() => savedSpin());
+  const [wheelShown, setWheelShown] = useState(false);
+  const [testersSkipped, setTestersSkipped] = useState(false);
+  const [testerError, setTesterError] = useState("");
+  const [packedTesters, setPackedTesters] = useState([]);
+  const prize = spin && !spin.used ? spin : null;
+  const hasBottle = bottlesOnly(items).length > 0;
+  const canSpin = wheelOn && !spin && hasBottle;
+  const testerOptions = useMemo(() => (prize?.testers ? suggestTesters(items, products) : []), [prize?.testers, items, products]);
+  // Picks still on offer: a perfume added to the bag since can't be a tester too.
+  const testerPicks = useMemo(() => (prize?.testers
+    ? (prize.chosen || []).filter((id) => testerOptions.some((product) => Number(product.id) === id)).slice(0, prize.testers)
+    : []), [prize, testerOptions]);
+  const sendTesters = Boolean(prize?.testers) && !prize.demo && hasBottle && !testersSkipped;
   // Same whole-rupee formula as the server (api/_lib/discounts.js).
   const codeAmount = discount ? Math.round((subtotal * discount.percent) / 100) : 0;
   // Offers don't combine, as on the server: a code counts only when it saves
-  // more than the Diwali offer; otherwise it stays unused for another order.
-  const offerAmount = comboDiscount(items);
+  // more than the any-2 offer; otherwise it stays unused for another order.
+  const anyTwo = useOffer();
+  const offerAmount = comboDiscount(bottlesOnly(items), anyTwo);
   const useCode = Boolean(discount) && codeAmount > offerAmount;
   const total = subtotal - (useCode ? codeAmount : offerAmount);
   const processingRef = useRef(false);
@@ -102,15 +123,55 @@ export default function CheckoutPage({ setCurrentPage }) {
 
   const removeCode = useCallback(() => { setDiscount(null); setCodeError(""); forgetSavedCode(); }, []);
 
-  // A code saved from the homepage or a product page is applied automatically.
+  // A code saved from the homepage or a product page is applied automatically,
+  // or else a percentage off won on the spin wheel earlier.
   const autoApplied = useRef(false);
   useEffect(() => {
     if (autoApplied.current || !items.length) return;
-    const code = savedCode();
+    const won = savedSpin();
+    const code = savedCode() || (won && !won.used && won.percent ? won.code : "");
     if (!code) return;
     autoApplied.current = true;
     applyCode(code);
   }, [items.length, applyCode]);
+
+  // The wheel opens by itself once, before the customer fills in checkout.
+  useEffect(() => {
+    if (canSpin && !spinPutOff()) setWheelShown(true);
+  }, [canSpin]);
+
+  // A percentage off goes in as the discount code, unless a bigger code is
+  // already applied; then the prize stays saved for another order.
+  const takePrize = useCallback((won) => {
+    setSpin(won);
+    if (!won.percent || (discount && discount.percent > won.percent)) return;
+    // A preview link's demo prize shows in the summary but can't be paid with.
+    if (won.demo) { setDiscount({ code: won.code, percent: won.percent, demo: true }); setCodeError(""); }
+    else applyCode(won.code);
+  }, [discount, applyCode]);
+
+  const closeWheel = useCallback((putOff) => {
+    if (putOff) spinLater();
+    setWheelShown(false);
+  }, []);
+
+  const toggleTester = useCallback((id) => {
+    if (!prize) return;
+    // With one tester to choose, another perfume replaces the pick.
+    const chosen = testerPicks.includes(id)
+      ? testerPicks.filter((chosenId) => chosenId !== id)
+      : testerPicks.length < prize.testers ? [...testerPicks, id] : prize.testers === 1 ? [id] : testerPicks;
+    const next = { ...prize, chosen };
+    if (!next.demo) saveSpin(next);
+    setSpin(next);
+    setTesterError("");
+  }, [prize, testerPicks]);
+
+  // The customer can't use this prize (expired, used, or already used one).
+  const dropPrize = useCallback(() => {
+    markSpinUsed();
+    setSpin(savedSpin());
+  }, []);
 
   // Tell Meta once per visit to checkout, when there is something to buy.
   const checkoutTracked = useRef(false);
@@ -126,6 +187,11 @@ export default function CheckoutPage({ setCurrentPage }) {
     if (processingRef.current) return;
     const usingGuestCheckout = !user || isGuest || guestCheckout;
     if (!formValid) { setError("Please complete all required shipping fields before proceeding."); return; }
+    if (discount?.demo) { setError(`That ${discount.percent}% off is a demo prize from the preview link's wheel, so it can't be used to pay. Remove it to continue.`); return; }
+    if (sendTesters && testerPicks.length !== prize.testers) {
+      setTesterError(`Choose your ${prize.testers === 1 ? "free tester" : `${prize.testers} free testers`} in the order summary, or tap “Not now”.`);
+      return;
+    }
     const razorpayKey = process.env.REACT_APP_RAZORPAY_KEY_ID;
     if (!razorpayKey) { setError("Payment gateway is not configured. Please contact support."); return; }
 
@@ -151,11 +217,17 @@ export default function CheckoutPage({ setCurrentPage }) {
           customer: { name: formData.name, phone: formData.phone, email: shippingAddress.email },
           address: shippingAddress,
           ...(useCode ? { discount_code: discount.code } : {}),
+          ...(sendTesters ? { spin_code: prize.code, testers: testerPicks } : {}),
         }),
       });
       const orderPayload = await orderRes.json().catch(() => ({}));
       if (!orderRes.ok) {
-        if (orderPayload.discountRejected) { setDiscount(null); setCodeError(orderPayload.message); }
+        if (orderPayload.discountRejected) {
+          if (prize && discount?.code === prize.code) dropPrize();
+          setDiscount(null); setCodeError(orderPayload.message);
+        }
+        if (orderPayload.spinRejected) dropPrize();
+        if (orderPayload.testersRejected) setTesterError(orderPayload.message);
         throw new Error(orderPayload.message || "Unable to create payment order. Please try again.");
       }
       if (orderPayload.correctedAmount != null) setCorrectedAmount(orderPayload.correctedAmount);
@@ -165,7 +237,7 @@ export default function CheckoutPage({ setCurrentPage }) {
         key: razorpayKey, amount: orderPayload.amount, currency: orderPayload.currency, name: "SAHUMäRIO",
         description: `${items.length} perfume${items.length === 1 ? "" : "s"}`, image: "/logo.png", order_id: orderPayload.id,
         prefill: { name: formData.name, email: shippingAddress.email, contact: formData.phone },
-        notes: { shipping_city: formData.city, shipping_pin: formData.pin }, theme: { color: "#d97706" },
+        notes: { shipping_city: formData.city, shipping_pin: formData.pin }, theme: { color: "#4A5C6A" },
       });
       paymentLog("info", "PAYMENT_CAPTURED", { payment_id: paymentResponse.razorpay_payment_id });
       const completed = await completeVerifiedOrder({ paymentResponse, items, address: shippingAddress });
@@ -175,18 +247,25 @@ export default function CheckoutPage({ setCurrentPage }) {
       trackEvent("purchase", { value: total });
       pixelPurchase(items, total, completed.id);
       forgetSavedCode();
+      // The spin prize is used once the order is paid with it.
+      if (prize && ((useCode && discount.code === prize.code) || sendTesters)) {
+        if (sendTesters) setPackedTesters(testerOptions.filter((product) => testerPicks.includes(Number(product.id))).map((product) => product.name));
+        markSpinUsed();
+        setSpin(savedSpin());
+      }
       clearCart(); setConfirmedOrderId(completed.id); setGuestCheckout(usingGuestCheckout); setSuccess(true);
     } catch (err) {
       const msg = friendlyPaymentError(err) || err?.message || "Checkout failed. Please try again.";
       setError(msg); paymentLog("error", "FAILED", { message: err?.message });
     } finally { processingRef.current = false; setLoading(false); }
-  }, [user, isGuest, guestCheckout, startGuestSession, formValid, formData, items, total, discount, useCode, saveToProfile, saveAddress, refreshOrders, clearCart]);
+  }, [user, isGuest, guestCheckout, startGuestSession, formValid, formData, items, total, discount, useCode, saveToProfile, saveAddress, refreshOrders, clearCart, prize, sendTesters, testerPicks, testerOptions, dropPrize]);
 
   if (success) return (
     <section className="mx-auto max-w-3xl px-4 py-16 text-center">
       <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100"><CheckCircle2 className="h-10 w-10 text-green-600" /></div>
       <h1 ref={successRef} tabIndex={-1} className="mt-6 text-3xl font-semibold outline-none">Payment successful</h1>
       <p className="mt-3 text-[var(--color-muted)]">Your payment was verified and your order is now waiting for SAHUMäRIO review.</p>
+      {packedTesters.length > 0 && <p className="mt-2 text-sm">Your free {WHEEL.testerMl} ml tester{packedTesters.length === 1 ? "" : "s"}, {packedTesters.join(" and ")}, will be packed with it.</p>}
       {guestCheckout && <p className="mt-2 text-sm text-[var(--color-muted)]">We’ll send order updates to the email you provided. Keep your order number for reference.</p>}
       {confirmedOrderId && <p className="mt-2 font-mono text-xs text-[var(--color-muted)]">Order ID: {confirmedOrderId}</p>}
       <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
@@ -195,7 +274,10 @@ export default function CheckoutPage({ setCurrentPage }) {
       </div>
     </section>
   );
-  if (!user && !guestCheckout) return <section className="mx-auto max-w-md px-4 py-16 text-center"><h1 className="text-2xl font-semibold">Checkout</h1><p className="mt-2 text-[var(--color-muted)]">Continue as a guest or sign in to keep your orders linked to your account.</p><div className="mt-6 space-y-3"><button onClick={() => { setGuestCheckout(true); setSaveToProfile(false); setAddressLoaded(true); }} className="w-full rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white hover:bg-amber-700">Checkout as Guest</button><button onClick={() => setCurrentPage?.("login", { redirectAfterLogin: "checkout" })} className="w-full rounded-lg border border-[var(--color-border)] px-4 py-2.5 font-medium hover:bg-[var(--color-surface-muted)]">Log In or Sign Up</button></div></section>;
+  const wheel = wheelShown && items.length > 0 && (
+    <SpinWheel onClose={closeWheel} onWon={takePrize} testerOptions={testerOptions} picks={testerPicks} onTogglePick={toggleTester} demo={wheelOn === "demo"} />
+  );
+  if (!user && !guestCheckout) return <section className="mx-auto max-w-md px-4 py-16 text-center"><h1 className="text-2xl font-semibold">Checkout</h1><p className="mt-2 text-[var(--color-muted)]">Continue as a guest or sign in to keep your orders linked to your account.</p><div className="mt-6 space-y-3"><button onClick={() => { setGuestCheckout(true); setSaveToProfile(false); setAddressLoaded(true); }} className="w-full rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white hover:bg-amber-700">Checkout as Guest</button><button onClick={() => setCurrentPage?.("login", { redirectAfterLogin: "checkout" })} className="w-full rounded-lg border border-[var(--color-border)] px-4 py-2.5 font-medium hover:bg-[var(--color-surface-muted)]">Log In or Sign Up</button></div>{wheel}</section>;
   if (!items.length) return <section className="mx-auto max-w-3xl px-4 py-16 text-center"><Package className="mx-auto h-14 w-14 text-[var(--color-muted)]" /><h1 className="mt-4 text-2xl font-semibold">Your cart is empty</h1><button onClick={() => setCurrentPage?.("perfumes")} className="mt-6 rounded-xl bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700">Browse Collection</button></section>;
 
   return (
@@ -209,8 +291,16 @@ export default function CheckoutPage({ setCurrentPage }) {
           {correctedAmount != null && <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">Server-verified total: <strong>₹{Number(correctedAmount).toLocaleString("en-IN")}</strong>. This is the amount presented to Razorpay.</div>}
           <Card className="p-6"><h2 className="mb-6 text-lg font-semibold">Shipping Address</h2>{addressLoaded ? <><ShippingForm key={user?.id || "guest"} onFormChange={handleFormChange} initialValues={formData} requireEmail={guestCheckout || isGuest} />{!guestCheckout && !isGuest && <label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" checked={saveToProfile} onChange={(e) => setSaveToProfile(e.target.checked)} className="rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600" />Save this address to my profile</label>}</> : <div className="h-64 animate-pulse rounded-lg bg-[var(--color-surface-muted)]" />}</Card>
         </div>
-        <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={summaryItems} subtotal={subtotal} total={total} discountPercent={discount?.percent || 0} discountCode={discount?.code || ""} codeUnused={Boolean(discount) && !useCode} offerAmount={useCode ? 0 : offerAmount} offerLabel={`${COMBO.label} · any 2 for ${formatINR(COMBO.pairPrice)}`} onApplyCode={applyCode} onRemoveCode={removeCode} codeError={codeError} applyingCode={applyingCode} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading} /></div></div>
+        <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={summaryItems} subtotal={subtotal} total={total} discountPercent={discount?.percent || 0} discountCode={discount?.code || ""} codeUnused={Boolean(discount) && !useCode} offerAmount={useCode ? 0 : offerAmount} offerLabel={anyTwo ? `${anyTwo.label} · any 2 for ${formatINR(anyTwo.pairPrice)}` : ""} onApplyCode={applyCode} onRemoveCode={removeCode} codeError={codeError} applyingCode={applyingCode} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading}
+          onSpin={canSpin && !wheelShown ? () => setWheelShown(true) : undefined}
+          freeTesters={prize?.testers ? {
+            count: prize.testers, useBy: prizeUseBy(prize), options: testerOptions, picks: testerPicks,
+            needsBottle: !hasBottle, skipped: testersSkipped, error: testerError,
+            onToggle: toggleTester, onSkip: () => { setTestersSkipped(true); setTesterError(""); }, onUnskip: () => setTestersSkipped(false),
+          } : undefined}
+        /></div></div>
       </div>
+      {wheel}
     </section>
   );
 }

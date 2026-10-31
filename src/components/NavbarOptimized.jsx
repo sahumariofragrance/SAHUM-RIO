@@ -77,7 +77,7 @@ const NavbarOptimized = React.memo(({ currentPage, setCurrentPage, isMenuOpen, s
     <>
       <AnnouncementBar />
 
-      <header className="glass-surface sticky top-0 z-40 border-b">
+      <header className="band-flip glass-surface sticky top-0 z-40 border-b">
         <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-10">
           <div className="grid h-[76px] grid-cols-[1fr_auto_1fr] items-center">
             <div className="flex items-center">

@@ -1,0 +1,16 @@
+{
+  "validDays": 7,
+  "testerMl": 10,
+  "segments": [
+    { "percent": 5 },
+    { "testers": 1 },
+    { "testers": 1 },
+    { "percent": 10 },
+    { "testers": 1 },
+    { "testers": 1 },
+    { "percent": 10 },
+    { "testers": 1 },
+    { "testers": 1 },
+    { "testers": 1 }
+  ]
+}

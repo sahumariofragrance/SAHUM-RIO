@@ -1,7 +1,10 @@
 "use strict";
 
 // Discount codes (supabase/migrations/*_discount_codes.sql): percentage codes
-// that each customer can use once, by order email or phone number.
+// that each customer can use once, by order email or phone number. A spin
+// wheel prize of a percentage off (./spin.js) is checked here too.
+
+const { checkSpinPrize, isSpinCode } = require("./spin");
 
 const CODE_PATTERN = /^[A-Z0-9]{3,20}$/;
 
@@ -23,9 +26,9 @@ function discountPaise(subtotalPaise, percent) {
 }
 
 /**
- * Checks a code for a customer. Returns { ok: true, code, percent } or
- * { ok: false, message }. Email/phone are optional when only previewing a code
- * in the bag; checkout always passes both.
+ * Checks a code for a customer. Returns { ok: true, code, percent, spin } or
+ * { ok: false, message }; `spin` is true for a spin wheel prize. Email/phone
+ * are optional when only previewing a code in the bag; checkout always passes both.
  */
 async function checkDiscount(client, { code, email, phone }) {
   const wanted = normalizeCode(code);
@@ -37,6 +40,12 @@ async function checkDiscount(client, { code, email, phone }) {
     .eq("code", wanted)
     .maybeSingle();
   if (error) throw error;
+  if (!row && isSpinCode(wanted)) {
+    const checked = await checkSpinPrize(client, { code: wanted, email: normalizeEmail(email), phone: normalizePhone(phone) });
+    if (!checked.ok) return checked;
+    if (!checked.prize.percent) return { ok: false, message: "This spin prize is a free tester, not a discount. Choose it at checkout." };
+    return { ok: true, code: checked.prize.code, percent: checked.prize.percent, spin: true };
+  }
   if (!row || !row.active) return { ok: false, message: "That discount code isn't valid." };
   if (row.expires_at && new Date(row.expires_at).getTime() <= Date.now()) {
     return { ok: false, message: "That discount code has expired." };
@@ -58,7 +67,7 @@ async function checkDiscount(client, { code, email, phone }) {
     if (used && used.length) return { ok: false, message: "This code has already been used with your email or phone number." };
   }
 
-  return { ok: true, code: row.code, percent: Number(row.percent) };
+  return { ok: true, code: row.code, percent: Number(row.percent), spin: false };
 }
 
 module.exports = { checkDiscount, discountPaise, normalizeCode, normalizeEmail, normalizePhone };
