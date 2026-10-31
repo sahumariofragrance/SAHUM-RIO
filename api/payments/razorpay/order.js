@@ -8,6 +8,7 @@ const { rejectBots } = require("../../_lib/botCheck");
 const { checkDiscount, discountPaise, normalizeEmail, normalizePhone } = require("../../_lib/discounts");
 const { loadOffer, comboDiscountPaise, isSampleSetSlug } = require("../../_lib/offers");
 const { checkSpinPrize, isSpinCode, wheel } = require("../../_lib/spin");
+const { isTesterId, perfumeIdOf, testerLines } = require("../../_lib/testers");
 
 const MAX_QTY_PER_ITEM = 20;
 const MAX_TOTAL_ITEMS = 50;
@@ -68,7 +69,8 @@ module.exports = async (req, res) => {
     if (ids.some((id) => !Number.isInteger(id) || id <= 0)) return res.status(400).json({ message: "Invalid product ID" });
     // Free testers won on the spin wheel are looked up with the bag.
     const testerIds = spinCode && Array.isArray(testers) ? testers.slice(0, 10).map((id) => safeInt(id)) : [];
-    const lookupIds = [...new Set([...ids, ...testerIds.filter((id) => Number.isInteger(id) && id > 0)])];
+    // A 10 ml tester in the bag (../../_lib/testers.js) is looked up as its perfume.
+    const lookupIds = [...new Set([...ids.map((id) => (isTesterId(id) ? perfumeIdOf(id) : id)), ...testerIds.filter((id) => Number.isInteger(id) && id > 0)])];
     const catalogueQuery = (fields) => serverClient.from("products").select(fields).in("id", lookupIds).eq("active", true);
     let { data: catalogueRows, error: catalogueError } = await catalogueQuery("id,name,slug,price,active,coming_soon");
     // Before the coming-soon migration runs there is no such column: every perfume is on sale.
@@ -78,13 +80,18 @@ module.exports = async (req, res) => {
 
     const seen = new Set(); let count = 0; let amountPaise = 0;
     const normalizedItems = [];
+    const bagTesters = [];
     for (const item of items) {
       if (!plain(item)) return res.status(400).json({ message: "Invalid item" });
-      const id = safeInt(item.product_id); const qty = safeInt(item.qty); const product = catalogue.get(id);
-      if (!product) return res.status(400).json({ message: `Product ${item.product_id} is unavailable` });
+      const id = safeInt(item.product_id); const qty = safeInt(item.qty);
+      const tester = isTesterId(id);
+      const product = catalogue.get(tester ? perfumeIdOf(id) : id);
+      if (!product || (tester && isSampleSetSlug(product.slug))) return res.status(400).json({ message: `Product ${item.product_id} is unavailable` });
       if (product.comingSoon) return res.status(400).json({ message: `${product.name} is coming soon and can't be ordered yet. Please remove it from your bag.` });
       if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY_PER_ITEM) return res.status(400).json({ message: "Invalid quantity" });
       if (seen.has(id)) return res.status(400).json({ message: `Duplicate product_id ${id}` });
+      // Testers are priced together below: every few of them make a set.
+      if (tester) { seen.add(id); count += qty; bagTesters.push({ product_id: id, perfume: product.name, qty }); continue; }
       const unitPaise = Math.round(Number(product.price) * 100);
       if (!Number.isSafeInteger(unitPaise) || unitPaise < MIN_AMOUNT_PAISE) {
         return res.status(409).json({ message: `Product ${id} has an invalid price` });
@@ -93,6 +100,11 @@ module.exports = async (req, res) => {
       count += qty;
       amountPaise += unitPaise * qty;
       normalizedItems.push({ product_id: id, name: product.name, price: unitPaise / 100, qty });
+    }
+    if (bagTesters.length) {
+      const testers = testerLines(bagTesters);
+      normalizedItems.push(...testers.lines);
+      amountPaise += testers.paise;
     }
     if (count > MAX_TOTAL_ITEMS) return res.status(400).json({ message: "Cart quantity is too large" });
     const amountINR = amountPaise / 100;
@@ -122,7 +134,9 @@ module.exports = async (req, res) => {
     // any-2 offer (switched on in Admin → Discounts), otherwise the offer
     // applies and the code stays unused.
     const combo = await loadOffer(serviceClient);
-    const comboPaise = comboDiscountPaise(normalizedItems.filter((item) => !isSampleSetSlug(catalogue.get(item.product_id)?.slug)), combo);
+    // Perfume bottles only: not discovery boxes, testers or tester sets.
+    const bottles = normalizedItems.filter((item) => catalogue.has(item.product_id) && !isSampleSetSlug(catalogue.get(item.product_id).slug));
+    const comboPaise = comboDiscountPaise(bottles, combo);
     let discount = null;
     let spinDiscountCode = false;
     if (discountCode) {
@@ -147,7 +161,7 @@ module.exports = async (req, res) => {
       if (!checked.ok) return res.status(400).json({ message: checked.message, spinRejected: true });
       if (!checked.prize.testers) return res.status(400).json({ message: "This spin prize is a discount. Apply it as a discount code.", spinRejected: true });
       const wanted = checked.prize.testers;
-      if (!normalizedItems.some((item) => !isSampleSetSlug(catalogue.get(item.product_id)?.slug))) {
+      if (!bottles.length) {
         return res.status(400).json({ message: `${wanted === 1 ? "The free tester comes" : "Free testers come"} with a perfume bottle. Please add one to your bag.`, testersRejected: true });
       }
       const chosen = testerIds.map((id) => catalogue.get(id));

@@ -33,7 +33,7 @@ function ErrorBanner({ message, onDismiss }) {
 }
 
 export default function CheckoutPage({ setCurrentPage }) {
-  const { items, subtotal, clearCart } = useCart();
+  const { items, subtotal, testerSaving, clearCart } = useCart();
   const { refreshOrders, fetchAddress, saveAddress } = useOrders();
   const { user, startGuestSession, isGuest } = useAuth();
   const { products } = useProducts();
@@ -294,7 +294,7 @@ export default function CheckoutPage({ setCurrentPage }) {
           {correctedAmount != null && <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">Server-verified total: <strong>₹{Number(correctedAmount).toLocaleString("en-IN")}</strong>. This is the amount presented to Razorpay.</div>}
           <Card className="p-6"><h2 className="mb-6 text-lg font-semibold">Shipping Address</h2>{addressLoaded ? <><ShippingForm key={user?.id || "guest"} onFormChange={handleFormChange} initialValues={formData} requireEmail={guestCheckout || isGuest} />{!guestCheckout && !isGuest && <label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" checked={saveToProfile} onChange={(e) => setSaveToProfile(e.target.checked)} className="rounded border-[var(--color-border)] text-amber-600 focus:ring-amber-600" />Save this address to my profile</label>}</> : <div className="h-64 animate-pulse rounded-lg bg-[var(--color-surface-muted)]" />}</Card>
         </div>
-        <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={summaryItems} subtotal={subtotal} total={total} discountPercent={discount?.percent || 0} discountCode={discount?.code || ""} codeUnused={Boolean(discount) && !useCode} offerAmount={useCode ? 0 : offerAmount} offerLabel={anyTwo ? `${anyTwo.label} · any 2 for ${formatINR(anyTwo.pairPrice)}` : ""} onApplyCode={applyCode} onRemoveCode={removeCode} codeError={codeError} applyingCode={applyingCode} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading}
+        <div className="order-1 lg:order-2"><div className="sticky top-20"><CartSummary items={summaryItems} subtotal={subtotal} testerSaving={testerSaving} total={total} discountPercent={discount?.percent || 0} discountCode={discount?.code || ""} codeUnused={Boolean(discount) && !useCode} offerAmount={useCode ? 0 : offerAmount} offerLabel={anyTwo ? `${anyTwo.label} · any 2 for ${formatINR(anyTwo.pairPrice)}` : ""} onApplyCode={applyCode} onRemoveCode={removeCode} codeError={codeError} applyingCode={applyingCode} formValid={formValid} testMode={testMode} onCheckout={initiatePayment} onContinueShopping={() => setCurrentPage?.("perfumes")} loading={loading}
           onSpin={canSpin && !wheelShown ? () => setWheelShown(true) : undefined}
           freeTesters={prize?.testers ? {
             count: prize.testers, useBy: prizeUseBy(prize), options: testerOptions, others: testerOthers, picks: testerPicks,

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from "react";
 import { X, Trash2, Minus, Plus } from "lucide-react";
 import { useCart } from "../context/cartContext";
 import { formatINR } from "../utils/money";
+import TesterSetSaving from "./TesterSetSaving";
 
 const CartItem = React.memo(({ item, onUpdateQty, onRemove }) => (
   <li className="flex items-start justify-between gap-3 pb-3 border-b border-[var(--color-border)] last:border-b-0">
@@ -52,7 +53,7 @@ const CartItem = React.memo(({ item, onUpdateQty, onRemove }) => (
 CartItem.displayName = 'CartItem';
 
 const CartDrawer = React.memo(({ open, onClose, onCheckout }) => {
-  const { items, updateQty, removeItem, clearCart, subtotal } = useCart();
+  const { items, updateQty, removeItem, clearCart, subtotal, testerSaving } = useCart();
 
   const handleClearCart = useCallback(() => {
     clearCart();
@@ -130,6 +131,7 @@ const CartDrawer = React.memo(({ open, onClose, onCheckout }) => {
         {/* Summary & actions */}
         <div className="p-4 border-t border-[var(--color-border)] space-y-3">
           <div className="space-y-1 text-sm">
+            <TesterSetSaving saving={testerSaving} />
             <div className="flex justify-between">
               <span className="text-[var(--color-muted)]">Subtotal</span>
               <span className="font-medium">{formatINR(subtotal)}</span>

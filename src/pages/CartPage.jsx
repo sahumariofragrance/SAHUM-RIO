@@ -8,9 +8,11 @@ import ComboNudge from "../components/ComboNudge";
 import { comboDiscount, useOffer } from "../lib/offers";
 import { bottlesOnly } from "../lib/samples";
 import { savedSpin, useSpinWheelOpen, wheelPrizes } from "../lib/spinWheel";
+import TesterSetSaving, { TesterSetNudge } from "../components/TesterSetSaving";
+import { TESTER, isTester } from "../lib/catalogue";
 
 export default function CartPage({ setCurrentPage }) {
-  const { items, updateQty, removeItem, subtotal } = useCart();
+  const { items, updateQty, removeItem, subtotal, testerSaving } = useCart();
   const { products } = useProducts();
   const anyTwo = useOffer();
   const offer = comboDiscount(bottlesOnly(items), anyTwo);
@@ -58,7 +60,7 @@ export default function CartPage({ setCurrentPage }) {
               </div>
 
               <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">Eau de Parfum</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">{isTester(item) ? `${TESTER.ml} ml tester` : "Eau de Parfum"}</p>
                 <h2 className="mt-1 truncate font-serif text-xl font-semibold">{item.name}</h2>
                 <p className="mt-2 text-sm text-[var(--color-muted)]">{formatINR(item.price)} each</p>
               </div>
@@ -79,6 +81,7 @@ export default function CartPage({ setCurrentPage }) {
         <aside className="h-fit rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 lg:sticky lg:top-24">
           <h2 className="font-serif text-2xl font-semibold">Order Summary</h2>
           <div className="mt-5 space-y-2 border-b border-[var(--color-border)] pb-4">
+            <TesterSetSaving saving={testerSaving} />
             <div className="flex justify-between">
               <span className="text-[var(--color-muted)]">Subtotal</span>
               <strong>{formatINR(subtotal)}</strong>
@@ -95,6 +98,7 @@ export default function CartPage({ setCurrentPage }) {
             <strong>{formatINR(subtotal - offer)}</strong>
           </div>
           <ComboNudge className="mt-3" action={{ label: "Add one", onClick: () => setCurrentPage("perfumes") }} />
+          <TesterSetNudge items={items} className="mt-3" onMore={() => setCurrentPage("testers")} />
 
           <div className="mt-5 space-y-3 border-t border-[var(--color-border)] pt-5 text-sm text-[var(--color-muted)]">
             <div className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-amber-700" /><span>Free shipping across India</span></div>

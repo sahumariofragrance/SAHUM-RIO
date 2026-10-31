@@ -1,0 +1,50 @@
+{
+  "ml": 10,
+  "price": 150,
+  "bundleSize": 5,
+  "bundlePrice": 549,
+  "sets": [
+    {
+      "id": "introduction",
+      "name": "The Introduction",
+      "tagline": "Five signatures, one first impression.",
+      "description": "Our house in five sprays: smoky oud, saffron-kissed cream, jasmine on oud, a pink morning rose and green pineapple.",
+      "slugs": ["samrat", "rasmalai", "mogra-oud", "gulabi-savar", "hara-ananas"]
+    },
+    {
+      "id": "for-him",
+      "name": "For Him",
+      "tagline": "Oud, saffron and spice, with a fresh finish.",
+      "description": "From regal evening oud to crisp green pineapple: five ways to wear confidence.",
+      "slugs": ["samrat", "rajtilak", "kali-elaichi", "chandan-mirch", "hara-ananas"]
+    },
+    {
+      "id": "for-her",
+      "name": "For Her",
+      "tagline": "Rose, mogra, vanilla and soft fruit.",
+      "description": "Sweet, floral and fresh: from creamy Rasmalai to a dewy morning rose.",
+      "slugs": ["rasmalai", "laal-gulab", "mogra-elaichi", "komal", "gulabi-savar"]
+    },
+    {
+      "id": "warm-spiced",
+      "name": "Warm & Spiced",
+      "tagline": "Oud, kesar, cardamom and dark musk.",
+      "description": "Deep, rich and made for evenings: our warmest perfumes side by side.",
+      "slugs": ["samrat", "rajtilak", "kali-elaichi", "mogra-oud", "kesar-kasturi"]
+    },
+    {
+      "id": "floral",
+      "name": "The Floral Edit",
+      "tagline": "Gulab, mogra and magnolia, five ways.",
+      "description": "Classic attar rose, festive jasmine, dark cherry rose, tender peach and a bright pink morning.",
+      "slugs": ["gulab-khus", "mogra-elaichi", "laal-gulab", "gulabi-savar", "komal"]
+    },
+    {
+      "id": "fresh",
+      "name": "Fresh & Light",
+      "tagline": "Citrus, green notes and clean musk.",
+      "description": "Easy, airy perfumes for warm days, the office and every day.",
+      "slugs": ["hara-ananas", "chandni", "chandan-lavender", "lemon-breeze", "morning-dew"]
+    }
+  ]
+}

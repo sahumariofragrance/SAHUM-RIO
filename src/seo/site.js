@@ -40,6 +40,13 @@ export const PAGE_META = {
     priority: "0.6",
     changefreq: "monthly",
   },
+  testers: {
+    path: "/testers",
+    title: "10 ml Perfume Testers — Any 5 for ₹549 | SAHUMäRIO®",
+    description: "Try SAHUMäRIO® Eau de Parfum in 10 ml testers before choosing a bottle: ₹150 each, or any 5 for ₹549. Curated sets and free delivery across India.",
+    priority: "0.8",
+    changefreq: "weekly",
+  },
   "bulk-orders": {
     path: "/bulk-orders",
     title: "Bulk Perfume Orders & Corporate Gifting — SAHUMäRIO®",

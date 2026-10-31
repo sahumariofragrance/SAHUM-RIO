@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Lock, ShieldCheck, Loader2, Sparkles, FlaskConical, Gift, Tag, X } from "lucide-react";
 import SafeImage from "./SafeImage";
 import ComboNudge from "./ComboNudge";
+import TesterSetSaving from "./TesterSetSaving";
 import { TesterPicker } from "./SpinWheel";
 import { prizeLabel } from "../lib/spinWheel";
 import { formatINR } from "../utils/money";
@@ -51,6 +52,7 @@ const CartSummary = React.memo(
     onContinueShopping,
     loading = false,
     total = subtotal,
+    testerSaving = 0,
     discountPercent = 0,
     discountCode = "",
     onApplyCode,
@@ -99,6 +101,7 @@ const CartSummary = React.memo(
 
         {/* Totals breakdown */}
         <div className="mt-4 space-y-2 border-t border-[var(--color-border)] pt-4">
+          <TesterSetSaving saving={testerSaving} />
           <div className="flex justify-between text-sm">
             <span className="text-[var(--color-muted)]">Subtotal</span>
             <span>{formatINR(subtotal)}</span>
