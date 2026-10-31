@@ -41,7 +41,7 @@ export default function AnnouncementBar() {
   const base = "absolute inset-0 flex items-center justify-center px-4 transition-opacity duration-700";
   const shown = (slide) => (active === slide ? "opacity-100" : "pointer-events-none opacity-0");
   return (
-    <div className="relative h-8 overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-bg)] text-center text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+    <div className="band-flip relative h-8 overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-bg)] text-center text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
       <p className={`${base} ${shown("delivery")}`} aria-hidden={active !== "delivery"}>{DELIVERY}</p>
       {combo && (
         <p className={`${base} text-[var(--color-kesar)] ${shown("combo")}`} aria-hidden={active !== "combo"}>

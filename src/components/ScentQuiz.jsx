@@ -280,7 +280,7 @@ export function QuizInvite({ onStart }) {
       <button
         type="button"
         onClick={onStart}
-        className="group flex w-full items-center gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-4 text-left transition hover:border-[var(--color-text)] sm:px-6"
+        className="band-flip group flex w-full items-center gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-4 text-left transition hover:border-[var(--color-text)] sm:px-6"
       >
         <span className="quiz-fruits shrink-0 text-[1.35rem] leading-none" aria-hidden="true">
           <span>🌹</span><span>🪵</span><span>🍦</span><span>🌙</span>

@@ -32,6 +32,38 @@
   --color-hero-overlay: rgba(0, 0, 0, 0.38);
 }
 
+/* Two-tone: the top bar and header take the other mode's colours, so each
+   mode mixes misty grey and midnight: a midnight band on the light page, a
+   misty grey band on the dark one. Children follow through the tokens. */
+.band-flip {
+  color: var(--color-text);
+}
+:root:not([data-theme="dark"]) .band-flip {
+  --color-bg: #11212D;
+  --color-text: #CCD0CF;
+  --color-surface: #1B2D3A;
+  --color-surface-muted: #253745;
+  --color-border: rgba(204, 208, 207, 0.16);
+  --color-muted: #9BA8AB;
+  --color-kesar: #A3B8C4;
+  --glass-border: rgba(204, 208, 207, 0.14);
+  --glass-highlight: rgba(204, 208, 207, 0.10);
+}
+:root[data-theme="dark"] .band-flip {
+  --color-bg: #CCD0CF;
+  --color-text: #06141B;
+  --color-surface: #DDE1E0;
+  --color-surface-muted: #BFC5C4;
+  --color-border: #A7B1B2;
+  --color-muted: #3E4F5B;
+  --color-kesar: #3D4F5D;
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-highlight: rgba(255, 255, 255, 0.55);
+}
+.band-flip.glass-surface {
+  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
+}
+
 * {
   box-sizing: border-box;
 }
