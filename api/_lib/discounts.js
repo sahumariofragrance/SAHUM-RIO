@@ -26,25 +26,26 @@ function discountPaise(subtotalPaise, percent) {
 }
 
 /**
- * Checks a code for a customer. Returns { ok: true, code, percent, spin } or
- * { ok: false, message }; `spin` is true for a spin wheel prize. Email/phone
+ * Checks a code for a customer. Returns { ok: true, code, percent, spin,
+ * includeTesters } or { ok: false, message }; `spin` is true for a spin wheel
+ * prize. A code takes its percentage off 50 ml perfumes only, unless
+ * `includeTesters` (switched on for the code in Admin → Discounts). Email/phone
  * are optional when only previewing a code in the bag; checkout always passes both.
  */
 async function checkDiscount(client, { code, email, phone }) {
   const wanted = normalizeCode(code);
   if (!CODE_PATTERN.test(wanted)) return { ok: false, message: "That discount code isn't valid." };
 
-  const { data: row, error } = await client
-    .from("discount_codes")
-    .select("id,code,percent,active,expires_at")
-    .eq("code", wanted)
-    .maybeSingle();
+  const lookup = (fields) => client.from("discount_codes").select(fields).eq("code", wanted).maybeSingle();
+  let { data: row, error } = await lookup("id,code,percent,active,expires_at,include_testers");
+  // Before the testers migration there is no such column: codes are for 50 ml perfumes only.
+  if (error && /include_testers/.test(error.message || "")) ({ data: row, error } = await lookup("id,code,percent,active,expires_at"));
   if (error) throw error;
   if (!row && isSpinCode(wanted)) {
     const checked = await checkSpinPrize(client, { code: wanted, email: normalizeEmail(email), phone: normalizePhone(phone) });
     if (!checked.ok) return checked;
     if (!checked.prize.percent) return { ok: false, message: "This spin prize is a free tester, not a discount. Choose it at checkout." };
-    return { ok: true, code: checked.prize.code, percent: checked.prize.percent, spin: true };
+    return { ok: true, code: checked.prize.code, percent: checked.prize.percent, spin: true, includeTesters: false };
   }
   if (!row || !row.active) return { ok: false, message: "That discount code isn't valid." };
   if (row.expires_at && new Date(row.expires_at).getTime() <= Date.now()) {
@@ -67,7 +68,7 @@ async function checkDiscount(client, { code, email, phone }) {
     if (used && used.length) return { ok: false, message: "This code has already been used with your email or phone number." };
   }
 
-  return { ok: true, code: row.code, percent: Number(row.percent), spin: false };
+  return { ok: true, code: row.code, percent: Number(row.percent), spin: false, includeTesters: row.include_testers === true };
 }
 
 module.exports = { checkDiscount, discountPaise, normalizeCode, normalizeEmail, normalizePhone };

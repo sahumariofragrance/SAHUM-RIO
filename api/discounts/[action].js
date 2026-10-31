@@ -27,7 +27,7 @@ async function check(req, res) {
     const body = req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body : {};
     const result = await checkDiscount(client, { code: body.code, email: body.email, phone: body.phone });
     if (!result.ok) return res.status(400).json({ message: result.message });
-    return res.status(200).json({ code: result.code, percent: result.percent });
+    return res.status(200).json({ code: result.code, percent: result.percent, includeTesters: result.includeTesters });
   } catch (err) {
     console.error("[discounts/check]", err?.message);
     return res.status(500).json({ message: "Unable to check the code right now. Please try again." });

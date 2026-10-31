@@ -60,6 +60,8 @@ const CartSummary = React.memo(
     codeError = "",
     applyingCode = false,
     codeUnused = false,
+    codeUnusedReason = "offer",
+    codeOnPerfumesOnly = false,
     offerAmount = 0,
     offerLabel = "",
     onSpin,
@@ -142,12 +144,12 @@ const CartSummary = React.memo(
           <div className="mt-4">
             {discountCode && codeUnused ? (
               <div className="flex items-start justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-2 text-sm">
-                <span className="inline-flex items-start gap-2"><Tag className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span><span className="font-semibold">{codeName}</span> not used: the any-2 offer saves you more. Keep the code for another order.</span></span>
+                <span className="inline-flex items-start gap-2"><Tag className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span><span className="font-semibold">{codeName}</span> {codeUnusedReason === "testers" ? "is for 50 ml perfumes, not testers. Add a perfume to use it, or keep it for another order." : "not used: the any-2 offer saves you more. Keep the code for another order."}</span></span>
                 <button type="button" onClick={() => { onRemoveCode?.(); setCodeInput(""); }} className="rounded p-1 hover:bg-[var(--color-border)]" aria-label="Remove discount code"><X className="h-4 w-4" /></button>
               </div>
             ) : discountCode ? (
               <div className="flex items-center justify-between gap-3 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
-                <span className="inline-flex items-center gap-2 font-medium"><Tag className="h-4 w-4" aria-hidden="true" />{codeName} applied — {discountPercent}% off</span>
+                <span className="inline-flex items-center gap-2 font-medium"><Tag className="h-4 w-4" aria-hidden="true" />{codeName} applied — {discountPercent}% off{codeOnPerfumesOnly ? " 50 ml perfumes" : ""}</span>
                 <button type="button" onClick={() => { onRemoveCode?.(); setCodeInput(""); }} className="rounded p-1 hover:bg-green-100" aria-label="Remove discount code"><X className="h-4 w-4" /></button>
               </div>
             ) : codeOpen ? (

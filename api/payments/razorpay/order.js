@@ -101,10 +101,12 @@ module.exports = async (req, res) => {
       amountPaise += unitPaise * qty;
       normalizedItems.push({ product_id: id, name: product.name, price: unitPaise / 100, qty });
     }
+    let testerPaise = 0;
     if (bagTesters.length) {
       const testers = testerLines(bagTesters);
       normalizedItems.push(...testers.lines);
       amountPaise += testers.paise;
+      testerPaise = testers.paise;
     }
     if (count > MAX_TOTAL_ITEMS) return res.status(400).json({ message: "Cart quantity is too large" });
     const amountINR = amountPaise / 100;
@@ -143,7 +145,8 @@ module.exports = async (req, res) => {
       const checked = await checkDiscount(serviceClient, { code: discountCode, email: shipping.email, phone: shipping.phone });
       if (!checked.ok) return res.status(400).json({ message: checked.message, discountRejected: true });
       spinDiscountCode = checked.spin;
-      const off = discountPaise(amountPaise, checked.percent);
+      // 50 ml perfumes only, unless the code is switched on for testers too.
+      const off = discountPaise(checked.includeTesters ? amountPaise : amountPaise - testerPaise, checked.percent);
       if (off > comboPaise) discount = { code: checked.code, percent: checked.percent, paise: off, spin: checked.spin };
     }
 
