@@ -158,6 +158,47 @@ function BarList({ rows, empty = "Nothing yet" }) {
   );
 }
 
+/**
+ * What goes in the bag, most added first, with 50 ml perfumes and Jhalak
+ * (10 ml testers, slug ending "-tester") listed apart. Before the
+ * analytics-added SQL runs, the report has no `added` list: then the adds of
+ * the 10 most-viewed perfumes are shown instead.
+ */
+function AddedToBag({ data, bySlug }) {
+  const exact = Array.isArray(data.added);
+  const rows = exact
+    ? data.added
+    : (data.products || []).filter((p) => Number(p.added) > 0).map((p) => ({ product: p.product, added: p.added })).sort((a, b) => b.added - a.added);
+  const isJhalak = (slug) => /-tester$/.test(String(slug));
+  const nameOf = (slug) => bySlug.get(slug)?.name || slug;
+  const toRow = (r, label) => ({
+    key: r.product,
+    label,
+    value: Number(r.added),
+    sub: r.visits == null ? "" : `${number(r.visits)} visit${Number(r.visits) === 1 ? "" : "s"}`,
+  });
+  const perfumes = rows.filter((r) => !isJhalak(r.product)).map((r) => toRow(r, nameOf(r.product)));
+  const jhalak = rows.filter((r) => isJhalak(r.product)).map((r) => toRow(r, `${nameOf(String(r.product).replace(/-tester$/, ""))} Jhalak`));
+  if (!perfumes.length && !jhalak.length) return <p className="text-sm text-[var(--color-muted)]">Nothing added to the bag yet</p>;
+  return (
+    <div className="space-y-5">
+      {perfumes.length > 0 && (
+        <div>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">50 ml perfumes</p>
+          <BarList rows={perfumes} />
+        </div>
+      )}
+      {jhalak.length > 0 && (
+        <div className={perfumes.length ? "border-t border-[var(--color-border)] pt-4" : ""}>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">Jhalak · 10 ml</p>
+          <BarList rows={jhalak} />
+        </div>
+      )}
+      {!exact && <p className="text-xs text-[var(--color-muted)]">Showing the most-viewed perfumes only. Run the analytics “added to bag” SQL in Supabase for the full list.</p>}
+    </div>
+  );
+}
+
 function Funnel({ funnel }) {
   const steps = [
     ["Visits", funnel.visits],
@@ -281,11 +322,14 @@ export default function AdminAnalyticsPanel() {
             <Card title="Shopping journey" subtitle="Visits that reached each step">
               <Funnel funnel={data.funnel} />
             </Card>
-            <Card title="Top perfumes" subtitle="Page views · added to bag">
+            <Card title="Top perfumes" subtitle="Page views">
               <BarList
-                rows={data.products.map((p) => ({ key: p.product, label: bySlug.get(p.product)?.name || p.product, value: p.views, sub: `${number(p.added)} added` }))}
+                rows={data.products.filter((p) => !/-tester$/.test(String(p.product)) && Number(p.views) > 0).map((p) => ({ key: p.product, label: bySlug.get(p.product)?.name || p.product, value: p.views }))}
                 empty="No perfume views yet"
               />
+            </Card>
+            <Card title="Added to bag" subtitle="Times added, most first · visits that added it">
+              <AddedToBag data={data} bySlug={bySlug} />
             </Card>
             <Card title="Where visitors come from" subtitle="Visits by source">
               <BarList rows={data.sources.map((s) => ({ key: s.source, label: SOURCE_NAMES[s.source] || s.source, value: s.visits }))} />
@@ -302,7 +346,7 @@ export default function AdminAnalyticsPanel() {
             <Card title="Devices" subtitle="Visitors">
               <BarList rows={data.devices.map((d) => ({ key: d.device, label: DEVICE_NAMES[d.device] || d.device, value: d.visitors }))} />
             </Card>
-            <Card title="Other pages" subtitle="Page views">
+            <Card title="Other pages" subtitle="Page views" className="lg:col-span-2">
               <BarList rows={data.pages.map((p) => ({ key: p.path, label: pageName(p.path, bySlug), title: p.path, value: p.views }))} />
             </Card>
           </div>
