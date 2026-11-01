@@ -12,7 +12,12 @@ export function testersForSale(products) {
 export function testerSetsForSale(products) {
   const bySlug = new Map(testersForSale(products).map((tester) => [tester.parent.slug, tester]));
   return TESTER.sets
-    .map((set) => ({ ...set, testers: set.slugs.map((slug) => bySlug.get(slug)) }))
+    .map((set) => ({
+      ...set,
+      testers: set.slugs.map((slug) => bySlug.get(slug)),
+      // Its scene photo (public/products/tester-sets/, listed in testers.json "setPhotos"), if there is one.
+      photo: (TESTER.setPhotos || []).includes(set.id) ? `/products/tester-sets/${set.id}.webp` : null,
+    }))
     .filter((set) => set.testers.length === TESTER.bundleSize && set.testers.every(Boolean));
 }
 

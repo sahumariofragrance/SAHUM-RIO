@@ -11,7 +11,9 @@ export default function TesterSetCard({ set, onAdd, compact = false }) {
   const full = TESTER.price * set.testers.length;
   return (
     <article className="flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-      <SetBottles testers={set.testers} className={compact ? "h-40" : "h-48"} />
+      {set.photo
+        ? <img src={set.photo} alt={`${set.name}: ${set.testers.map((tester) => tester.shortName).join(", ")} Jhalak`} loading="lazy" className="aspect-[3/2] w-full rounded-xl object-cover" />
+        : <SetBottles testers={set.testers} className="aspect-[3/2]" />}
       <div className="flex flex-1 flex-col px-1 pt-5">
         <h3 className="font-serif text-2xl leading-tight">{set.name}</h3>
         <p className="mt-1 font-serif text-base italic text-[var(--color-muted)]">{set.tagline}</p>

@@ -3,6 +3,8 @@
   "price": 150,
   "bundleSize": 5,
   "bundlePrice": 549,
+  "scenes": ["samrat", "rasmalai", "mogra-oud", "rajtilak", "laal-gulab", "kesar-kasturi", "kali-elaichi", "mogra-elaichi", "gulab-khus", "chandan-mirch", "gulabi-savar", "chandni", "hara-ananas", "komal", "chandan-lavender", "night-queen", "bloom", "blix", "lemon-breeze", "dew-drop", "morning-dew"],
+  "setPhotos": ["introduction", "for-him", "for-her", "warm-spiced", "floral", "fresh"],
   "sets": [
     {
       "id": "introduction",
