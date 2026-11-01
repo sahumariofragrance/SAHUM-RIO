@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertCircle, BarChart3, CheckCircle2, Tag, Download, Loader2, LogOut, Package, RefreshCw, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
+import { AlertCircle, BarChart3, CheckCircle2, Tag, Download, Loader2, LogOut, MessageSquareText, Package, RefreshCw, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
 import AdminProductsPanel from "../components/AdminProductsPanel";
 import OrderCard from "../components/admin/OrderCard";
 import LiveVisitorsPanel from "../components/admin/LiveVisitorsPanel";
 import AdminAnalyticsPanel from "../components/admin/AdminAnalyticsPanel";
 import AdminDiscountsPanel from "../components/admin/AdminDiscountsPanel";
+import AdminReviewsPanel from "../components/admin/AdminReviewsPanel";
 import { ignoreThisDevice } from "../lib/analytics";
 import { AdminButton, Notice, ORDER_STATUSES, STATUS_TONES, StatTile, inputClass } from "../components/admin/AdminUI";
 import { changeOrdersTrash, fetchAdminOrders } from "../lib/adminOrders";
@@ -200,9 +201,14 @@ export default function AdminDashboardPage({ setCurrentPage }) {
         <button type="button" onClick={() => setSection("discounts")} className={tabClass(section === "discounts")} aria-current={section === "discounts" ? "page" : undefined}>
           <Tag className="h-4 w-4" />Discounts
         </button>
+        <button type="button" onClick={() => setSection("reviews")} className={tabClass(section === "reviews")} aria-current={section === "reviews" ? "page" : undefined}>
+          <MessageSquareText className="h-4 w-4" />Reviews
+        </button>
       </nav>
 
-      {section === "discounts" ? (
+      {section === "reviews" ? (
+        <div className="mt-8"><AdminReviewsPanel /></div>
+      ) : section === "discounts" ? (
         <div className="mt-8"><AdminDiscountsPanel /></div>
       ) : section === "analytics" ? (
         <div className="mt-8"><AdminAnalyticsPanel /></div>

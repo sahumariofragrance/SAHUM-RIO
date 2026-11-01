@@ -16,9 +16,11 @@ module.exports = async (req, res) => {
 
   try {
     const { user, serverClient } = await requireCustomer(req);
+    // Admins moderating (Admin → Reviews) may delete more than a customer.
+    const { data: isAdmin } = await serverClient.rpc("is_admin");
     if (!(await enforceRateLimit(req, res, {
-      scope: "review-delete",
-      limit: 8,
+      scope: isAdmin === true ? "review-delete-admin" : "review-delete",
+      limit: isAdmin === true ? 120 : 8,
       windowSeconds: 3600,
       identifier: user.id,
     }))) return;
