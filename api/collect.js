@@ -11,7 +11,8 @@
 const crypto = require("crypto");
 const { getServiceClient, clientIp, enforceRateLimit } = require("./_lib/security");
 
-const KINDS = new Set(["pageview", "add_to_cart", "purchase"]);
+// "engaged": the visit stayed 10+ seconds or scrolled past the first screen.
+const KINDS = new Set(["pageview", "add_to_cart", "purchase", "engaged"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG = /^[a-z0-9-]{1,80}$/;
 const UNTRACKED = /^\/(admin|account|reset-password)(\/|$)/;
@@ -118,7 +119,8 @@ module.exports = async (req, res) => {
       visitor: visitorId(req, day),
       session,
       path,
-      product: productFromPath || (SLUG.test(productGiven) ? productGiven : null),
+      // What was added wins over the page it was added on (a Jhalak added from its perfume's page).
+      product: (kind === "add_to_cart" && SLUG.test(productGiven) ? productGiven : null) || productFromPath || (SLUG.test(productGiven) ? productGiven : null),
       entry,
       device: device(ua),
       country: header(req, "x-vercel-ip-country"),

@@ -50,6 +50,8 @@ function placeName({ country, region, city }) {
 }
 
 const number = (value) => Number(value || 0).toLocaleString("en-IN");
+// "12 engaged (8%)" for a source or campaign row, once engaged visits are counted.
+const engagedNote = (row) => (row.engaged === undefined ? "" : `${Number(row.engaged || 0).toLocaleString("en-IN")} engaged (${row.visits ? Math.round((row.engaged / row.visits) * 100) : 0}%)`);
 const percent = (part, whole) => (whole ? `${Math.round((part / whole) * 1000) / 10}%` : "—");
 const shortDate = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 const longDate = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
@@ -202,6 +204,7 @@ function AddedToBag({ data, bySlug }) {
 function Funnel({ funnel }) {
   const steps = [
     ["Visits", funnel.visits],
+    ...(funnel.engaged !== undefined ? [["Stayed 10s or scrolled", funnel.engaged]] : []),
     ["Viewed a perfume", funnel.viewed_product],
     ["Added to bag", funnel.added_to_bag],
     ["Reached checkout", funnel.reached_checkout],
@@ -255,6 +258,8 @@ export default function AdminAnalyticsPanel() {
 
   const totals = data?.totals || {};
   const hasData = Number(totals.pageviews) > 0;
+  // Engaged visits arrive with the analytics-engaged SQL; until then they're left out.
+  const hasEngaged = totals.engaged !== undefined;
 
   return (
     <div className="space-y-5">
@@ -301,11 +306,14 @@ export default function AdminAnalyticsPanel() {
 
       {data && (
         <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className={`grid grid-cols-2 gap-3 ${hasEngaged ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
             <StatTile label="Visitors" value={number(totals.visitors)} sub="Unique per day, added up" />
+            {hasEngaged && <StatTile label="Engaged visits" value={number(totals.engaged)} sub={`${percent(totals.engaged, totals.visits)} of visits · stayed 10s or scrolled`} />}
             <StatTile label="Page views" value={number(totals.pageviews)} sub={`${number(totals.visits)} visit${Number(totals.visits) === 1 ? "" : "s"}`} />
             <StatTile label="Paid orders" value={number(totals.orders)} sub="Placed on the site" />
-            <StatTile label="Conversion" value={percent(data.funnel.paid, data.funnel.visits)} sub="Visits that ended in payment" />
+            <div className={`[&>*]:h-full ${hasEngaged ? "col-span-2 lg:col-span-1" : ""}`}>
+              <StatTile label="Conversion" value={percent(data.funnel.paid, data.funnel.visits)} sub="Visits that ended in payment" />
+            </div>
           </div>
 
           {!hasData && (
@@ -331,12 +339,12 @@ export default function AdminAnalyticsPanel() {
             <Card title="Added to bag" subtitle="Times added, most first · visits that added it">
               <AddedToBag data={data} bySlug={bySlug} />
             </Card>
-            <Card title="Where visitors come from" subtitle="Visits by source">
-              <BarList rows={data.sources.map((s) => ({ key: s.source, label: SOURCE_NAMES[s.source] || s.source, value: s.visits }))} />
+            <Card title="Where visitors come from" subtitle={hasEngaged ? "Visits by source · how many engaged (stayed 10s or scrolled)" : "Visits by source"}>
+              <BarList rows={data.sources.map((s) => ({ key: s.source, label: SOURCE_NAMES[s.source] || s.source, value: s.visits, sub: engagedNote(s) }))} />
               {data.campaigns.length > 0 && (
                 <div className="mt-5 border-t border-[var(--color-border)] pt-4">
                   <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">Campaign links</p>
-                  <BarList rows={data.campaigns.map((c) => ({ key: c.campaign, label: c.campaign, value: c.visits }))} />
+                  <BarList rows={data.campaigns.map((c) => ({ key: c.campaign, label: c.campaign, value: c.visits, sub: engagedNote(c) }))} />
                 </div>
               )}
             </Card>
