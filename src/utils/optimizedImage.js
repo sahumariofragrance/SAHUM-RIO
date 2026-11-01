@@ -1,4 +1,5 @@
-// Product photos are uploaded as large originals (often 1.5–2.5 MB PNGs).
+// Product photos are uploaded as large originals (often 1.5–2.5 MB PNGs);
+// customers' review photos arrive at up to 1600 px.
 // On Vercel they are served through the built-in image optimizer instead:
 // /_vercel/image resizes them to the width the screen needs and converts
 // them to WebP. The allowed widths, quality and source host must match the
@@ -8,7 +9,7 @@
 
 export const IMAGE_WIDTHS = [320, 480, 640, 960, 1280, 1600];
 const QUALITY = 75;
-const SOURCE = /^https:\/\/itcyhcmjaotlrhfbsrkv\.supabase\.co\/storage\/v1\/object\/public\/product-images\//;
+const SOURCE = /^https:\/\/itcyhcmjaotlrhfbsrkv\.supabase\.co\/storage\/v1\/object\/public\/(product-images|review-photos)\//;
 
 function optimizerAvailable() {
   if (typeof window === "undefined") return false;

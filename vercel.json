@@ -21,6 +21,11 @@
         "protocol": "https",
         "hostname": "itcyhcmjaotlrhfbsrkv.supabase.co",
         "pathname": "^/storage/v1/object/public/product-images/.*$"
+      },
+      {
+        "protocol": "https",
+        "hostname": "itcyhcmjaotlrhfbsrkv.supabase.co",
+        "pathname": "^/storage/v1/object/public/review-photos/.*$"
       }
     ]
   },

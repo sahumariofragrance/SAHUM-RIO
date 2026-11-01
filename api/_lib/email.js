@@ -409,7 +409,7 @@ ${buttons([[href, "Write a review", true]])}
 async function sendReviewRequest(order, products) {
   const firstName = String(order?.address?.name || "").trim().split(/\s+/)[0] || "there";
   const one = products.length === 1;
-  const intro = `Your SAHUMäRIO order arrived about a week ago. We’d love to know how ${one ? products[0].name : "your perfumes"} ${one ? "is" : "are"} wearing on you. An honest review, good or bad, helps other people find their scent and helps us make better perfumes.`;
+  const intro = `Your SAHUMäRIO order arrived about a week ago. We’d love to know how ${one ? products[0].name : "your perfumes"} ${one ? "is" : "are"} wearing on you. An honest review, good or bad, helps other people find their scent and helps us make better perfumes. Photos are welcome too: you can add up to 3 with your review.`;
   const html = layout({
     eyebrow: "HOW IS IT WEARING?",
     title: `Thank you, ${firstName}.`,

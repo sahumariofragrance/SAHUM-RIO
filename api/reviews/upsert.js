@@ -2,6 +2,7 @@
 
 const { requireCustomer } = require("../_lib/customerAuth");
 const {
+  getServiceClient,
   setJsonSecurityHeaders,
   enforceJsonRequest,
   enforceRateLimit,
@@ -9,6 +10,7 @@ const {
   safeString,
 } = require("../_lib/security");
 const { rejectBots } = require("../_lib/botCheck");
+const { readPhotos, storePhotos, removePhotos, photosColumnMissing } = require("../_lib/reviewPhotos");
 
 function safeInt(value) {
   const number = Number(value);
@@ -17,7 +19,8 @@ function safeInt(value) {
 
 module.exports = async (req, res) => {
   setJsonSecurityHeaders(res);
-  if (!enforceJsonRequest(req, res, { methods: ["POST"], maxBytes: 8 * 1024 })) return;
+  // Up to 3 photos of at most 1 MB each travel with the review as base64.
+  if (!enforceJsonRequest(req, res, { methods: ["POST"], maxBytes: 4300 * 1024 })) return;
   if (!(await rejectBots(req, res))) return;
 
   try {
@@ -58,13 +61,24 @@ module.exports = async (req, res) => {
     if (productError) throw productError;
     if (!product) return res.status(404).json({ message: "Product is unavailable" });
 
-    const { data: existing, error: existingError } = await serverClient
+    const findExisting = (fields) => serverClient
       .from("product_reviews")
-      .select("id")
+      .select(fields)
       .eq("product_id", productId)
       .eq("user_id", user.id)
       .maybeSingle();
+    let { data: existing, error: existingError } = await findExisting("id, photos");
+    // Before the review-photos SQL has run there is no photos column.
+    const photosReady = !photosColumnMissing(existingError);
+    if (!photosReady) ({ data: existing, error: existingError } = await findExisting("id"));
     if (existingError) throw existingError;
+
+    const oldPhotos = Array.isArray(existing?.photos) ? existing.photos : [];
+    const photos = readPhotos(body.photos, oldPhotos);
+    const service = photos ? getServiceClient() : null;
+    if (photos && photos.some((photo) => photo.buffer) && (!photosReady || !service)) {
+      return res.status(503).json({ message: "Photos can’t be added right now. Please post your review without them and try again later." });
+    }
 
     const payload = {
       display_name: displayName,
@@ -73,6 +87,13 @@ module.exports = async (req, res) => {
       body: reviewBody,
       updated_at: new Date().toISOString(),
     };
+
+    let newPhotos = [];
+    if (photos && photosReady) {
+      const stored = await storePhotos(service, { userId: user.id, productId, photos });
+      payload.photos = stored.paths;
+      newPhotos = stored.uploaded;
+    }
 
     let query;
     if (existing?.id) {
@@ -92,6 +113,7 @@ module.exports = async (req, res) => {
     }
 
     const { data, error } = await query;
+    if (error) await removePhotos(service, newPhotos);
     if (error) {
       if (error.code === "23505") {
         return res.status(409).json({ message: "A review already exists. Please refresh and try again." });
@@ -99,7 +121,10 @@ module.exports = async (req, res) => {
       throw error;
     }
 
-    return res.status(existing?.id ? 200 : 201).json({ saved: true, id: data.id });
+    // Photos taken off the review are deleted from storage.
+    if (payload.photos) await removePhotos(service, oldPhotos.filter((path) => !payload.photos.includes(path)));
+
+    return res.status(existing?.id ? 200 : 201).json({ saved: true, id: data.id, photos: payload.photos });
   } catch (err) {
     console.error("[reviews/upsert]", err?.message);
     return res.status(err.statusCode || 500).json({
