@@ -3,7 +3,7 @@
   "price": 150,
   "bundleSize": 5,
   "bundlePrice": 549,
-  "scenes": ["samrat", "rasmalai", "mogra-oud", "rajtilak", "laal-gulab", "kesar-kasturi", "kali-elaichi", "mogra-elaichi", "gulab-khus", "chandan-mirch"],
+  "scenes": ["samrat", "rasmalai", "mogra-oud", "rajtilak", "laal-gulab", "kesar-kasturi", "kali-elaichi", "mogra-elaichi", "gulab-khus", "chandan-mirch", "gulabi-savar", "chandni", "hara-ananas", "komal", "chandan-lavender"],
   "sets": [
     {
       "id": "introduction",
