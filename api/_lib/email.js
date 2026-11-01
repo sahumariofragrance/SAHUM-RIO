@@ -440,6 +440,51 @@ async function sendReviewRequest(order, products) {
   });
 }
 
+// ── Jhalak set thank-you (to the customer) ─────────────────────────────────
+
+/** Sends the personal discount code earned by buying a Jhalak set (./jhalakReward.js). */
+async function sendJhalakReward(order, reward) {
+  const firstName = String(order?.address?.name || "").trim().split(/\s+/)[0] || "there";
+  const until = new Date(reward.expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" });
+  const intro = `Thank you for choosing a Jhalak set. Wear each perfume for a few days, find the one that feels like you, and take ${reward.percent}% off its 50 ml bottle with your personal code.`;
+  const codeCard = `              <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;background-color:#E9ECEC;border:1px dashed #4A5C6A;border-collapse:collapse;">
+                <tr><td align="center" style="padding-top:22px;padding-right:18px;padding-bottom:4px;padding-left:18px;${SANS}font-size:12px;line-height:18px;color:#5E707D;letter-spacing:2px;">YOUR CODE</td></tr>
+                <tr><td align="center" style="padding-top:4px;padding-right:18px;padding-bottom:4px;padding-left:18px;font-family:'Courier New',Courier,monospace;font-size:28px;line-height:36px;color:#06141B;letter-spacing:4px;font-weight:bold;">${escapeHtml(reward.code)}</td></tr>
+                <tr><td align="center" style="padding-top:4px;padding-right:18px;padding-bottom:22px;padding-left:18px;${SANS}font-size:13px;line-height:20px;color:#4A5C6A;">${reward.percent}% off 50 ml perfumes · one use · until ${escapeHtml(until)}</td></tr>
+              </table>`;
+  const html = layout({
+    eyebrow: "A THANK-YOU FOR YOUR JHALAK",
+    title: `${reward.percent}% off your bottle, ${firstName}.`,
+    intro,
+    preheader: `Your code ${reward.code}: ${reward.percent}% off a 50 ml SAHUMäRIO perfume, until ${until}.`,
+    bodyHtml: cardRow(codeCard, { top: 22 })
+      + cardRow(buttons([[`${SITE_URL}/perfumes`, "Choose your bottle", true]]), { top: 14 }),
+    footerHtml: footerLines([
+      `Enter the code at checkout. It takes ${reward.percent}% off the 50 ml perfumes in that order; Jhalak keep their own price.`,
+      `Questions? Just reply to this email or write to ${link(`mailto:${SUPPORT_EMAIL}`, SUPPORT_EMAIL)}.`,
+    ]),
+  });
+  const text = [
+    `${reward.percent}% off your bottle, ${firstName}.`,
+    "",
+    intro,
+    "",
+    `Your code: ${reward.code}`,
+    `${reward.percent}% off 50 ml perfumes, one use, until ${until}.`,
+    `Choose your bottle: ${SITE_URL}/perfumes`,
+    "",
+    `Questions? Reply to this email or write to ${SUPPORT_EMAIL}.`,
+    "",
+    "SAHUMäRIO",
+  ].join("\n");
+  return sendEmail({
+    to: customerEmail(order),
+    subject: `Your Jhalak thank-you: ${reward.percent}% off your SAHUMäRIO bottle`,
+    html,
+    text,
+  });
+}
+
 // ── New order alert (to the owner) ─────────────────────────────────────────
 
 // Where SAHUMäRIO is told about each new paid order.
@@ -506,4 +551,4 @@ async function sendNewOrderAlert(order) {
   });
 }
 
-module.exports = { sendOrderReceived, sendStatusEmail, sendShipped, sendBulkEnquiryEmails, sendReviewRequest, sendNewOrderAlert };
+module.exports = { sendOrderReceived, sendStatusEmail, sendShipped, sendBulkEnquiryEmails, sendReviewRequest, sendNewOrderAlert, sendJhalakReward };

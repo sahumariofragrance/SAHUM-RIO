@@ -37,8 +37,10 @@ async function checkDiscount(client, { code, email, phone }) {
   if (!CODE_PATTERN.test(wanted)) return { ok: false, message: "That discount code isn't valid." };
 
   const lookup = (fields) => client.from("discount_codes").select(fields).eq("code", wanted).maybeSingle();
-  let { data: row, error } = await lookup("id,code,percent,active,expires_at,include_testers");
-  // Before the testers migration there is no such column: codes are for 50 ml perfumes only.
+  let { data: row, error } = await lookup("id,code,percent,active,expires_at,include_testers,single_use");
+  // Before the testers and Jhalak-reward migrations those columns don't exist:
+  // codes are then for 50 ml perfumes only and once per customer.
+  if (error && /single_use/.test(error.message || "")) ({ data: row, error } = await lookup("id,code,percent,active,expires_at,include_testers"));
   if (error && /include_testers/.test(error.message || "")) ({ data: row, error } = await lookup("id,code,percent,active,expires_at"));
   if (error) throw error;
   if (!row && isSpinCode(wanted)) {
@@ -50,6 +52,13 @@ async function checkDiscount(client, { code, email, phone }) {
   if (!row || !row.active) return { ok: false, message: "That discount code isn't valid." };
   if (row.expires_at && new Date(row.expires_at).getTime() <= Date.now()) {
     return { ok: false, message: "That discount code has expired." };
+  }
+
+  // A Jhalak set thank-you code works for one order in total.
+  if (row.single_use) {
+    const { data: usedOnce, error: onceError } = await client.from("discount_redemptions").select("id").eq("code_id", row.id).limit(1);
+    if (onceError) throw onceError;
+    if (usedOnce && usedOnce.length) return { ok: false, message: "This code has already been used." };
   }
 
   const cleanEmail = normalizeEmail(email);
