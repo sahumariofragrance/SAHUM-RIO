@@ -26,6 +26,16 @@ export function isTester(item) {
   return /-tester$/.test(String(item?.slug || ""));
 }
 
+/**
+ * A Jhalak's photo: its scene of notes when there is one
+ * (public/products/tester-scenes/, listed in testers.json "scenes"),
+ * otherwise the plain studio photo (public/products/testers/). `plain`
+ * always gives the studio photo, which the set pictures need.
+ */
+export function testerPhoto(slug, { plain = false } = {}) {
+  return !plain && (TESTER.scenes || []).includes(slug) ? `/products/tester-scenes/${slug}.webp` : `/products/testers/${slug}.webp`;
+}
+
 /** The 10 ml tester of a perfume, shaped like a product for the bag. */
 export function testerOf(product) {
   const slug = `${product.slug}-tester`;
@@ -38,9 +48,10 @@ export function testerOf(product) {
     shortName: product.name,
     price: TESTER.price,
     size_volume: `${TESTER.ml} ml`,
-    image: `/products/testers/${product.slug}.webp`,
-    image_url: `/products/testers/${product.slug}.webp`,
-    gallery: [`/products/testers/${product.slug}.webp`],
+    image: testerPhoto(product.slug),
+    image_url: testerPhoto(product.slug),
+    plainImage: testerPhoto(product.slug, { plain: true }),
+    gallery: [testerPhoto(product.slug)],
     alt: `${product.name} Jhalak, ${TESTER.ml} ml spray`,
   };
 }

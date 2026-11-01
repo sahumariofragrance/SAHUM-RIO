@@ -10,7 +10,7 @@ export default function SetBottles({ testers, className = "" }) {
       {testers.map((tester) => (
         <img
           key={tester.id}
-          src={tester.image}
+          src={tester.plainImage || tester.image}
           alt=""
           loading="lazy"
           className="-mx-[2.5%] aspect-[9/20] w-[23%] object-cover mix-blend-multiply [-webkit-mask-image:linear-gradient(90deg,transparent,#000_32%,#000_68%,transparent)] [mask-image:linear-gradient(90deg,transparent,#000_32%,#000_68%,transparent)]"

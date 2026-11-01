@@ -1,9 +1,9 @@
 // The free 10 ml tester won on the spin wheel: which perfumes to suggest.
-import { forSale } from "./catalogue";
+import { forSale, testerPhoto } from "./catalogue";
 
-/** Photo of the 10 ml tester bottle with this perfume's name on its label. */
+/** Photo of the Jhalak (10 ml tester) with this perfume's name: its scene when there is one. */
 export function testerImage(product) {
-  return `/products/testers/${product.slug}.webp`;
+  return testerPhoto(product.slug);
 }
 
 /** The words of a perfume's fragrance family, e.g. "Spicy woody" → spicy, woody. */
