@@ -107,3 +107,56 @@ export function rankPerfumes(products, answers) {
     .sort((a, b) => b.score - a.score || a.order - b.order)
     .map((entry) => entry.product);
 }
+
+// Short words for why a perfume matches the answers.
+const REASON_LABELS = {
+  fresh: "Fresh", floral: "Floral", woody: "Woody", sweet: "Sweet", spicy: "Spiced",
+  warm: "Warm", soft: "Soft", day: "Daytime", night: "Evenings", festive: "Festive",
+};
+
+/**
+ * Up to `limit` words saying why `product` suits the answers, strongest
+ * first (e.g. ["Woody", "Spiced", "Evenings"]); its family when none fit.
+ */
+export function matchReasons(product, answers, limit = 3) {
+  const weights = {};
+  QUESTIONS.forEach((question, index) => {
+    const option = question.options.find((candidate) => candidate.id === answers[index]);
+    Object.entries(option?.weights || {}).forEach(([tag, weight]) => { weights[tag] = (weights[tag] || 0) + weight; });
+  });
+  const reasons = Object.entries(perfumeTags(product))
+    .filter(([tag]) => REASON_LABELS[tag] && weights[tag])
+    .sort((a, b) => weights[b[0]] * b[1] - weights[a[0]] * a[1])
+    .slice(0, limit)
+    .map(([tag]) => REASON_LABELS[tag]);
+  if (reasons.length) return reasons;
+  return product.fragrance_family ? [String(product.fragrance_family).split(/[·,/]/)[0].trim()].filter(Boolean) : [];
+}
+
+// Opening notes nearly every perfume shares: skipped when a note list has better ones.
+const COMMON_OPENERS = /^(bergamot|mandarin)$/i;
+
+/**
+ * Up to `limit` of a perfume's own notes that fit the answers (e.g. oud and
+ * leather for "Oud & woods"), so similar matches can be told apart; its
+ * first distinctive notes when none fit.
+ */
+export function matchNotes(product, answers, limit = 3) {
+  const weights = {};
+  QUESTIONS.forEach((question, index) => {
+    const option = question.options.find((candidate) => candidate.id === answers[index]);
+    Object.entries(option?.weights || {}).forEach(([tag, weight]) => { weights[tag] = (weights[tag] || 0) + weight; });
+  });
+  const notes = String(product.notes || "").split(/[·,•|/]+/).map((note) => note.trim()).filter(Boolean);
+  const scored = notes.map((note, order) => {
+    const text = note.toLowerCase();
+    const score = Object.entries(TAGS).reduce((sum, [tag, words]) => sum + (weights[tag] && words.some((word) => word.test(text)) ? weights[tag] : 0), 0);
+    return { note, order, score };
+  });
+  const fitting = scored.filter((entry) => entry.score > 0 && !COMMON_OPENERS.test(entry.note));
+  const chosen = (fitting.length ? fitting.sort((a, b) => b.score - a.score || a.order - b.order) : scored.filter((entry) => !COMMON_OPENERS.test(entry.note)))
+    .slice(0, limit)
+    .sort((a, b) => a.order - b.order)
+    .map((entry) => entry.note.replace(/\s*\([^)]*\)/, ""));
+  return chosen;
+}
