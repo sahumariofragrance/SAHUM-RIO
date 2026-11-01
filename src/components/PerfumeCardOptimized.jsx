@@ -4,6 +4,7 @@ import SafeImage from "./SafeImage";
 import SpaLink from "./SpaLink";
 import { formatINR } from "../utils/money";
 import { isComingSoon } from "../lib/catalogue";
+import ProductBadge from "./ProductBadge";
 
 // Tiles are two columns on phones, three from 1024px.
 const TILE_SIZES = "(min-width: 1024px) 30vw, 48vw";
@@ -54,6 +55,8 @@ const PerfumeCardOptimized = React.memo(({
             Coming soon
           </p>
         )}
+
+        <ProductBadge product={product} onImage className="absolute left-2.5 top-2.5 z-10" />
 
         {!comingSoon && <div className="absolute bottom-3 right-3 z-10">
           {quantity > 0 ? (

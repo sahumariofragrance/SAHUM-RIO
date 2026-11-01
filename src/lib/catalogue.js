@@ -75,6 +75,19 @@ export function forSale(list) {
   return bottlesOnly(list).filter((product) => !isComingSoon(product));
 }
 
+/**
+ * A perfume's badge, chosen in Admin → Catalogue → Badge
+ * (supabase/migrations/*_product_badges.sql): "Signature" for a flagship
+ * scent, "New" for a recent launch. None while it is coming soon.
+ */
+export const BADGES = { signature: "Signature", new: "New" };
+
+export function productBadge(product) {
+  const id = product?.badge;
+  if (!BADGES[id] || isComingSoon(product)) return null;
+  return { id, label: BADGES[id] };
+}
+
 /** Who a perfume is for, as set in Admin → Catalogue. */
 export const AUDIENCES = [
   { id: "Men", label: "For him" },

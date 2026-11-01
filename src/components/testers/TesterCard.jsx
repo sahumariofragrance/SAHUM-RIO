@@ -1,5 +1,6 @@
 import React from "react";
 import SpaLink from "../SpaLink";
+import ProductBadge from "../ProductBadge";
 import { noteList } from "../../lib/scentQuiz";
 import { formatINR } from "../../utils/money";
 
@@ -10,7 +11,8 @@ export default function TesterCard({ tester, qty, onAdd, onQty, onOpenPerfume })
     <article className="flex flex-col">
       <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[#ECEDEB]">
         <img src={tester.image} alt={tester.alt} loading="lazy" className="h-full w-full object-cover" />
-        {qty > 0 && <span className="absolute left-2 top-2 rounded-full bg-[var(--color-text)] px-2.5 py-1 text-[10px] font-semibold text-[var(--color-bg)]">{qty} in bag</span>}
+        <ProductBadge product={tester.parent} onImage className="absolute left-2 top-2" />
+        {qty > 0 && <span className="absolute right-2 top-2 rounded-full bg-[var(--color-text)] px-2.5 py-1 text-[10px] font-semibold text-[var(--color-bg)]">{qty} in bag</span>}
       </div>
       <h3 className="mt-3 font-serif text-xl leading-tight">{tester.shortName}</h3>
       <p className="mt-0.5 line-clamp-1 text-xs text-[var(--color-muted)]">{[tester.parent.fragrance_family, notes].filter(Boolean).join(" · ")}</p>

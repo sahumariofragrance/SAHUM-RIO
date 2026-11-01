@@ -7,6 +7,8 @@ const ProductsContext = createContext(null);
 const PRODUCT_FIELDS = "id,slug,name,description,price,image_url,alt,notes,size_volume,fragrance_family,scent_profile,occasion,active,display_order,updated_at";
 // Added by supabase/migrations/20261029120000_coming_soon_and_new_collection.sql.
 const AVAILABILITY_FIELDS = "coming_soon,audience";
+// Added by supabase/migrations/20261101180000_product_badges.sql.
+const BADGE_FIELD = "badge";
 
 function withImageVersion(url, updatedAt) {
   const value = String(url || "");
@@ -52,7 +54,9 @@ export function ProductsProvider({ children }) {
       .eq("active", true)
       .order("display_order", { ascending: true })
       .order("id", { ascending: true });
-    let { data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls,${AVAILABILITY_FIELDS}`);
+    let { data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls,${AVAILABILITY_FIELDS},${BADGE_FIELD}`);
+    // Before the badges migration: the same without badges.
+    if (queryError && /badge/.test(queryError.message || "")) ({ data, error: queryError } = await query(`${PRODUCT_FIELDS},gallery_urls,${AVAILABILITY_FIELDS}`));
     const beforeMigration = Boolean(queryError) && /coming_soon|audience/.test(queryError.message || "");
     // Vercel preview links only (*.vercel.app; the live site's vercel.app
     // addresses redirect to sahumario.com): until the migration has run, show

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import SafeImage from "../components/SafeImage";
+import ProductBadge from "../components/ProductBadge";
 import ProductReviews from "../components/ProductReviews";
 import BrandMark from "../components/BrandMark";
 import { useCart } from "../context/cartContext";
@@ -131,7 +132,10 @@ export default function ProductPage({ slug, navigate, onProductNavigate }) {
         </div>
 
         <div className="flex flex-col justify-center lg:py-8">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]"><BrandMark /> · Eau de Parfum</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]"><BrandMark /> · Eau de Parfum</p>
+            <ProductBadge product={product} />
+          </div>
           <h1 className="mt-4 font-serif text-5xl font-normal tracking-[-0.025em] sm:text-6xl">{product.name}</h1>
           <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
             <p className="text-base tabular-nums">{formatINR(product.price)} <span className="text-sm text-[var(--color-muted)]">· {product.size_volume}</span></p>
