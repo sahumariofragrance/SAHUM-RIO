@@ -6,7 +6,7 @@ import { compressImage } from "../utils/compressImage";
 import { supabase } from "../lib/supabase";
 import { formatINR } from "../utils/money";
 import { useProducts } from "../context/ProductsContext";
-import { AUDIENCES } from "../lib/catalogue";
+import { AUDIENCES, BADGES } from "../lib/catalogue";
 
 const MAX_PRODUCT_IMAGES = 6;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -29,6 +29,7 @@ const emptyForm = {
   active: false,
   coming_soon: false,
   audience: "",
+  badge: "",
   display_order: 0,
 };
 
@@ -110,6 +111,8 @@ export default function AdminProductsPanel() {
   // "For" and "Coming soon" need the coming-soon migration; until it has run
   // they are not shown or saved.
   const hasAvailability = useMemo(() => products.some((product) => Object.prototype.hasOwnProperty.call(product, "coming_soon")), [products]);
+  // "Badge" needs the product-badges migration; until it has run it is not shown or saved.
+  const hasBadge = useMemo(() => products.some((product) => Object.prototype.hasOwnProperty.call(product, "badge")), [products]);
 
   const nextOrder = useMemo(() => products.reduce((max, product) => Math.max(max, Number(product.display_order || 0)), 0) + 10, [products]);
 
@@ -133,7 +136,7 @@ export default function AdminProductsPanel() {
       size_volume: product.size_volume || "", fragrance_family: product.fragrance_family || "",
       scent_profile: product.scent_profile || "", occasion: product.occasion || "",
       gallery_urls: Array.isArray(product.gallery_urls) ? product.gallery_urls : [],
-      active: Boolean(product.active), coming_soon: Boolean(product.coming_soon), audience: product.audience || "",
+      active: Boolean(product.active), coming_soon: Boolean(product.coming_soon), audience: product.audience || "", badge: product.badge || "",
       display_order: Number(product.display_order || 0),
     });
     replaceGallery(existingItems(product)); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
@@ -261,6 +264,7 @@ export default function AdminProductsPanel() {
         occasion: form.occasion.trim() || null,
         active: Boolean(form.active), display_order: Number(form.display_order || 0),
         ...(hasAvailability ? { coming_soon: Boolean(form.coming_soon), audience: form.audience || null } : {}),
+        ...(hasBadge ? { badge: form.badge || null } : {}),
         updated_at: new Date().toISOString(), updated_by: user?.id || null,
       };
       let result;
@@ -366,6 +370,14 @@ export default function AdminProductsPanel() {
                 <select id="product-audience" value={form.audience} onChange={(e) => setForm((p) => ({ ...p, audience: e.target.value }))} className={inputClass}>
                   <option value="">Not set</option>
                   {AUDIENCES.map((audience) => <option key={audience.id} value={audience.id}>{audience.id === "Unisex" ? "Unisex (everyone)" : audience.id}</option>)}
+                </select>
+              </Field>
+            )}
+            {hasBadge && (
+              <Field label="Badge" htmlFor="product-badge" hint="Shown on the perfume card, its page and its Jhalak. Signature: one of your 3–4 flagship scents. New: a recent launch. Not shown while coming soon.">
+                <select id="product-badge" value={form.badge} onChange={(e) => setForm((p) => ({ ...p, badge: e.target.value }))} className={inputClass}>
+                  <option value="">None</option>
+                  {Object.entries(BADGES).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
                 </select>
               </Field>
             )}
@@ -508,6 +520,7 @@ export default function AdminProductsPanel() {
                       </button>
                     )}
                     {product.audience && <span className="text-[11px] text-[var(--color-muted)]">{product.audience}</span>}
+                    {BADGES[product.badge] && <span className="rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]">{BADGES[product.badge]}</span>}
                     <AdminButton size="sm" variant="ghost" onClick={() => edit(product)} className="h-7"><Pencil className="h-3.5 w-3.5" />Edit</AdminButton>
                     <AdminButton size="sm" variant="ghost" onClick={() => removeProduct(product)} className="ml-auto h-7 text-red-600 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" />Delete</AdminButton>
                   </div>

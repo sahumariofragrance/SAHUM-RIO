@@ -2,7 +2,7 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { AlertCircle, Check, CheckCircle2, ChevronDown, Copy, Download, Gift, Loader2, Mail, MessageCircle, Phone, RotateCcw, Trash2, Truck, XCircle } from "lucide-react";
 import { updateAdminOrder } from "../../lib/adminOrders";
 import { formatINR } from "../../utils/money";
-import { AdminButton, Field, Notice, ORDER_FLOW, ORDER_STATUSES, StatusPill, inputClass } from "./AdminUI";
+import { AdminButton, Field, Notice, ORDER_FLOW, ORDER_STATUSES, StatusPill, inputClass, relativeTime } from "./AdminUI";
 
 // The next step offered for each status; anything else is under "Change status manually".
 const NEXT_ACTIONS = {
@@ -16,19 +16,6 @@ const EMAIL_RESULTS = {
   already_notified: "The customer was already emailed about this status.",
   status_unchanged: "Details saved.",
 };
-
-function relativeTime(value) {
-  if (!value) return "Date unavailable";
-  const date = new Date(value);
-  const minutes = Math.round((Date.now() - date.getTime()) / 60000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours} h ago`;
-  const days = Math.round(hours / 24);
-  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
-  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-}
 
 function shortId(id) {
   return String(id || "").replace(/^order_/, "");
