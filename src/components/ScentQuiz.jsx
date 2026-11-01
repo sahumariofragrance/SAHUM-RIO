@@ -4,15 +4,18 @@ import SafeImage from "./SafeImage";
 import { useCart } from "../context/cartContext";
 import { useProducts } from "../context/ProductsContext";
 import { useOffer } from "../lib/offers";
-import { QUESTIONS, noteList, rankPerfumes } from "../lib/scentQuiz";
+import { QUESTIONS, matchNotes, matchReasons, noteList, rankPerfumes } from "../lib/scentQuiz";
 import { shareScentCard } from "../lib/scentCard";
 import { bottlesOnly, isSampleSet } from "../lib/samples";
-import { forSale, isComingSoon } from "../lib/catalogue";
+import { TESTER, forSale, isComingSoon } from "../lib/catalogue";
+import { SET_SAVING, testersForSale } from "../lib/testerShop";
 import { whatsappLink } from "./WhatsAppButton";
 import { pixelContact } from "../lib/metaPixel";
 import { formatINR } from "../utils/money";
 
 const PICK_DELAY_MS = 220;
+// Matches shown under the best one.
+const MORE_MATCHES = 3;
 
 function Progress({ step }) {
   return (
@@ -58,14 +61,43 @@ function Question({ question, index, picked, onPick, onBack }) {
   );
 }
 
-function Result({ match, pair, alternative, sampleSet, perfumeCount, onViewProduct, onViewAlternative, onViewSampleSet, onGoToBag, onRetake }) {
+function Reasons({ product, answers, className = "" }) {
+  const reasons = matchReasons(product, answers);
+  if (!reasons.length) return null;
+  return <p className={className}>{reasons.join(" · ")}</p>;
+}
+
+/** One of the other matches: photo, name, its notes that fit the answers, price and Add. */
+function MoreMatch({ product, answers, inBag, onAdd, onView }) {
+  return (
+    <li className="flex items-center gap-3 py-3">
+      <button type="button" onClick={onView} className="relative aspect-[4/5] w-14 shrink-0 overflow-hidden rounded-lg bg-[var(--color-surface-muted)]" aria-label={`See ${product.name}`}>
+        <SafeImage src={product.image} alt="" sizes="56px" maxWidth={320} className="absolute inset-0 h-full w-full object-cover" />
+      </button>
+      <button type="button" onClick={onView} className="min-w-0 flex-1 text-left">
+        <span className="block font-serif text-xl leading-6">{product.name}</span>
+        {matchNotes(product, answers).length > 0 && <span className="mt-0.5 block truncate text-xs text-[var(--color-muted)]">{matchNotes(product, answers).join(" · ")}</span>}
+        <span className="mt-0.5 block text-xs tabular-nums">{formatINR(product.price)}{product.size_volume ? ` · ${product.size_volume}` : ""}</span>
+      </button>
+      {inBag ? (
+        <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-kesar)]">Added</span>
+      ) : (
+        <button type="button" onClick={onAdd} className="shrink-0 rounded-full border border-[var(--color-text)] px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] transition hover:bg-[var(--color-text)] hover:text-[var(--color-bg)]" aria-label={`Add ${product.name} to bag`}>
+          Add
+        </button>
+      )}
+    </li>
+  );
+}
+
+function Result({ match, more, jhalak, answers, sampleSet, perfumeCount, onView, onGoToBag, onRetake }) {
   const { items, addToCart } = useCart();
   const [sharing, setSharing] = useState("");
   const inBag = (product) => items.some((item) => item.product_id === product.id);
   const notes = noteList(match);
   const profile = String(match.scent_profile || match.description || "").split(/[.;]/)[0].trim();
   const offer = useOffer();
-  const showPair = pair && offer;
+  const jhalakInBag = jhalak.length > 0 && jhalak.every(inBag);
 
   async function share() {
     setSharing("working");
@@ -92,6 +124,7 @@ function Result({ match, pair, alternative, sampleSet, perfumeCount, onViewProdu
           ))}
         </ul>
       )}
+      <Reasons product={match} answers={answers} className="mt-3 text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]" />
 
       <div className="mt-6 grid gap-2.5">
         {isComingSoon(match) ? (
@@ -113,60 +146,63 @@ function Result({ match, pair, alternative, sampleSet, perfumeCount, onViewProdu
             <span>Add to bag</span><span>{formatINR(match.price)}</span>
           </button>
         )}
-        <button type="button" onClick={onViewProduct} className="h-10 text-[10px] font-semibold uppercase tracking-[0.16em] underline-offset-4 hover:underline">
+        <button type="button" onClick={() => onView(match)} className="h-10 text-[10px] font-semibold uppercase tracking-[0.16em] underline-offset-4 hover:underline">
           See {match.name} in detail
         </button>
-        {sampleSet && perfumeCount > 1 && (
-          <p className="text-center text-xs text-[var(--color-muted)]">
-            Can't decide?{" "}
-            <button type="button" onClick={onViewSampleSet} className="font-semibold text-[var(--color-text)] underline underline-offset-4 hover:opacity-75">
-              Try all {perfumeCount} in the {sampleSet.name} for {formatINR(sampleSet.price)}
-            </button>
-          </p>
-        )}
       </div>
 
-      {alternative && (
-        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-3">
-          <button type="button" onClick={onViewAlternative} className="relative aspect-[4/5] w-12 shrink-0 overflow-hidden rounded-lg bg-[var(--color-surface-muted)]" aria-label={`See ${alternative.name}`}>
-            <SafeImage src={alternative.image} alt="" sizes="48px" maxWidth={320} className="absolute inset-0 h-full w-full object-cover" />
-          </button>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium leading-5">Ready to order now: {alternative.name}</p>
-            <p className="text-xs leading-5 text-[var(--color-muted)]">Your closest match on sale today</p>
-          </div>
-          {inBag(alternative) ? (
-            <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-kesar)]">Added</span>
-          ) : (
-            <button type="button" onClick={() => addToCart(alternative)} className="shrink-0 rounded-full bg-[var(--color-kesar)] px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition hover:opacity-90">
-              Add
-            </button>
-          )}
-        </div>
+      {more.length > 0 && (
+        <section className="mt-5 border-t border-[var(--color-border)] pt-5" aria-labelledby="quiz-more-title">
+          <p id="quiz-more-title" className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">
+            {isComingSoon(match) ? "Ready to order now" : "Also for you"}
+          </p>
+          <ul className="mt-1 divide-y divide-[var(--color-border)]">
+            {more.map((product) => (
+              <MoreMatch key={product.id} product={product} answers={answers} inBag={inBag(product)} onAdd={() => addToCart(product)} onView={() => onView(product)} />
+            ))}
+          </ul>
+          {offer && <p className="mt-1 text-xs text-[var(--color-muted)]">{offer.label}: any 2 for {formatINR(offer.pairPrice)}, applied in your bag.</p>}
+        </section>
       )}
 
-      {showPair && (
-        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-3">
-          <div className="relative aspect-[4/5] w-12 shrink-0 overflow-hidden rounded-lg bg-[var(--color-surface-muted)]">
-            <SafeImage src={pair.image} alt="" sizes="48px" maxWidth={320} className="absolute inset-0 h-full w-full object-cover" />
+      {jhalak.length > 0 ? (
+        <section className="mt-5 rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-labelledby="quiz-jhalak-title">
+          <p id="quiz-jhalak-title" className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-kesar)]">Can’t decide?</p>
+          <p className="mt-1.5 font-serif text-xl leading-6">Try your top {jhalak.length} as Jhalak</p>
+          <div className="mt-3 flex -space-x-2" aria-hidden="true">
+            {jhalak.map((tester) => (
+              <span key={tester.id} className="relative h-11 w-9 overflow-hidden rounded-md border-2 border-[var(--color-surface)] bg-[var(--color-surface-muted)]">
+                <SafeImage src={tester.image} alt="" sizes="36px" maxWidth={320} className="absolute inset-0 h-full w-full object-cover" />
+              </span>
+            ))}
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium leading-5">Layer it with {pair.name}</p>
-            <p className="text-xs leading-5 text-[var(--color-muted)]">Any 2 for {formatINR(offer.pairPrice)} · {offer.label}</p>
-          </div>
-          {inBag(match) && inBag(pair) ? (
-            <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-kesar)]">Added</span>
+          <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">
+            {jhalak.map((tester) => tester.parent.name).join(" · ")}
+            <br />
+            {TESTER.ml} ml of each, {jhalak.length} for {formatINR(TESTER.bundlePrice)} · save {formatINR(SET_SAVING)}
+          </p>
+          {jhalakInBag ? (
+            <button type="button" onClick={onGoToBag} className="mt-3 flex h-11 w-full items-center justify-center gap-2 border border-[var(--color-text)] text-[10px] font-semibold uppercase tracking-[0.16em] transition hover:bg-[var(--color-text)] hover:text-[var(--color-bg)]">
+              <Check className="h-4 w-4" aria-hidden="true" /> In your bag · View bag
+            </button>
           ) : (
             <button
               type="button"
-              onClick={() => { if (!inBag(match)) addToCart(match); if (!inBag(pair)) addToCart(pair); }}
-              className="shrink-0 rounded-full bg-[var(--color-kesar)] px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition hover:opacity-90"
+              onClick={() => jhalak.forEach((tester) => { if (!inBag(tester)) addToCart(tester); })}
+              className="mt-3 flex h-11 w-full items-center justify-between bg-[var(--color-kesar)] px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition hover:opacity-90"
             >
-              Add both
+              <span>Add all {jhalak.length} Jhalak</span><span>{formatINR(TESTER.bundlePrice)}</span>
             </button>
           )}
-        </div>
-      )}
+        </section>
+      ) : sampleSet && perfumeCount > 1 ? (
+        <p className="mt-4 text-center text-xs text-[var(--color-muted)]">
+          Can't decide?{" "}
+          <button type="button" onClick={() => onView(sampleSet)} className="font-semibold text-[var(--color-text)] underline underline-offset-4 hover:opacity-75">
+            Try all {perfumeCount} in the {sampleSet.name} for {formatINR(sampleSet.price)}
+          </button>
+        </p>
+      ) : null}
 
       <div className="mt-6 flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-5">
         <button type="button" onClick={share} disabled={sharing === "working"} className="inline-flex items-center gap-2 rounded-full border border-[var(--color-text)] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition hover:bg-[var(--color-text)] hover:text-[var(--color-bg)] disabled:opacity-60">
@@ -181,7 +217,7 @@ function Result({ match, pair, alternative, sampleSet, perfumeCount, onViewProdu
   );
 }
 
-/** "Find your scent": three taps, then the perfume that matches them best. */
+/** "Find your scent": three taps, then the best match, the next best, and a Jhalak set of the top five. */
 export default function ScentQuiz({ open, onClose, onProductNavigate, onGoToBag }) {
   const { products } = useProducts();
   const [answers, setAnswers] = useState([]);
@@ -194,18 +230,22 @@ export default function ScentQuiz({ open, onClose, onProductNavigate, onGoToBag 
   const sampleSet = useMemo(() => products.find(isSampleSet) || null, [products]);
   // The discovery box holds the perfumes already made.
   const perfumeCount = useMemo(() => forSale(products).length, [products]);
-  // The best match may be coming soon: then the closest perfume on sale is
-  // offered too. A pair for the any-2 offer is only suggested from perfumes on sale.
-  const { match, pair, alternative } = useMemo(() => {
+  const testerOfPerfume = useMemo(() => new Map(testersForSale(products).map((tester) => [tester.parent.id, tester])), [products]);
+  // The best match (which may be coming soon), the next best perfumes on
+  // sale, and the top TESTER.bundleSize on sale as Jhalak for the set price.
+  const { match, more, jhalak } = useMemo(() => {
     if (!done) return {};
     const ranked = rankPerfumes(perfumes, answers);
     const best = ranked[0];
-    const onSale = ranked.filter((product) => !isComingSoon(product));
     if (!best) return {};
-    return isComingSoon(best)
-      ? { match: best, pair: null, alternative: onSale[0] || null }
-      : { match: best, pair: onSale.find((product) => product.id !== best.id) || null, alternative: null };
-  }, [done, perfumes, answers]);
+    const onSale = ranked.filter((product) => !isComingSoon(product));
+    const set = onSale.map((product) => testerOfPerfume.get(product.id)).filter(Boolean).slice(0, TESTER.bundleSize);
+    return {
+      match: best,
+      more: onSale.filter((product) => product.id !== best.id).slice(0, MORE_MATCHES),
+      jhalak: set.length === TESTER.bundleSize ? set : [],
+    };
+  }, [done, perfumes, answers, testerOfPerfume]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -247,14 +287,13 @@ export default function ScentQuiz({ open, onClose, onProductNavigate, onGoToBag 
           <Result
             key="result"
             match={match}
-            pair={pair}
-            alternative={alternative}
+            more={more}
+            jhalak={jhalak}
+            answers={answers}
             sampleSet={sampleSet}
             perfumeCount={perfumeCount}
             // Leaving for another page closes the quiz with the homepage.
-            onViewProduct={() => onProductNavigate?.(match)}
-            onViewAlternative={() => onProductNavigate?.(alternative)}
-            onViewSampleSet={() => onProductNavigate?.(sampleSet)}
+            onView={(product) => onProductNavigate?.(product)}
             onGoToBag={() => onGoToBag?.()}
             onRetake={() => setAnswers([])}
           />
