@@ -8,11 +8,14 @@ import ScentQuiz, { QuizInvite } from "../components/ScentQuiz";
 import SurpriseHint from "../components/SurpriseHint";
 import TesterEditBand from "../components/testers/TesterEditBand";
 import { forSale, productBadge } from "../lib/catalogue";
-import PerfumeSpotlightRail from "../components/ui/PerfumeSpotlightRail";
+import PerfumeSprayRail from "../components/ui/PerfumeSprayRail";
 import { formatINR } from "../utils/money";
 import { useProducts } from "../context/ProductsContext";
 
-// A short line about a perfume for the showcase caption.
+// How many perfumes the homepage shows; the rest are in the collection.
+const SHOWCASE_COUNT = 5;
+
+// A short line about a perfume for its card.
 function firstSentence(text) {
   return String(text || "").split(/(?<=[.!?])\s/)[0].trim();
 }
@@ -21,18 +24,30 @@ export default function HomePage({ onProductNavigate, setCurrentPage, openQuiz =
   const { products: catalogueProducts, loading } = useProducts();
   // sahumario.com/quiz opens the homepage with the quiz already showing.
   const [quizOpen, setQuizOpen] = useState(openQuiz);
-  // The homepage shows the perfumes; they are bought from the collection and their own pages.
-  const showcase = useMemo(() => forSale(catalogueProducts).map((product) => ({
+  // The homepage shows the first five perfumes (Admin → Catalogue order); they
+  // are bought from the collection and their own pages.
+  const onSale = useMemo(() => forSale(catalogueProducts), [catalogueProducts]);
+  const showcase = useMemo(() => onSale.slice(0, SHOWCASE_COUNT).map((product) => ({
     id: product.id,
     name: product.name,
     href: `/product/${product.slug}`,
     image: product.image,
     alt: product.alt,
-    eyebrow: productBadge(product)?.label,
+    badge: productBadge(product)?.label,
     description: firstSentence(product.scent_profile || product.description),
-    meta: [product.fragrance_family, `${formatINR(product.price)}${product.size_volume ? ` · ${product.size_volume}` : ""}`].filter(Boolean).join(" · "),
+    meta: `${formatINR(product.price)}${product.size_volume ? ` · ${product.size_volume}` : ""}`,
     product,
-  })), [catalogueProducts]);
+  })), [onSale]);
+  const shopAll = (
+    <SpaLink
+      href="/perfumes"
+      onNavigate={() => setCurrentPage?.("perfumes")}
+      className="group inline-flex items-center gap-3 border-b border-current pb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] transition-opacity hover:opacity-70"
+    >
+      {onSale.length > SHOWCASE_COUNT ? `Shop all ${onSale.length} perfumes` : "Shop the collection"}
+      <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+    </SpaLink>
+  );
   // Also when coming back to /quiz with the browser's back button.
   useEffect(() => { if (openQuiz) setQuizOpen(true); }, [openQuiz]);
   const closeQuiz = useCallback(() => {
@@ -57,28 +72,29 @@ export default function HomePage({ onProductNavigate, setCurrentPage, openQuiz =
         <SurpriseHint />
         <PromoTicket />
       </div>
-    </div>
 
-    <PerfumeSpotlightRail
-      id="collection"
-      className="scroll-mt-24"
-      items={showcase}
-      loading={loading}
-      eyebrow="The SAHUMäRIO gallery"
-      heading="Every perfume, in its own light."
-      onOpen={(item) => onProductNavigate?.(item.product)}
-      action={
-        <SpaLink
-          href="/perfumes"
-          onNavigate={() => setCurrentPage?.("perfumes")}
-          className="group inline-flex h-11 items-center gap-2.5 rounded-full bg-[#E9D3A4] px-6 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#06141B] transition hover:bg-[#F3E3BE]"
-        >
-          Shop the collection <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-        </SpaLink>
-      }
-    />
+      <section id="collection" className="scroll-mt-24 pb-24 md:pb-32" aria-labelledby="favourites-title">
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--color-kesar)]">The house favourites</p>
+            <h2 id="favourites-title" className="mt-3 font-serif text-[clamp(2rem,3.4vw,2.75rem)] font-normal leading-none tracking-[-0.01em]">Five to begin with</h2>
+            <p className="mt-3 text-sm text-[var(--color-muted)]">
+              <span className="[@media(hover:hover)]:hidden">Swipe along: each bottle sprays as it reaches the middle.</span>
+              <span className="hidden [@media(hover:hover)]:inline">Hover over a bottle to spray it.</span>
+            </p>
+          </div>
+          <div className="hidden sm:block">{shopAll}</div>
+        </div>
+        <PerfumeSprayRail
+          className="mt-8"
+          aria-label="Five SAHUMäRIO perfumes"
+          items={showcase}
+          loading={loading}
+          onOpen={(item) => onProductNavigate?.(item.product)}
+        />
+        <div className="mt-8 flex justify-center sm:hidden">{shopAll}</div>
+      </section>
 
-    <div className="mx-auto max-w-[1440px] px-5 pt-24 sm:px-8 md:px-12 md:pt-32">
       <TesterEditBand onOpen={() => setCurrentPage?.("testers")} />
 
       <div className="mb-24 flex flex-col items-center gap-5 text-center md:mb-32">
