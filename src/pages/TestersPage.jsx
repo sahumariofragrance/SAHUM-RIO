@@ -31,8 +31,6 @@ export default function TestersPage({ setCurrentPage, onProductNavigate }) {
           Jhalak means a glimpse. Every SAHUMäRIO perfume in a {TESTER.ml} ml spray: wear it for a few days, let it settle on your skin, then choose the bottle that feels like you.
         </p>
         <div className="mx-auto mt-8 inline-flex flex-wrap items-center justify-center gap-x-6 gap-y-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3 text-sm">
-          <span><strong className="font-semibold">{formatINR(TESTER.price)}</strong> <span className="text-[var(--color-muted)]">each</span></span>
-          <span className="hidden h-4 w-px bg-[var(--color-border)] sm:block" aria-hidden="true" />
           <span><strong className="font-semibold">Any {TESTER.bundleSize} for {formatINR(TESTER.bundlePrice)}</strong> <span className="text-[var(--color-muted)]">· save {formatINR(SET_SAVING)}</span></span>
         </div>
         <p className="mt-3 text-xs text-[var(--color-muted)]">The set price is applied automatically in your bag, for our sets and for your own mix.</p>
