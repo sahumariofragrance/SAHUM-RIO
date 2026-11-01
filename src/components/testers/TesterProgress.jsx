@@ -1,18 +1,29 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { TESTER } from "../../lib/catalogue";
 import { testerSetSaving, testerUnits } from "../../lib/testerShop";
 import { formatINR } from "../../utils/money";
 
 /** Bar at the bottom of the Jhalak page: how close the bag is to a set price. */
-export default function TesterProgress({ items, onViewBag }) {
+export default function TesterProgress({ items, onViewBag, actionLabel = "View bag" }) {
   const units = testerUnits(items);
+  const bar = useRef(null);
+  // While the bar shows, --bottom-bar holds its height so floating buttons
+  // (WhatsApp) sit above it instead of covering its button.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!units || !bar.current) { root.style.removeProperty("--bottom-bar"); return undefined; }
+    const set = () => root.style.setProperty("--bottom-bar", `${bar.current?.offsetHeight || 0}px`);
+    set();
+    window.addEventListener("resize", set);
+    return () => { window.removeEventListener("resize", set); root.style.removeProperty("--bottom-bar"); };
+  }, [units]);
   if (!units) return null;
   const saving = testerSetSaving(items);
   const inSet = units % TESTER.bundleSize;
   const more = inSet ? TESTER.bundleSize - inSet : 0;
   const filled = inSet || TESTER.bundleSize;
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)]" role="status">
+    <div ref={bar} className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)]" role="status">
       <div className="mx-auto flex max-w-[1440px] items-center gap-4 sm:px-4 md:px-8">
         <div className="min-w-0 flex-1">
           <div className="flex gap-1" aria-hidden="true">
@@ -26,7 +37,7 @@ export default function TesterProgress({ items, onViewBag }) {
             {saving > 0 && <span className="text-green-600"> · set price applied, you save {formatINR(saving)}</span>}
           </p>
         </div>
-        <button type="button" onClick={onViewBag} className="shrink-0 rounded-full bg-[var(--color-text)] px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-bg)] hover:opacity-85">View bag</button>
+        <button type="button" onClick={onViewBag} className="shrink-0 rounded-full bg-[var(--color-text)] px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-bg)] hover:opacity-85">{actionLabel}</button>
       </div>
     </div>
   );

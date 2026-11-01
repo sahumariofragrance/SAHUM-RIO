@@ -160,6 +160,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/jhalak-set",
+      "destination": "/index.html"
+    },
+    {
       "source": "/quiz",
       "destination": "/index.html"
     },
