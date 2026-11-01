@@ -1,14 +1,15 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import ProductGrid from "../components/ProductGrid";
 import AudienceFilter from "../components/AudienceFilter";
 import { onSaleFirst } from "../lib/catalogue";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
+import { useRememberedAudience } from "../lib/useAudience";
 
 export default function PerfumesPage({ onProductNavigate }) {
   const { items, addToCart, updateQty } = useCart();
   const { products: catalogueProducts, loading } = useProducts();
-  const [audience, setAudience] = useState("all");
+  const [audience, setAudience] = useRememberedAudience("perfumes", catalogueProducts);
 
   const itemQtyById = useMemo(() => items.reduce((acc, item) => {
     acc[item.product_id] = item.qty;
