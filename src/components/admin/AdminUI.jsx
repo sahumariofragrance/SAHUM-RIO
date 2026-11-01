@@ -59,6 +59,20 @@ export function AdminButton({ variant = "secondary", size = "md", className = ""
   );
 }
 
+// "Just now", "5 min ago", "3 h ago", "2 days ago", then the date.
+export function relativeTime(value) {
+  if (!value) return "Date unavailable";
+  const date = new Date(value);
+  const minutes = Math.round((Date.now() - date.getTime()) / 60000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
 export function StatTile({ label, value, sub, tone }) {
   return (
     <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">

@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabase";
 import { useProducts } from "../../context/ProductsContext";
 import { AdminButton, StatTile } from "./AdminUI";
 import { pageName } from "./pageNames";
+import AdminLoginsCard from "./AdminLoginsCard";
 
 const RANGES = [7, 30, 90];
 
@@ -238,6 +239,7 @@ export default function AdminAnalyticsPanel() {
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ready | missing | error
   const [loading, setLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -286,7 +288,7 @@ export default function AdminAnalyticsPanel() {
               </button>
             ))}
           </div>
-          <AdminButton variant="secondary" onClick={load} disabled={loading} aria-label="Refresh analytics">
+          <AdminButton variant="secondary" onClick={() => { load(); setRefreshKey((k) => k + 1); }} disabled={loading} aria-label="Refresh analytics">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           </AdminButton>
         </div>
@@ -325,6 +327,8 @@ export default function AdminAnalyticsPanel() {
           <Card title="Visitors per day" subtitle="Hover or tap a day for its numbers">
             <DailyChart daily={data.daily} />
           </Card>
+
+          <AdminLoginsCard days={days} refreshKey={refreshKey} />
 
           <div className="grid gap-5 lg:grid-cols-2">
             <Card title="Shopping journey" subtitle="Visits that reached each step">
