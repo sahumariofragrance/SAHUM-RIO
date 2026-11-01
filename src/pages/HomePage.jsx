@@ -12,7 +12,9 @@ import AudienceFilter from "../components/AudienceFilter";
 import { onSaleFirst } from "../lib/catalogue";
 import { useProducts } from "../context/ProductsContext";
 import { useCart } from "../context/cartContext";
+import { useRememberedAudience } from "../lib/useAudience";
 
+const SORT_KEY = "sahumario-sort-home";
 const SORTS = {
   featured: { label: "Featured", compare: null },
   "price-asc": { label: "Price: low to high", compare: (a, b) => a.price - b.price },
@@ -23,8 +25,15 @@ const SORTS = {
 export default function HomePage({ onProductNavigate, setCurrentPage, openQuiz = false }) {
   const { items, addToCart, updateQty } = useCart();
   const { products: catalogueProducts, loading } = useProducts();
-  const [sort, setSort] = useState("featured");
-  const [audience, setAudience] = useState("all");
+  // Remembered for the visit, like the "For" filter, so coming back from a perfume keeps it.
+  const [sort, setSortState] = useState(() => {
+    try { const saved = sessionStorage.getItem(SORT_KEY); return SORTS[saved] ? saved : "featured"; } catch { return "featured"; }
+  });
+  const setSort = useCallback((value) => {
+    setSortState(value);
+    try { sessionStorage.setItem(SORT_KEY, value); } catch { /* private mode */ }
+  }, []);
+  const [audience, setAudience] = useRememberedAudience("home", catalogueProducts);
   // sahumario.com/quiz opens the homepage with the quiz already showing.
   const [quizOpen, setQuizOpen] = useState(openQuiz);
   const itemQtyById = useMemo(() => items.reduce((acc, item) => { acc[item.product_id] = item.qty; return acc; }, {}), [items]);

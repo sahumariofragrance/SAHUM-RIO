@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import AudienceFilter from "../components/AudienceFilter";
 import TesterSetCard from "../components/testers/TesterSetCard";
 import TesterCard from "../components/testers/TesterCard";
@@ -8,13 +8,14 @@ import { useProducts } from "../context/ProductsContext";
 import { TESTER } from "../lib/catalogue";
 import { SET_SAVING, testerSetsForSale, testersForSale } from "../lib/testerShop";
 import { formatINR } from "../utils/money";
+import { useRememberedAudience } from "../lib/useAudience";
 
 /** sahumario.com/jhalak: Jhalak (10 ml testers), one by one or in sets of five. */
 export default function TestersPage({ setCurrentPage, onProductNavigate }) {
   const { products, loading } = useProducts();
   const { items, addToCart, updateQty } = useCart();
-  const [audience, setAudience] = useState("all");
   const testers = useMemo(() => testersForSale(products), [products]);
+  const [audience, setAudience] = useRememberedAudience("jhalak", testers);
   const sets = useMemo(() => testerSetsForSale(products), [products]);
   const shown = useMemo(() => testers.filter((tester) => audience === "all" || tester.audience === audience), [testers, audience]);
   const qtyOf = useCallback((id) => items.find((item) => item.product_id === id)?.qty || 0, [items]);
