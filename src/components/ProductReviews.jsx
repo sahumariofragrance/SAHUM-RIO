@@ -2,6 +2,19 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Star, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
+import { ReviewPhotoPicker, ReviewPhotoThumbs, ReviewPhotoViewer, photoForUpload, reviewPhotoUrl } from "./ReviewPhotos";
+
+// A review's photos for the thumbnails and the viewer.
+function photosOf(review) {
+  const stars = "★".repeat(Math.max(0, Math.min(5, Number(review.rating) || 0)));
+  return (Array.isArray(review.photos) ? review.photos : []).map((path) => ({
+    key: path,
+    src: reviewPhotoUrl(path),
+    by: review.display_name,
+    alt: `Photo by ${review.display_name || "a customer"}`,
+    caption: `${review.display_name || "Customer"} · ${stars}`,
+  }));
+}
 
 function StarRow({ value, onChange, size = "h-5 w-5", interactive = false, label = "Rating" }) {
   return (
@@ -43,11 +56,13 @@ export default function ProductReviews({ product, onSummary }) {
   const [showAll, setShowAll] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [viewer, setViewer] = useState(null); // { photos, index } while a photo is open
   const [form, setForm] = useState({
     displayName: "",
     rating: 5,
     title: "",
     body: "",
+    photos: [],
   });
 
   const ownReview = useMemo(() => reviews.find((review) => review.is_own) || null, [reviews]);
@@ -113,6 +128,7 @@ export default function ProductReviews({ product, onSummary }) {
         rating: Number(ownReview.rating || 5),
         title: ownReview.title || "",
         body: ownReview.body || "",
+        photos: (Array.isArray(ownReview.photos) ? ownReview.photos : []).map((path) => ({ key: path, path })),
       });
       return;
     }
@@ -159,6 +175,7 @@ export default function ProductReviews({ product, onSummary }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error("Your review session expired. Please try again.");
 
+      const photos = await Promise.all(form.photos.map(photoForUpload));
       const response = await fetch("/api/reviews/upsert", {
         method: "POST",
         headers: {
@@ -171,17 +188,19 @@ export default function ProductReviews({ product, onSummary }) {
           rating: Number(form.rating),
           title: title.slice(0, 100),
           body: body.slice(0, 1200),
+          photos,
         }),
       });
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.message || "Your review could not be saved.");
+      form.photos.forEach((item) => item.preview && URL.revokeObjectURL(item.preview));
 
       setMessage(ownReview ? "Your review has been updated." : "Thank you — your review is now live.");
       await loadReviews();
     } catch (saveError) {
       console.error("[reviews] save failed", saveError?.message);
-      setError("Your review could not be saved. Please try again.");
+      setError(saveError?.message && !/session/i.test(saveError.message) ? saveError.message : "Your review could not be saved. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -212,7 +231,7 @@ export default function ProductReviews({ product, onSummary }) {
     if (deleteError) {
       setError(deleteError.message || "Your review could not be deleted.");
     } else {
-      setForm((current) => ({ ...current, rating: 5, title: "", body: "" }));
+      setForm((current) => ({ ...current, rating: 5, title: "", body: "", photos: [] }));
       setMessage("Your review has been deleted.");
       await loadReviews();
     }
@@ -252,6 +271,8 @@ export default function ProductReviews({ product, onSummary }) {
   }
 
   const visibleReviews = showAll ? reviews : reviews.slice(0, 3);
+  const customerPhotos = useMemo(() => reviews.flatMap(photosOf), [reviews]);
+  const newPhotos = form.photos.some((item) => item.blob);
   const formOpen = showForm || Boolean(message) || Boolean(error && !reviews.length);
   const inputClass = "mt-2 w-full font-normal normal-case tracking-normal text-[var(--color-text)] border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-sm outline-none focus:border-[var(--color-text)]";
 
@@ -315,6 +336,8 @@ export default function ProductReviews({ product, onSummary }) {
             <textarea value={form.body} onChange={(event) => setForm({ ...form, body: event.target.value })} minLength={5} maxLength={1200} required rows={4} placeholder="Tell others what it was like to wear this fragrance." className={`${inputClass} resize-y leading-6`} />
           </label>
 
+          <ReviewPhotoPicker value={form.photos} onChange={(photos) => setForm((current) => ({ ...current, photos }))} disabled={saving} />
+
           {error && <p className="mt-4 text-sm text-red-600" role="alert">{error}</p>}
           {message && <p className="mt-4 text-sm text-green-700" role="status">{message}</p>}
 
@@ -323,7 +346,7 @@ export default function ProductReviews({ product, onSummary }) {
             disabled={saving}
             className="mt-5 h-11 bg-[var(--color-text)] px-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-bg)] transition-opacity hover:opacity-85 disabled:opacity-50"
           >
-            {saving ? "Saving…" : ownReview ? "Update review" : "Post review"}
+            {saving ? (newPhotos ? "Uploading photos…" : "Saving…") : ownReview ? "Update review" : "Post review"}
           </button>
         </form>
       )}
@@ -336,6 +359,17 @@ export default function ProductReviews({ product, onSummary }) {
         !formOpen && <p className="mt-6 text-sm text-[var(--color-muted)]">No reviews yet. Be the first to share how it wears.</p>
       ) : (
         <>
+          {customerPhotos.length > 0 && (
+            <div className="mt-8">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">Customer photos · {customerPhotos.length}</p>
+              <ReviewPhotoThumbs
+                photos={customerPhotos.slice(0, 12)}
+                label="Customer photos"
+                onOpen={(index) => setViewer({ photos: customerPhotos, index })}
+                className="mt-3"
+              />
+            </div>
+          )}
           <div className="mt-8 grid gap-x-10 gap-y-8 md:grid-cols-3">
             {visibleReviews.map((review) => (
               <article key={review.id} className="border-t border-[var(--color-border)] pt-5">
@@ -355,6 +389,12 @@ export default function ProductReviews({ product, onSummary }) {
                 </div>
                 {review.title && <h3 className="mt-3 font-serif text-lg font-normal">{review.title}</h3>}
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--color-muted)]">{review.body}</p>
+                <ReviewPhotoThumbs
+                  photos={photosOf(review)}
+                  label={`Photos by ${review.display_name}`}
+                  onOpen={(index) => setViewer({ photos: photosOf(review), index })}
+                  className="mt-3"
+                />
                 <p className="mt-3 text-[11px] text-[var(--color-muted)]">
                   {review.display_name} · {new Date(review.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                 </p>
@@ -370,6 +410,15 @@ export default function ProductReviews({ product, onSummary }) {
       )}
 
       {error && reviews.length > 0 && !formOpen && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+      {viewer && (
+        <ReviewPhotoViewer
+          photos={viewer.photos}
+          index={viewer.index}
+          onIndex={(index) => setViewer((current) => (current ? { ...current, index } : current))}
+          onClose={() => setViewer(null)}
+        />
+      )}
     </section>
   );
 }
