@@ -5,6 +5,7 @@ const PAGE_NAMES = {
   "/about": "About",
   "/bulk-orders": "Bulk orders",
   "/jhalak": "Jhalak",
+  "/jhalak-set": "Jhalak set ad page",
   "/cart": "Bag",
   "/checkout": "Checkout",
   "/login": "Log in",

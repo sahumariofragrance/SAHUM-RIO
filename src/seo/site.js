@@ -47,6 +47,13 @@ export const PAGE_META = {
     priority: "0.8",
     changefreq: "weekly",
   },
+  "jhalak-set": {
+    path: "/jhalak-set",
+    title: "Jhalak Set — Try 5 SAHUMäRIO Perfumes for ₹549",
+    description: "Not sure which perfume is yours? Try five SAHUMäRIO Eau de Parfum in 10 ml sprays for ₹549, delivered free across India, then choose your bottle.",
+    priority: "0.7",
+    changefreq: "weekly",
+  },
   "bulk-orders": {
     path: "/bulk-orders",
     title: "Bulk Perfume Orders & Corporate Gifting — SAHUMäRIO®",
