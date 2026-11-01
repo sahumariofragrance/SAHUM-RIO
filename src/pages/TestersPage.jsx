@@ -36,6 +36,7 @@ export default function TestersPage({ setCurrentPage, onProductNavigate }) {
           <span><strong className="font-semibold">Any {TESTER.bundleSize} for {formatINR(TESTER.bundlePrice)}</strong> <span className="text-[var(--color-muted)]">· save {formatINR(SET_SAVING)}</span></span>
         </div>
         <p className="mt-3 text-xs text-[var(--color-muted)]">The set price is applied automatically in your bag, for our sets and for your own mix.</p>
+        {TESTER.setReward && <p className="mx-auto mt-4 max-w-md text-sm leading-6"><span className="font-semibold">A thank-you with every set:</span> we email you a personal code for {TESTER.setReward.percent}% off your 50 ml bottle.</p>}
       </header>
 
       {sets.length > 0 && (
@@ -81,7 +82,7 @@ export default function TestersPage({ setCurrentPage, onProductNavigate }) {
           </div>
           <div>
             <dt className="text-[10px] font-semibold uppercase tracking-[0.16em]">Any {TESTER.bundleSize} for {formatINR(TESTER.bundlePrice)}</dt>
-            <dd className="mt-2 text-[var(--color-muted)]">{formatINR(TESTER.price)} each, or {formatINR(TESTER.bundlePrice)} for every {TESTER.bundleSize}. The price changes by itself in your bag.</dd>
+            <dd className="mt-2 text-[var(--color-muted)]">{formatINR(TESTER.price)} each, or {formatINR(TESTER.bundlePrice)} for every {TESTER.bundleSize}. The price changes by itself in your bag.{TESTER.setReward && ` Every set also earns a ${TESTER.setReward.percent}% code for your 50 ml bottle, sent by email (one use, ${TESTER.setReward.validDays} days).`}</dd>
           </div>
           <div>
             <dt className="text-[10px] font-semibold uppercase tracking-[0.16em]">Free delivery</dt>

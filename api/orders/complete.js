@@ -4,7 +4,8 @@ const crypto = require("crypto");
 const Razorpay = require("razorpay");
 const { createClient } = require("@supabase/supabase-js");
 const { requireCustomer } = require("../_lib/customerAuth");
-const { sendOrderReceived, sendNewOrderAlert } = require("../_lib/email");
+const { sendOrderReceived, sendNewOrderAlert, sendJhalakReward } = require("../_lib/email");
+const { issueJhalakReward } = require("../_lib/jhalakReward");
 const { setJsonSecurityHeaders, enforceJsonRequest, enforceRateLimit } = require("../_lib/security");
 
 let razorpayClient = null;
@@ -156,6 +157,10 @@ module.exports = async (req, res) => {
       await Promise.all([
         sendOrderReceived(order).catch((emailError) => console.error("[orders/complete] receipt email failed", emailError.message)),
         sendNewOrderAlert(order).catch((emailError) => console.error("[orders/complete] new order alert failed", emailError.message)),
+      // A Jhalak set earns a thank-you code by email (api/_lib/jhalakReward.js).
+      issueJhalakReward(serviceClient, order)
+        .then((reward) => reward && sendJhalakReward(order, reward))
+        .catch((rewardError) => console.error("[orders/complete] Jhalak reward failed", rewardError.message)),
       ]);
     }
 

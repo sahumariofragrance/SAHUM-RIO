@@ -25,7 +25,7 @@ export default function TesterSetCard({ set, onAdd, compact = false }) {
             <span className="text-sm text-[var(--color-muted)] line-through">{formatINR(full)}</span>
             <span className="text-xs font-semibold text-green-600">Save {formatINR(full - TESTER.bundlePrice)}</span>
           </p>
-          <p className="mt-0.5 text-xs text-[var(--color-muted)]">{set.testers.length} Jhalak × {TESTER.ml} ml</p>
+          <p className="mt-0.5 text-xs text-[var(--color-muted)]">{set.testers.length} Jhalak × {TESTER.ml} ml{TESTER.setReward && <> · <span className="text-[var(--color-text)]">+ {TESTER.setReward.percent}% off your 50 ml bottle, by email</span></>}</p>
           <button
             type="button"
             onClick={() => { onAdd(set); setAdded(true); }}

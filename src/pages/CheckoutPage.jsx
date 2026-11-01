@@ -17,7 +17,8 @@ import { comboDiscount, useOffer } from "../lib/offers";
 import { bottlesOnly } from "../lib/samples";
 import { WHEEL, markSpinUsed, prizeUseBy, savedSpin, saveSpin, spinLater, spinPutOff, useSpinWheelOpen } from "../lib/spinWheel";
 import { otherTesters, suggestTesters } from "../lib/testers";
-import { isTester } from "../lib/catalogue";
+import { TESTER, isTester } from "../lib/catalogue";
+import { testerUnits } from "../lib/testerShop";
 import { formatINR } from "../utils/money";
 import { loadRazorpayScript, openRazorpayCheckout, isTestMode } from "../lib/razorpay";
 import { paymentLog, friendlyPaymentError } from "../lib/paymentLogger";
@@ -58,6 +59,8 @@ export default function CheckoutPage({ setCurrentPage }) {
   const [testersSkipped, setTestersSkipped] = useState(false);
   const [testerError, setTesterError] = useState("");
   const [packedTesters, setPackedTesters] = useState([]);
+  // The paid order had a Jhalak set, so a thank-you code is on its way by email.
+  const [rewardComing, setRewardComing] = useState(false);
   const prize = spin && !spin.used ? spin : null;
   const hasBottle = bottlesOnly(items).length > 0;
   const canSpin = wheelOn && !spin && hasBottle;
@@ -255,6 +258,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       trackEvent("purchase", { value: total });
       pixelPurchase(items, total, completed.id);
       forgetSavedCode();
+      setRewardComing(Boolean(TESTER.setReward) && testerUnits(items) >= TESTER.bundleSize);
       // The spin prize is used once the order is paid with it.
       if (prize && ((useCode && discount.code === prize.code) || sendTesters)) {
         if (sendTesters) setPackedTesters(testerChoices.filter((product) => testerPicks.includes(Number(product.id))).map((product) => product.name));
@@ -274,6 +278,7 @@ export default function CheckoutPage({ setCurrentPage }) {
       <h1 ref={successRef} tabIndex={-1} className="mt-6 text-3xl font-semibold outline-none">Payment successful</h1>
       <p className="mt-3 text-[var(--color-muted)]">Your payment was verified and your order is now waiting for SAHUMäRIO review.</p>
       {packedTesters.length > 0 && <p className="mt-2 text-sm">Your free {WHEEL.testerMl} ml Jhalak, {packedTesters.join(" and ")}, will be packed with it.</p>}
+      {rewardComing && <p className="mt-2 text-sm">A thank-you for your Jhalak set: check your email for a code worth {TESTER.setReward.percent}% off your 50 ml bottle.</p>}
       {guestCheckout && <p className="mt-2 text-sm text-[var(--color-muted)]">We’ll send order updates to the email you provided. Keep your order number for reference.</p>}
       {confirmedOrderId && <p className="mt-2 font-mono text-xs text-[var(--color-muted)]">Order ID: {confirmedOrderId}</p>}
       <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

@@ -3,7 +3,8 @@
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
 const { createClient } = require("@supabase/supabase-js");
-const { sendOrderReceived, sendNewOrderAlert } = require("../../_lib/email");
+const { sendOrderReceived, sendNewOrderAlert, sendJhalakReward } = require("../../_lib/email");
+const { issueJhalakReward } = require("../../_lib/jhalakReward");
 
 function timingSafeHexEqual(a, b) {
   if (!/^[a-f0-9]{64}$/i.test(a || "") || !/^[a-f0-9]{64}$/i.test(b || "")) return false;
@@ -127,6 +128,10 @@ module.exports = async (req, res) => {
         await Promise.all([
           sendOrderReceived(order).catch((emailError) => console.error("[razorpay/webhook] receipt email failed", emailError.message)),
           sendNewOrderAlert(order).catch((emailError) => console.error("[razorpay/webhook] new order alert failed", emailError.message)),
+        // A Jhalak set earns a thank-you code by email (api/_lib/jhalakReward.js).
+        issueJhalakReward(serviceClient, order)
+          .then((reward) => reward && sendJhalakReward(order, reward))
+          .catch((rewardError) => console.error("[razorpay/webhook] Jhalak reward failed", rewardError.message)),
         ]);
       }
       return res.status(200).json({ received: true, finalized: Boolean(order?.id), replay: !created });

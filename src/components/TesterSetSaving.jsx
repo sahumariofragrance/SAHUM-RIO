@@ -16,12 +16,21 @@ export default function TesterSetSaving({ saving, className = "" }) {
 
 /** With 1–4 Jhalak in the bag: how many more make a set at the set price. */
 export function TesterSetNudge({ items, className = "", onMore }) {
-  const left = testerUnits(items) % TESTER.bundleSize;
+  const units = testerUnits(items);
+  const left = units % TESTER.bundleSize;
+  // A full set: say what it earns after the order.
+  if (!left && units && TESTER.setReward) {
+    return (
+      <p className={`rounded-xl border border-dashed border-[var(--color-kesar)] px-3 py-2 text-xs leading-5 ${className}`}>
+        Your Jhalak set earns a thank-you: after this order we email you a code for {TESTER.setReward.percent}% off your 50 ml bottle.
+      </p>
+    );
+  }
   if (!left) return null;
   const more = TESTER.bundleSize - left;
   return (
     <p className={`rounded-xl border border-dashed border-[var(--color-kesar)] px-3 py-2 text-xs leading-5 ${className}`}>
-      Add {more} more Jhalak: any {TESTER.bundleSize} are {formatINR(TESTER.bundlePrice)} together.{" "}
+      Add {more} more Jhalak: any {TESTER.bundleSize} are {formatINR(TESTER.bundlePrice)} together{TESTER.setReward ? `, and you get ${TESTER.setReward.percent}% off your 50 ml bottle by email` : ""}.{" "}
       {onMore && <button type="button" onClick={onMore} className="font-semibold underline underline-offset-4 hover:opacity-75">Choose Jhalak</button>}
     </p>
   );
